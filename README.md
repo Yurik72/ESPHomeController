@@ -25,3 +25,35 @@ Second and maybe last major element is **trigger** . It define interaction betwe
 2.  Additionally to previos you want to control your *Relay* by *Light sensor* . Yo need to add LDRController to listen wired LDR. Web and Home will automatically detect this and you can see your lumens over the or Home Kit). But you can configure LDR to Realy trigger with barier values, and than when LDR is higher that barier trigger will send command to Relay to switch off or vice verse..
 3. More and more examples and combination within services and triggers...will come
 
+
+### Used External Libraries
+
+This project uses libraries and code by different authors:
+
+- [WiFiManager](https://github.com/tzapu/WiFiManager) by tzapu (tested with version 0.12.0)
+
+- [WS2812FX](https://github.com/kitesurfer1404/WS2812FX) by kitesurfer1404 (tested with version downloaded 2017-02-05)
+
+
+
+- [Adafruit NeoPixel](https://github.com/adafruit/Adafruit_NeoPixel) by adafruit (tested with 1.1.2)
+
+
+Parts of the code were taken or inspired by the following sources:
+
+ - [SPIFFS Webserver](https://github.com/esp8266/Arduino/tree/master/libraries/ESP8266WebServer/examples/FSBrowser) by Hristo Gochkov
+ This part is adapted fo the following following staff:
+	 
+	 - Supports ESP32 file system
+	 - Enhanced filebrowse.html
+	 - "Prefly" request and headers for cross domain areas
+
+Thank you to all the authors for distributing their software that way.
+I hope I didn't miss any sources and mentioned every author. In case I forgot someone please let me know and I will fix it.
+
+**Goals are reached :**
+
+ - Adapted *ESP8266HTTPUpdateServer* , now it's supports ESP32. Have a look of *ESP32HTTPUpdateServer.h/cpp* implementatation;
+ - Second core of ESP32 can be used with proper service configuration. Now a few services can run on second core of ESP32;
+ - Built-in web site implemented on React js, and browser content is very fast, compatible with native mobile application, Thanks to React developers;
+- Sketch can be compiled within VS 2017, by using  [Arduino IDE for Visual Studio](https://marketplace.visualstudio.com/items?itemName=VisualMicro.ArduinoIDEforVisualStudio)
