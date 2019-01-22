@@ -41,9 +41,12 @@ void Controllers::setup() {
 
 	this->loadconfig();
 	connectmqtt();
-	for (int i = 0; i < this->GetSize(); i++)
-		this->GetAt(i)->setup();
-
+	for (int i = 0; i < this->GetSize(); i++) {
+		CBaseController* ctl = this->GetAt(i);
+		ctl->setup();
+		if (ctl->ispersiststate()) ctl->loadstate();
+		ctl->set_power_on();
+	}
 }
 void Controllers::loadconfig() {
 	String filename = "/services.json";

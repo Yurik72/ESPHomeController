@@ -11,7 +11,7 @@
 #include <WebServer.h>
 #include <ESPmDNS.h>
 #endif
-
+#include "Utilities.h"
 #include "Array.h"
 #define MAXLEN_NAME 30
 #if !defined(ESP8266)
@@ -26,6 +26,8 @@ enum CmdSource
 	srcSelf = 3
 };
 enum BaseCMD :uint {
+	BaseOn=1,
+	BaseOff=2,
 	BaseSetRestore = 2048
 };
 class CBaseController
@@ -66,10 +68,16 @@ public:
 	bool get_iscore() { return isCore; };
 	short get_core() { return core; };
 	short get_priority() { return priority; };
+	virtual bool ispersiststate() { return false; }
+	virtual void savestate() ;
+	virtual bool loadstate()=0;
+	virtual String get_filename_state();
+	virtual void set_power_on() {};
 protected:
 	
 	char name[MAXLEN_NAME];
 	unsigned long interval;
+	
 	// Last runned time in Ms
 private:
 	unsigned long last_run;
@@ -96,7 +104,11 @@ public:
 		P   state;
 	};
 	virtual int AddCommand(P state, M mode, CmdSource src) {
+		if (this->ispersiststate() && src == srcState || src == srcMQTT) {
+			this->savestate();
+		}
 		command cmd = { mode,state };
+
 		commands.Add(cmd);
 		return commands.GetSize();
 	}
@@ -112,7 +124,9 @@ public:
 	const P& get_state() {
 		return state;
 	}
-
+	virtual bool loadstate() {
+		return this->deserializestate(readfile(this->get_filename_state().c_str()));
+	}
 protected:
 	CSimpleArray<command> commands;
 	P state;
@@ -161,6 +175,10 @@ public:
 		P saved = this->get_prevstate();
 		this->AddCommand(saved, (M)BaseSetRestore, srcSelf);
 	}
+	virtual void set_power_on() {
+		P current= this->get_prevstate();
+		this->AddCommand(current, M(BaseOn), srcSelf);
+	};
 protected: 
 	P prevState;
 	int manualtime;

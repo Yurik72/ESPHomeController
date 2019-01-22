@@ -5,7 +5,12 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include "BaseController.h"
+#if defined(ESP8266)
+#define MAX_LDRVAL 1024
+#else
+#define MAX_LDRVAL 4095
 
+#endif
 class WS2812FX;
 struct RGBState
 {
@@ -45,6 +50,7 @@ public:
 	int getLDRBrightness(int brigtness, int ldrval);
 	virtual void onmqqtmessage(String topic, String payload);
 	virtual bool onpublishmqttex(String endkeys[5], String  payloads[5]);
+	virtual bool ispersiststate() { return true; }
 #if defined(ESP8266)
 	virtual void setuphandlers(ESP8266WebServer& server);
 #else

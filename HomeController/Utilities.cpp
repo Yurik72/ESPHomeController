@@ -15,7 +15,7 @@ bool writeConfigFS(bool saveConfig) {
 		//FS save
 		//updateFS = true;
 		DBG_OUTPUT_PORT.print("Saving config: ");
-		DynamicJsonDocument jsonBuffer(JSON_OBJECT_SIZE(4));
+		DynamicJsonDocument jsonBuffer(JSON_OBJECT_SIZE(40));
 		JsonObject json = jsonBuffer.to<JsonObject>();
 #if defined ENABLE_HOMEBRIDGE
 		json[name_mqtt_host] = mqtt_host;
@@ -162,4 +162,25 @@ uint32_t HSVColor(float h, float s, float v) {
 	default:
 		return Color(b, p, q);
 	}
+}
+
+String readfile(const char* filename) {
+	File file = SPIFFS.open(filename, "r");
+	String res;
+	if (file) {
+		size_t size = file.size();
+		// Allocate a buffer to store contents of the file.
+		res=file.readString();
+		file.close();
+	}
+	return res;
+}
+bool savefile(const char* filename, String data) {
+	File file = SPIFFS.open(filename, "w");
+	if (file) {
+		file.println(data);  //save json data
+		file.close();
+		return true;
+	}
+	return false;
 }

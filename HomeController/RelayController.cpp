@@ -49,8 +49,13 @@ void RelayController::run() {
 				newState.isOn = !newState.isOn;
 				break;
 			case Set:
+			case RelayRestore:
 				newState.isOn = cmd.state.isOn;
 				break;
+			case RelayOn:
+				newState.isOn = true;
+			case RelayOff:
+				newState.isOn = false;
 			default:break;
 	   }
 		this->set_state(newState);

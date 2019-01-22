@@ -1,6 +1,7 @@
 
 
 #include "BaseController.h"
+
 #include "config.h"
 CBaseController::CBaseController() {
 	this->isCore = false;
@@ -11,6 +12,18 @@ CBaseController::CBaseController() {
 }
 void CBaseController::set_name(const char* name) {
 	strncpy(this->name, name, MAXLEN_NAME);
+}
+
+String CBaseController::get_filename_state() {
+	String file= this->get_name();
+	file += "_state.json";
+	return file;
+}
+void CBaseController::savestate() {
+	
+	savefile(this->get_filename_state().c_str(), this->serializestate());
+
+	
 }
 
 bool CBaseController::shouldRun(unsigned long time) {
@@ -87,6 +100,7 @@ void runcore(void*param)
 	}
 }
 #endif
+
 /*
 template<class T, typename P, typename M>
 int CController<T,P,M>::AddCommand(P state, M mode, CmdSource src)

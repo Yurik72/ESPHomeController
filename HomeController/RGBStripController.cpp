@@ -146,7 +146,7 @@ void RGBStripController::set_state(RGBState state) {
 int RGBStripController::getLDRBrightness(int brigtness,int ldrval) {
 	if (ldrval < 100)
 		return 196;
-	return ((double)(1024 - ldrval) / 1024)*brigtness;
+	return ((double)(MAX_LDRVAL - ldrval) / MAX_LDRVAL)*brigtness;
 }
 bool RGBStripController::onpublishmqtt(String& endkey, String& payload) {
 	endkey = "Status";

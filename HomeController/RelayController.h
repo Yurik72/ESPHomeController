@@ -9,7 +9,13 @@ struct RelayState
 {
 	bool isOn;
 };
-enum RelayCMD  { Switch,Set };
+enum RelayCMD  { 
+	RelayOn=1,
+	RelayOff=2,
+	Switch=4,
+	Set=8,
+	RelayRestore = 2048
+};
 class RelayController;
 typedef CController<RelayController, RelayState, RelayCMD> Relay;
 class RelayController: public Relay
