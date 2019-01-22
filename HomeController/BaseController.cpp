@@ -73,6 +73,7 @@ void CBaseController::onmqqtmessage(String topic, String payload) {
 
 }
 
+
 #if !defined(ESP8266)
 void runcore(void*param)
 {
@@ -86,3 +87,12 @@ void runcore(void*param)
 	}
 }
 #endif
+/*
+template<class T, typename P, typename M>
+int CController<T,P,M>::AddCommand(P state, M mode, CmdSource src)
+{
+	command cmd = { mode,state };
+	commands.Add(cmd);
+	return commands.GetSize();
+};
+*/

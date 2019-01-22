@@ -50,7 +50,8 @@ void LDRController::run() {
 		DBG_OUTPUT_PORT.println(newcmd.state.ldrValue);
 #endif //  LDRCONTROLLER_DEBUG
 
-		this->commands.Add(newcmd);
+		//this->commands.Add(newcmd);
+		this->AddCommand(newcmd.state, newcmd.mode, srcSelf);
 	}
 	command cmd;
 	while (commands.Dequeue(&cmd)) {

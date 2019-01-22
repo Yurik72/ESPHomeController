@@ -17,6 +17,17 @@
 #if !defined(ESP8266)
 void runcore(void*param);
 #endif
+
+enum CmdSource
+{
+	srcState = 0,
+	srcTrigger = 1,
+	srcMQTT = 2,
+	srcSelf = 3
+};
+enum BaseCMD :uint {
+	BaseSetRestore = 2048
+};
 class CBaseController
 {
 public:
@@ -50,6 +61,7 @@ public:
 	void loadconfigbase(JsonObject& json);
 	void (*onstatechanged)(CBaseController *);
 	virtual bool onpublishmqtt(String& endkey, String& payload);
+	virtual bool onpublishmqttex(String endkeys[5], String  payloads[5]) { return 0; };
 	virtual void onmqqtmessage(String topic, String payload);
 	bool get_iscore() { return isCore; };
 	short get_core() { return core; };
@@ -71,6 +83,8 @@ private:
 	TaskHandle_t taskhandle;
 #endif
 };
+
+
 template<class T,typename P,typename M>
 class CController:public CBaseController
 {
@@ -81,16 +95,15 @@ public:
 		M mode;
 		P   state;
 	};
-	int AddCommand(P state, M mode)
-	{
+	virtual int AddCommand(P state, M mode, CmdSource src) {
 		command cmd = { mode,state };
 		commands.Add(cmd);
 		return commands.GetSize();
-	};
-
-	virtual void  SerilizeState() {
-		//T::SerilizeState();
 	}
+	
+	//virtual void  SerilizeState() {
+		//T::SerilizeState();
+	//}
 	virtual void set_state(P state) {
 		this->state = state;
 		if (onstatechanged != NULL)
@@ -105,6 +118,54 @@ protected:
 	P state;
 
 
+};
+template<class T, typename P, typename M>
+class CManualStateController : public CController<T, P, M>
+{
+public:
+	
+	CManualStateController() {
+		this->manualtime = 0;
+		this->mswhenrestore = 0;
+		this->isrestoreactivated = false;
+	}
+	virtual void set_prevstate(P& state) {
+		prevState = state;
+	}
+	virtual const P&  get_prevstate() {
+		return prevState ;
+	}
+	virtual void loadconfig(JsonObject& json) {
+		this->manualtime = json["manualtime"];
+		CController<T, P, M>::loadconfig(json);
+	}
+	virtual int AddCommand(P state, M mode, CmdSource src) {
+		if (src == srcState) { //save state
+			P saved = this->get_state();
+			this->set_prevstate(saved);
+			if (this->manualtime != 0) {
+				this->mswhenrestore = millis() + this->manualtime * 1000;//wil be handled in next(if manualtime =0 , never)
+				this->isrestoreactivated = true;
+			}
+		}
+		return CController<T, P, M>::AddCommand(state,mode,src);
+	}
+	virtual void run() {
+		CController<T, P, M>::run();
+		if (this->isrestoreactivated && this->mswhenrestore <= millis()) { // need restore
+			this->restorestate();
+		}
+	}
+	virtual void restorestate() {
+		this->isrestoreactivated = false;
+		P saved = this->get_prevstate();
+		this->AddCommand(saved, (M)BaseSetRestore, srcSelf);
+	}
+protected: 
+	P prevState;
+	int manualtime;
+	int mswhenrestore;
+	bool isrestoreactivated;
 };
 
 

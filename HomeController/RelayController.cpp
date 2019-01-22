@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include "config.h"
-
+#include "BaseController.h"
 #include "RelayController.h"
 const size_t bufferSize = JSON_OBJECT_SIZE(20);
 String  RelayController::serializestate() {
@@ -27,7 +27,8 @@ bool  RelayController::deserializestate(String jsonstate) {
 	JsonObject root = jsonBuffer.as<JsonObject>();
 	RelayState newState;
 	newState.isOn= root["isOn"];
-	this->set_state(newState);
+	this->AddCommand(newState, Set, srcState);
+	//this->set_state(newState);
 	return true;
 	
 }
@@ -81,7 +82,7 @@ void RelayController::onmqqtmessage(String topic, String payload) {
 		command setcmd;
 		setcmd.mode = Set;
 		setcmd.state.isOn = payload == "1";
-		this->AddCommand(setcmd.state, setcmd.mode);
+		this->AddCommand(setcmd.state, setcmd.mode, srcMQTT);
 	}
 	//this->AddCommand(setcmd.state, setcmd.mode);
 }

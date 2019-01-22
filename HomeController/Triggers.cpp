@@ -267,13 +267,13 @@ void TimeToRGBStripTrigger::dotrigger(timerecRGB & rec, Controllers* pctlss) {
 
 	if (rec.isOn) {
 		newstate.brightness = rec.brightness;
-		this->get_stripctl()->AddCommand(newstate, SetBrigthness);
+		this->get_stripctl()->AddCommand(newstate, SetBrigthness, srcTrigger);
 		newstate.color = rec.color;
-		this->get_stripctl()->AddCommand(newstate, SetColor);
+		this->get_stripctl()->AddCommand(newstate, SetColor, srcTrigger);
 	}
 	else{
 
-		this->get_stripctl()->AddCommand(newstate, Off);
+		this->get_stripctl()->AddCommand(newstate, Off, srcTrigger);
 	}
 
 }
@@ -287,7 +287,7 @@ void LDRToRGBStrip::handleloopsvc(LDRController* ps, RGBStripController* pd) {
 	RGBState rState;
 	rState.ldrValue = l.ldrValue;
 	RGBCMD cmd = SetLdrVal;
-	pd->AddCommand(rState, cmd);
+	pd->AddCommand(rState, cmd, srcTrigger);
 }
 
 //LDR to Realy
@@ -309,7 +309,7 @@ void LDRToRelay::handleloopsvc(LDRController* ps, RelayController* pd) {
 		newState.isOn = false;
 	}
 	if(newState.isOn!=prevState.isOn)
-		pd->AddCommand(newState, cmd);
+		pd->AddCommand(newState, cmd, srcTrigger);
 }
 void LDRToRelay::loadconfig(JsonObject& json) {
 	Trigger::loadconfig(json);

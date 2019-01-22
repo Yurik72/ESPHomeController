@@ -4,7 +4,7 @@
 #include <SPIFFS.h>
 #endif
 #include <ArduinoJson.h>
-
+#include "BaseController.h"
 #include "RelayController.h"
 #include "TimeController.h"
 #include "Triggers.h"
@@ -192,6 +192,18 @@ void onstatechanged(CBaseController * ctl)
 		outtopic += "/";
 		outtopic += endkey;
 		amqttClient.publish(outtopic.c_str(), qossub, false, payload.c_str());
+	}
+	String endkeys[5];
+	String endpayloads[5];
+
+	int topiccount = ctl->onpublishmqttex(endkeys, endpayloads);
+	for (int i = 0;i < topiccount;i++) {
+		String outtopic = (String)HOSTNAME;
+		outtopic += "/out/";
+		outtopic += ctl->get_name();
+		outtopic += "/";
+		outtopic += endkeys[i];
+		amqttClient.publish(outtopic.c_str(), qossub, false, endpayloads[i].c_str());
 	}
 		 
 #endif

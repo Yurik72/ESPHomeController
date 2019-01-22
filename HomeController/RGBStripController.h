@@ -17,17 +17,19 @@ struct RGBState
 	int ldrValue = 0;
 	bool isLdr = false;
 };
-enum RGBCMD:uint { 
-	On=1,
-	Off=2,
-	SetBrigthness=4,
-	SetSpeed=8,
-	SetColor=16,
-	SetLdrVal=32
+enum RGBCMD :uint {
+	On = 1,
+	Off = 2,
+	SetBrigthness = 4,
+	SetSpeed = 8,
+	SetColor = 16,
+	SetLdrVal = 32,
+	SetMode   =64,
+	SetRGB	  =1024,
+	SetRestore = 2048   //should have the same name
 };
-
 class RGBStripController;
-typedef CController<RGBStripController, RGBState, RGBCMD> RGBStrip;
+typedef CManualStateController<RGBStripController, RGBState, RGBCMD> RGBStrip;
 class RGBStripController : public RGBStrip
 {
 public:
@@ -42,11 +44,22 @@ public:
 	virtual bool onpublishmqtt(String& endkey, String& payload);
 	int getLDRBrightness(int brigtness, int ldrval);
 	virtual void onmqqtmessage(String topic, String payload);
+	virtual bool onpublishmqttex(String endkeys[5], String  payloads[5]);
+#if defined(ESP8266)
+	virtual void setuphandlers(ESP8266WebServer& server);
+#else
+	virtual void setuphandlers(WebServer& server);
+
+#endif
 protected:
 	uint pin;
 	uint numleds;
 private:
+	String string_modes(void);
 	WS2812FX* pStrip;
+	float mqtt_saturation;
+	float mqtt_hue;
+
 };
 
 #endif

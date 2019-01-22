@@ -95,7 +95,8 @@ void TimeController::run() {
 		}
 
 #endif
-		this->commands.Add(newcmd);
+		//this->commands.Add(newcmd);
+		this->AddCommand(newcmd.state, newcmd.mode, srcSelf);
 
 #if defined TIMECONTROLLER_DEBUG
 		DBG_OUTPUT_PORT.print("Time ctl run ");

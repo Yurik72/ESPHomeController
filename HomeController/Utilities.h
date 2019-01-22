@@ -15,4 +15,7 @@ unsigned long GetMinutes(time_t tt);
 time_t apply_hours_minutes_fromhhmm(time_t src, int hhmm, long offs);
 time_t apply_hours_minutes(time_t src, int h, int m, long offs);
 time_t	  mklocaltime(struct tm *_timeptr, long offs);
+
+uint32_t Color(uint8_t r, uint8_t g, uint8_t b);
+uint32_t HSVColor(float h, float s, float v);
 #endif
