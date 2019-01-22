@@ -58,6 +58,6 @@ I hope I didn't miss any sources and mentioned every author. In case I forgot so
  - Built-in web site implemented on React js, and browser content is very fast, compatible with native mobile application, Thanks to React developers;
 - Sketch can be compiled within VS 2017, by using  [Arduino IDE for Visual Studio](https://marketplace.visualstudio.com/items?itemName=VisualMicro.ArduinoIDEforVisualStudio)
 
-
+For technical infomation see [Wiki](https://github.com/Yurik72/ESPHomeController/wiki)
 
 P.S. !! This is starting project not all parts already comitted. Will come soon after testing. If you are interested feel free to contact me
