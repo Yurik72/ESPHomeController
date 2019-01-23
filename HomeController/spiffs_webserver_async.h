@@ -12,7 +12,9 @@
 #define SETUP_FILEHANDLES   server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html"); \
 						server.on("/browse", handleFileBrowser); \
 server.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request) { request->send(200, "text/plain", ""); }, handleFileUpload); \
-server.on("/jsonsave", handleJsonSave);
+server.on("/jsonsave", handleJsonSave); \
+ server.onNotFound(onNotFoundRequest); \
+server.serveStatic("/", SPIFFS, "/www/").setCacheControl("max-age=600");
 //do something useful
 
 File fsUploadFile;
@@ -53,7 +55,20 @@ String urldecode(String input) // (based on https://code.google.com/p/avr-netino
 	}
 	return ret;
 }
-
+void onNotFoundRequest(AsyncWebServerRequest *request) {
+	//Handle Unknown Request
+	DBG_OUTPUT_PORT.println("On not found");
+	DBG_OUTPUT_PORT.println(request->url());
+	String path = request->url();
+	
+	if (path.indexOf(".") == -1) { //some body asking non existing service. can happen as well with react routing
+		DBG_OUTPUT_PORT.println("redirecting to index");
+		request->send(SPIFFS, "/index.html", "text/html");
+		return;
+	}
+	
+	request->send(404);
+}
 void handleFileList(AsyncWebServerRequest *request) {
 
 	String path = "/";
