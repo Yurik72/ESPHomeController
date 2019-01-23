@@ -14,6 +14,7 @@
 //const int   daylightOffset_sec = -3600;
 #if defined(ESP8266)
 //NTPClient timeClient(ntpUDP, ntpServer, gmtOffset_sec);
+#include <WiFiUdp.h>
 WiFiUDP ntpUDP;
 #endif
 const size_t bufferSize = JSON_OBJECT_SIZE(20);

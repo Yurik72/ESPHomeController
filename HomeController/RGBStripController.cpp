@@ -218,6 +218,7 @@ String RGBStripController::string_modes(void) {
 	serializeJson(json, json_str);
 	return json_str;
 }
+#if !defined ASYNC_WEBSERVER
 #if defined(ESP8266)
 void RGBStripController::setuphandlers(ESP8266WebServer& server) {
 	ESP8266WebServer* _server = &server;
@@ -238,3 +239,25 @@ void RGBStripController::setuphandlers(WebServer& server) {
 		DBG_OUTPUT_PORT.println("Processed");
 	});
 }
+#endif
+#if defined ASYNC_WEBSERVER
+void RGBStripController::setuphandlers(AsyncWebServer& server) {
+
+
+	String path = "/";
+	path += this->get_name();
+	path += String("/get_modes");
+	RGBStripController* self = this;
+	server.on(path.c_str(), HTTP_GET, [self](AsyncWebServerRequest *request) {
+		DBG_OUTPUT_PORT.println("get modes request");
+		AsyncWebServerResponse *response = request->beginResponse(200, "application/json", 
+			self->string_modes().c_str());
+		response->addHeader("Access-Control-Allow-Origin", "*");
+		response->addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+		
+		DBG_OUTPUT_PORT.println("Processed");
+	});
+
+
+}
+#endif

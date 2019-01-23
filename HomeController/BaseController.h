@@ -2,14 +2,17 @@
 #ifndef BaseController_h
 #define BaseController_h
 
+#include "config.h"
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#if !defined ASYNC_WEBSERVER
 #if defined(ESP8266)
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 #else
 #include <WebServer.h>
 #include <ESPmDNS.h>
+#endif
 #endif
 #include "Utilities.h"
 #include "Array.h"
@@ -18,6 +21,9 @@
 void runcore(void*param);
 #endif
 
+#if defined ASYNC_WEBSERVER
+#include <ESPAsyncWebServer.h>
+#endif
 enum CmdSource
 {
 	srcState = 0,
@@ -50,11 +56,17 @@ public:
 	void runned() { runned(millis()); }
 	virtual void run();
 	bool isenabled() { return enabled; }
+#if !defined ASYNC_WEBSERVER
 #if defined(ESP8266)
 	virtual void setuphandlers(ESP8266WebServer& server);
 #else
 	virtual void setuphandlers(WebServer& server);
 	
+#endif
+#endif
+
+#if defined ASYNC_WEBSERVER
+	virtual void setuphandlers(AsyncWebServer& server);
 #endif
 public:
 	

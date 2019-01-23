@@ -22,6 +22,14 @@
 AsyncMqttClient amqttClient;
 Ticker mqttReconnectTimer;
 #endif
+#if defined ASYNC_WEBSERVER
+#if defined(ESP8266)
+#include <ESPAsyncWebServer.h>
+#else
+#include <ESPAsyncWebServer.h>
+#endif 
+#endif
+
 static Controllers* _instance;
 
 Controllers::Controllers():
@@ -98,6 +106,7 @@ void Controllers::loadconfig() {
 	
 	triggers.loadconfig();
 }
+#if !defined ASYNC_WEBSERVER
 #if defined(ESP8266)
 void Controllers::setuphandlers(ESP8266WebServer& server){
 	ESP8266WebServer* _server = &server;
@@ -105,20 +114,35 @@ void Controllers::setuphandlers(ESP8266WebServer& server){
 void Controllers::setuphandlers(WebServer& server){
 	WebServer* _server = &server;
 #endif
+	_server->on("/get_info", HTTP_GET, [=]() {
+
+		String info = "{\"version\":\"";
+		info += VERSION;
+		info += "\",\"async\":";
+		info += ASYNC;
+		info += ",\"hostname\":\"";
+		info += HOSTNAME;
+		info += "\"}";
+
+		_server->sendHeader("Access-Control-Allow-Origin", "*");
+		_server->sendHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+		_server->send(200, PSTR("application/json"), info.c_str());
+	});
 	for (int i = 0;i < this->GetSize();i++) {
 		CBaseController*ctl = this->GetAt(i);
 		String path = "/";
 		path+=ctl->get_name();
 		String pathget = path+String("/get_state");
 		_server->on(pathget, HTTP_GET, [=]() {
-			DBG_OUTPUT_PORT.println("start processing");
+			
+			//DBG_OUTPUT_PORT.println("start processing");
 			//_server->send_P(200, PSTR("text/html"), "OK");
 			_server->sendHeader("Access-Control-Allow-Origin", "*");
 			_server->sendHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
-			_server->send_P(200, PSTR("text/html"), ctl->serializestate().c_str());
-			//_server->send_P(200, PSTR("text/html"), "{ \"isOn\":false }");
+			_server->send_P(200, PSTR("application/json"), ctl->serializestate().c_str());
+			//_server->send(200, PSTR("application/json"), "{ \"isOn\":false }");
 			
-			DBG_OUTPUT_PORT.println("Processed");
+			//DBG_OUTPUT_PORT.println("Processed");
 		});
 		String pathset = path + String("/set_state");
 		///to support CORS PREFLIGHT requests//  cross domain feathure
@@ -153,6 +177,78 @@ void Controllers::setuphandlers(WebServer& server){
 	}
 	//this->loadconfig();
 }
+#endif
+#if defined ASYNC_WEBSERVER
+void Controllers::setuphandlers(AsyncWebServer& server) {
+	AsyncWebServer* _server = &server;
+	server.on("/get_info", HTTP_GET, [](AsyncWebServerRequest *request) {
+
+		String info = "{\"version\":\"";
+		info += VERSION;
+		info += "\",\"async\":";
+		info += ASYNC;
+		info += ",\"hostname\":\"";
+		info += HOSTNAME;
+		info += "\"}";
+
+		AsyncWebServerResponse *response = request->beginResponse(200, "application/json", info.c_str());
+		response->addHeader("Access-Control-Allow-Origin", "*");
+		response->addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+
+		request->send(response);
+	});
+	for (int i = 0;i < this->GetSize();i++) {
+		CBaseController*ctl = this->GetAt(i);
+		String path = "/";
+		path += ctl->get_name();
+		DBG_OUTPUT_PORT.println("setup async handlers");
+		//DBG_OUTPUT_PORT.println((int)ctl);
+		String pathget = path + String("/get_state");
+		server.on(pathget.c_str(), HTTP_GET, [ctl](AsyncWebServerRequest *request) {
+
+			AsyncWebServerResponse *response = request->beginResponse(200, "application/json", ctl->serializestate().c_str());
+			response->addHeader("Access-Control-Allow-Origin", "*");
+			response->addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+
+			request->send(response);
+		});
+		String pathset = path + String("/set_state");
+		server.on(pathset.c_str(), HTTP_OPTIONS, [] (AsyncWebServerRequest *request){
+			DBG_OUTPUT_PORT.println("start processing preflight");
+			AsyncWebServerResponse *response = request->beginResponse(200, "text/html", "OK");
+			response->addHeader("Access-Control-Allow-Origin", "*");
+			response->addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+			response->addHeader("Access-Control-Allow-Headers", "origin, content-type, accept");
+			request->send(response);
+		});
+		server.on(pathset.c_str(), HTTP_POST, [](AsyncWebServerRequest *request) {
+			DBG_OUTPUT_PORT.println("sending header from POST");
+			AsyncWebServerResponse *response = request->beginResponse(200, "text/plain", "OK");
+			response->addHeader("Connection", "close");
+			request->send(response);
+		},[](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+			
+		},[ctl](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+			DBG_OUTPUT_PORT.println("body 2");
+			uint8_t * bodydata = (uint8_t *)malloc(len + 1);
+			memcpy(bodydata, data, len);
+			bodydata[len] = NULL;
+			String body = (char*)bodydata;
+
+			if (body.length() > 0) {
+				ctl->deserializestate(body);
+			}
+			free(bodydata);
+
+
+
+		}
+		);
+		this->GetAt(i)->setuphandlers(server);
+	}
+		
+}
+#endif
 CBaseController* Controllers::CreateByName(const char* name) { //to be rewrite by class factory
 	if (strcmp(name, "RelayController") == 0) {
 		return new RelayController();
@@ -280,6 +376,7 @@ void onMqttMessage(char* topic, char* payload_in, AsyncMqttClientMessageProperti
 	String spayload_in = (char*)payload;;
 	String schildtopic = pchildTopic;
 	pController->onmqqtmessage(pchildTopic, spayload_in);
+	free(payload);
 }
 void realconnectToMqtt() {
 	DBG_OUTPUT_PORT.println("Connecting to MQTT...");

@@ -51,12 +51,18 @@ public:
 	virtual void onmqqtmessage(String topic, String payload);
 	virtual bool onpublishmqttex(String& endkey, String& payload, int topicnr);
 	virtual bool ispersiststate() { return true; }
+#if !defined ASYNC_WEBSERVER
 #if defined(ESP8266)
 	virtual void setuphandlers(ESP8266WebServer& server);
 #else
 	virtual void setuphandlers(WebServer& server);
 
 #endif
+#endif
+#if defined ASYNC_WEBSERVER
+	virtual void setuphandlers(AsyncWebServer& server);
+#endif
+
 protected:
 	uint pin;
 	uint numleds;

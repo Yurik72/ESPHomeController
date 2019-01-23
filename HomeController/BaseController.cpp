@@ -3,6 +3,9 @@
 #include "BaseController.h"
 
 #include "config.h"
+#if defined ASYNC_WEBSERVER
+#include <ESPAsyncWebServer.h>
+#endif
 CBaseController::CBaseController() {
 	this->isCore = false;
 	this->core = 0;
@@ -54,15 +57,16 @@ void CBaseController::loadconfigbase(JsonObject& json) {
 	interval= json["interval"];
 	this->loadconfig(json);
 }
-
+#if !defined ASYNC_WEBSERVER
 #if defined(ESP8266)
 void CBaseController::setuphandlers(ESP8266WebServer& server) {
-	ESP8266WebServer* _server = &server;
+	//ESP8266WebServer* _server = &server;
 #else
 void CBaseController::setuphandlers(WebServer& server) {
-	WebServer* _server = &server;
+	//WebServer* _server = &server;
 #endif
 }
+#endif
 void CBaseController::setup() {
 #if !defined(ESP8266)
 	if (this->get_iscore()) {
@@ -79,13 +83,18 @@ void CBaseController::setup() {
 	}
 #endif
 }
+
 bool CBaseController::onpublishmqtt(String& endkey, String& payload) {
 	return false;
 }
 void CBaseController::onmqqtmessage(String topic, String payload) {
 
 }
+#if defined ASYNC_WEBSERVER
+void CBaseController::setuphandlers(AsyncWebServer& server) {
 
+}
+#endif
 
 #if !defined(ESP8266)
 void runcore(void*param)
