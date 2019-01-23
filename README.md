@@ -48,13 +48,15 @@ Parts of the code were taken or inspired by the following sources:
 	 - Supports ESP32 file system
 	 - Enhanced filebrowse.html
 	 - "Prefly" request and headers for cross domain areas
+	 - overwritten within new code when skecth is uses AsyncWebServer 
 
 Thank you to all the authors for distributing their software that way.
 I hope I didn't miss any sources and mentioned every author. In case I forgot someone please let me know and I will fix it.
 
 **Goals are reached :**
 
- - Adapted *ESP8266HTTPUpdateServer* , now it's supports ESP32. Have a look of *ESP32HTTPUpdateServer.h/cpp* implementatation;
+ - Adapted *ESP8266HTTPUpdateServer* , now it's supports ESP32. Have a look of *ESP32HTTPUpdateServer.h/cpp* implementatation with traditional WebServer;
+ - Adapted *ESP8266HTTPUpdateServer* for working withis [ESPAsyncWebServer](https://github.com/me-no-dev/ESPAsyncWebServer). Have a look of  *ESPAsyncUpdateServer.h/cpp* 
  - Second core of ESP32 can be used with proper service configuration. Now a few services can run on second core of ESP32;
  - Built-in web site implemented on React js, and browser content is very fast, compatible with native mobile application, Thanks to React developers;
 - Sketch can be compiled within VS 2017, by using  [Arduino IDE for Visual Studio](https://marketplace.visualstudio.com/items?itemName=VisualMicro.ArduinoIDEforVisualStudio)
