@@ -38,6 +38,7 @@ This project uses libraries and code by different authors:
 
 - [Adafruit NeoPixel](https://github.com/adafruit/Adafruit_NeoPixel) by adafruit (tested with 1.1.2)
 
+- [ESPAsyncWebServer](https://github.com/me-no-dev/ESPAsyncWebServer)
 
 Parts of the code were taken or inspired by the following sources:
 
