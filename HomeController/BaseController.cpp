@@ -8,7 +8,7 @@ CBaseController::CBaseController() {
 	this->core = 0;
 	this->enabled = false;
 	this->_cached_next_run = 0;
-
+	this->onstatechanged = NULL;
 }
 void CBaseController::set_name(const char* name) {
 	strncpy(this->name, name, MAXLEN_NAME);

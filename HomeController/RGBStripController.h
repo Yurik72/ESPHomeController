@@ -49,7 +49,7 @@ public:
 	virtual bool onpublishmqtt(String& endkey, String& payload);
 	int getLDRBrightness(int brigtness, int ldrval);
 	virtual void onmqqtmessage(String topic, String payload);
-	virtual bool onpublishmqttex(String endkeys[5], String  payloads[5]);
+	virtual bool onpublishmqttex(String& endkey, String& payload, int topicnr);
 	virtual bool ispersiststate() { return true; }
 #if defined(ESP8266)
 	virtual void setuphandlers(ESP8266WebServer& server);

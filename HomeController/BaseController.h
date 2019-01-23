@@ -25,7 +25,7 @@ enum CmdSource
 	srcMQTT = 2,
 	srcSelf = 3
 };
-enum BaseCMD :uint {
+enum BaseCMD  {
 	BaseOn=1,
 	BaseOff=2,
 	BaseSetRestore = 2048
@@ -63,7 +63,7 @@ public:
 	void loadconfigbase(JsonObject& json);
 	void (*onstatechanged)(CBaseController *);
 	virtual bool onpublishmqtt(String& endkey, String& payload);
-	virtual bool onpublishmqttex(String endkeys[5], String  payloads[5]) { return 0; };
+	virtual bool onpublishmqttex(String& endkey, String& payload,int topicnr) { return false; };
 	virtual void onmqqtmessage(String topic, String payload);
 	bool get_iscore() { return isCore; };
 	short get_core() { return core; };
@@ -118,8 +118,12 @@ public:
 	//}
 	virtual void set_state(P state) {
 		this->state = state;
-		if (onstatechanged != NULL)
+		
+		if (onstatechanged != NULL) {
+			
 			onstatechanged(this);
+		}
+		
 	}
 	const P& get_state() {
 		return state;
@@ -173,11 +177,15 @@ public:
 	virtual void restorestate() {
 		this->isrestoreactivated = false;
 		P saved = this->get_prevstate();
-		this->AddCommand(saved, (M)BaseSetRestore, srcSelf);
+		M val = (M)(int)BaseSetRestore;
+		this->AddCommand(saved, val, srcSelf);
 	}
 	virtual void set_power_on() {
-		P current= this->get_prevstate();
-		this->AddCommand(current, M(BaseOn), srcSelf);
+		P current= this->get_state();
+		
+		M val = (M)(int)BaseOn;
+		
+		this->AddCommand(current, val, srcSelf);
 	};
 protected: 
 	P prevState;

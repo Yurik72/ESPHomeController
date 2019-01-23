@@ -72,13 +72,14 @@ void Controllers::loadconfig() {
 						DBG_OUTPUT_PORT.print(String("Service not found:")+servicename);
 					}
 					else {
+						controller->onstatechanged = &onstatechanged;
 						String name = arr[i]["name"].as<String>();
 						controller->set_name(name.c_str());
 						JsonObject json = arr[i];
 						controller->loadconfigbase(json);
 						this->Add(controller);
 
-						controller->onstatechanged = &onstatechanged;
+						
 
 						DBG_OUTPUT_PORT.print("Controllers added:");
 						DBG_OUTPUT_PORT.println(name);
@@ -115,6 +116,8 @@ void Controllers::setuphandlers(WebServer& server){
 			_server->sendHeader("Access-Control-Allow-Origin", "*");
 			_server->sendHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
 			_server->send_P(200, PSTR("text/html"), ctl->serializestate().c_str());
+			//_server->send_P(200, PSTR("text/html"), "{ \"isOn\":false }");
+			
 			DBG_OUTPUT_PORT.println("Processed");
 		});
 		String pathset = path + String("/set_state");
@@ -185,6 +188,8 @@ void Controllers::handleloops() {
 
 void onstatechanged(CBaseController * ctl)
 {
+
+	
 #ifdef ENABLE_HOMEBRIDGE
 	String endkey;
 	String payload;
@@ -196,18 +201,20 @@ void onstatechanged(CBaseController * ctl)
 		outtopic += endkey;
 		amqttClient.publish(outtopic.c_str(), qossub, false, payload.c_str());
 	}
-	String endkeys[5];
-	String endpayloads[5];
 
-	int topiccount = ctl->onpublishmqttex(endkeys, endpayloads);
-	for (int i = 0;i < topiccount;i++) {
+	//int topiccount = ctl->onpublishmqttex(endkeys, endpayloads);
+	for (int i = 0;i < 5;i++) {   ///to do
+		if (!ctl->onpublishmqttex(endkey, payload,i))
+			break;
+
 		String outtopic = (String)HOSTNAME;
 		outtopic += "/out/";
 		outtopic += ctl->get_name();
 		outtopic += "/";
-		outtopic += endkeys[i];
-		amqttClient.publish(outtopic.c_str(), qossub, false, endpayloads[i].c_str());
+		outtopic += endkey;
+		amqttClient.publish(outtopic.c_str(), qossub, false, payload.c_str());
 	}
+
 		 
 #endif
 }

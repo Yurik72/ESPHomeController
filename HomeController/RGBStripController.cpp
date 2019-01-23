@@ -10,7 +10,10 @@
 const size_t bufferSize = JSON_OBJECT_SIZE(20);
 
 RGBStripController::RGBStripController() {
-	pStrip = NULL;
+	this->pStrip = NULL;
+	this->mqtt_hue = 0.0;
+	this->mqtt_saturation = 0.0;
+
 }
 RGBStripController::~RGBStripController() {
 	if (pStrip)
@@ -104,12 +107,13 @@ void RGBStripController::run() {
 }
 void RGBStripController::set_state(RGBState state) {
 	RGBState oldState = this->get_state();
-
+	
 	if (oldState.isOn != state.isOn) {  // on/off
 		if (state.isOn) {
 			DBG_OUTPUT_PORT.println("Switching On");
 			DBG_OUTPUT_PORT.println(state.brightness);
 			pStrip->setBrightness(state.brightness);
+			
 			if (!pStrip->isRunning()) pStrip->start();
 			
 		}
@@ -123,6 +127,7 @@ void RGBStripController::set_state(RGBState state) {
 	}
 	if (state.isOn) {
 		if (oldState.wxmode != state.wxmode) {
+			DBG_OUTPUT_PORT.println("oldState.wxmode != state.wxmod");
 			if (pStrip->isRunning())pStrip->stop();
 			if (state.wxmode > 0) pStrip->setMode(state.wxmode);
 			if (!pStrip->isRunning()) pStrip->start();
@@ -140,7 +145,9 @@ void RGBStripController::set_state(RGBState state) {
 		
 	}
 	pStrip->trigger();
-	CController::set_state(state);
+	//CController::set_state(state);
+	//CManualStateController<RGBStripController, RGBState, RGBCMD>::set_state(state);
+	RGBStrip::set_state(state);
 	
 }
 int RGBStripController::getLDRBrightness(int brigtness,int ldrval) {
@@ -153,21 +160,31 @@ bool RGBStripController::onpublishmqtt(String& endkey, String& payload) {
 	payload = String(this->get_state().isOn ? 1 : 0);
 	return true;
 }
-bool RGBStripController::onpublishmqttex(String endkeys[5], String  payloads[5]) {
-	endkeys[0] = "Status";
-	payloads[0] = String(this->get_state().isOn ? 1 : 0);
-	if (!this->get_state().isOn)
-		return 1;
-	endkeys[1] = "Brightness";
-	payloads[1] = String(this->get_state().brightness);
-
-	endkeys[2] = "Hue";
-	payloads[2] = String(this->mqtt_hue);
-
-	endkeys[3] = "Saturation";
-	payloads[3] = String(this->mqtt_saturation);
-	return 4;
-
+bool RGBStripController::onpublishmqttex(String& endkey, String& payload, int topicnr){
+	switch (topicnr) {
+		case 0:
+			endkey = "Status";
+			payload = String(this->get_state().isOn ? 1 : 0);
+			return true;
+		case 1:
+			if (!this->get_state().isOn) return false;
+			endkey = "Brightness";
+			payload = String(this->get_state().brightness);
+			return true;
+		case 2:
+			if (!this->get_state().isOn) return false;
+			endkey = "Hue";
+			payload = String(this->mqtt_hue);
+			return true;
+		case 3:
+			if (!this->get_state().isOn) return false;
+			endkey = "Saturation";
+			payload = String(this->mqtt_saturation);
+			return true;
+	default:
+		return false;
+	}
+	
 }
 void RGBStripController::onmqqtmessage(String topic, String payload) {
 	//RGBState oldState = this->get_state();

@@ -9,7 +9,7 @@ struct RelayState
 {
 	bool isOn;
 };
-enum RelayCMD  { 
+enum RelayCMD {
 	RelayOn=1,
 	RelayOff=2,
 	Switch=4,
