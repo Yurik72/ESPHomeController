@@ -192,8 +192,8 @@ void Controllers::setuphandlers(AsyncWebServer& server) {
 		info += "\"}";
 
 		AsyncWebServerResponse *response = request->beginResponse(200, "application/json", info.c_str());
-		response->addHeader("Access-Control-Allow-Origin", "*");
-		response->addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+		//response->addHeader("Access-Control-Allow-Origin", "*");
+		//response->addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
 
 		request->send(response);
 	});
@@ -207,8 +207,8 @@ void Controllers::setuphandlers(AsyncWebServer& server) {
 		server.on(pathget.c_str(), HTTP_GET, [ctl](AsyncWebServerRequest *request) {
 
 			AsyncWebServerResponse *response = request->beginResponse(200, "application/json", ctl->serializestate().c_str());
-			response->addHeader("Access-Control-Allow-Origin", "*");
-			response->addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+			//response->addHeader("Access-Control-Allow-Origin", "*");
+			//response->addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
 
 			request->send(response);
 		});
@@ -216,8 +216,8 @@ void Controllers::setuphandlers(AsyncWebServer& server) {
 		server.on(pathset.c_str(), HTTP_OPTIONS, [] (AsyncWebServerRequest *request){
 			DBG_OUTPUT_PORT.println("start processing preflight");
 			AsyncWebServerResponse *response = request->beginResponse(200, "text/html", "OK");
-			response->addHeader("Access-Control-Allow-Origin", "*");
-			response->addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+			//response->addHeader("Access-Control-Allow-Origin", "*");
+			//response->addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
 			response->addHeader("Access-Control-Allow-Headers", "origin, content-type, accept");
 			request->send(response);
 		});
@@ -234,7 +234,7 @@ void Controllers::setuphandlers(AsyncWebServer& server) {
 			memcpy(bodydata, data, len);
 			bodydata[len] = NULL;
 			String body = (char*)bodydata;
-
+			DBG_OUTPUT_PORT.println(body);
 			if (body.length() > 0) {
 				ctl->deserializestate(body);
 			}

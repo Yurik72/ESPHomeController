@@ -18,12 +18,15 @@ void CBaseController::set_name(const char* name) {
 }
 
 String CBaseController::get_filename_state() {
-	String file= this->get_name();
+	
+	String file = "/";
+	file+=	this->get_name();
 	file += "_state.json";
 	return file;
 }
 void CBaseController::savestate() {
-	
+	DBG_OUTPUT_PORT.println("savestate");
+	DBG_OUTPUT_PORT.println(this->get_filename_state().c_str());
 	savefile(this->get_filename_state().c_str(), this->serializestate());
 
 	

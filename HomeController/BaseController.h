@@ -31,10 +31,11 @@ enum CmdSource
 	srcMQTT = 2,
 	srcSelf = 3
 };
-enum BaseCMD  {
+enum BaseCMD :uint {
 	BaseOn=1,
 	BaseOff=2,
-	BaseSetRestore = 2048
+	BaseSetRestore = 2048,
+	BaseSaveState  =4096
 };
 class CBaseController
 {
@@ -83,7 +84,7 @@ public:
 	virtual bool ispersiststate() { return false; }
 	virtual void savestate() ;
 	virtual bool loadstate()=0;
-	virtual String get_filename_state();
+	String get_filename_state();
 	virtual void set_power_on() {};
 protected:
 	
@@ -116,15 +117,24 @@ public:
 		P   state;
 	};
 	virtual int AddCommand(P state, M mode, CmdSource src) {
-		if (this->ispersiststate() && src == srcState || src == srcMQTT) {
-			this->savestate();
-		}
+
 		command cmd = { mode,state };
 
 		commands.Add(cmd);
+		if (this->ispersiststate() && (src == srcState || src == srcMQTT)) {
+			command savecmd = {(M) BaseSaveState, state };
+			DBG_OUTPUT_PORT.println("AddCommand->SaveState");
+			commands.Add(savecmd);
+		}
 		return commands.GetSize();
 	}
-	
+	virtual bool baseprocesscommands(command cmd) {
+		if (cmd.mode == BaseSaveState) {
+			return true;
+			this->savestate();
+		}
+		return false;
+	}
 	//virtual void  SerilizeState() {
 		//T::SerilizeState();
 	//}

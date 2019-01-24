@@ -6,6 +6,7 @@
 #endif 
 #include <ESPAsyncWebServer.h>
 
+
 #define server asserver
 
 
@@ -14,12 +15,17 @@
 server.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request) { request->send(200, "text/plain", ""); }, handleFileUpload); \
 server.on("/jsonsave", handleJsonSave); \
  server.onNotFound(onNotFoundRequest); \
-server.serveStatic("/", SPIFFS, "/www/").setCacheControl("max-age=600");
+server.serveStatic("/", SPIFFS, "/www/").setCacheControl("max-age=600");\
+setupself();
 //do something useful
 
 File fsUploadFile;
 int uploadpos = 0;
 
+void setupself() {
+	DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
+	DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+}
 unsigned char h2int(char c)
 {
 	if (c >= '0' && c <= '9') {

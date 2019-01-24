@@ -35,7 +35,7 @@ String  RGBStripController::serializestate() {
 	return json;
 }
 bool  RGBStripController::deserializestate(String jsonstate) {
-
+	DBG_OUTPUT_PORT.print("RGBStripController::deserializestate");
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	DeserializationError error = deserializeJson(jsonBuffer, jsonstate);
 	if (error) {
@@ -74,7 +74,10 @@ void  RGBStripController::setup() {
 void RGBStripController::run() {
 	command cmd;
 	pStrip->service();
+	bool isSet = true;
 	while (commands.Dequeue(&cmd)) {
+		if (this->baseprocesscommands(cmd))
+			continue;
 		RGBState newState = this->get_state();
 		switch (cmd.mode) {
 		case On:
@@ -99,11 +102,14 @@ void RGBStripController::run() {
 		case SetRestore:
 			newState = cmd.state;
 			break;
-		default:break;
+		default:
+			isSet = false;
+			break;
 		}
-		this->set_state(newState);
+		if(isSet)
+			this->set_state(newState);
 	}
-	CManualStateController<RGBStripController, RGBState, RGBCMD>::run();
+	RGBStrip::run();
 }
 void RGBStripController::set_state(RGBState state) {
 	RGBState oldState = this->get_state();
@@ -190,6 +196,17 @@ void RGBStripController::onmqqtmessage(String topic, String payload) {
 	//RGBState oldState = this->get_state();
 	command setcmd;
 	setcmd.state= this->get_state();
+	if (topic.endsWith("Set")) {
+		if (payload.toInt() > 0) {
+			setcmd.mode = On;
+			setcmd.state.isOn = true;
+		}
+		else {
+			setcmd.mode = Off;
+			setcmd.state.isOn = false;
+		}
+
+	}
 	if (topic.endsWith("Brightness")) {
 		setcmd.mode = SetBrigthness;
 		setcmd.state.brightness = payload.toInt();
@@ -252,9 +269,9 @@ void RGBStripController::setuphandlers(AsyncWebServer& server) {
 		DBG_OUTPUT_PORT.println("get modes request");
 		AsyncWebServerResponse *response = request->beginResponse(200, "application/json", 
 			self->string_modes().c_str());
-		response->addHeader("Access-Control-Allow-Origin", "*");
-		response->addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
-		
+		//response->addHeader("Access-Control-Allow-Origin", "*");
+		//response->addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+		request->send(response);
 		DBG_OUTPUT_PORT.println("Processed");
 	});
 

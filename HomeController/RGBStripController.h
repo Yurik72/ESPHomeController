@@ -31,7 +31,8 @@ enum RGBCMD :uint {
 	SetLdrVal = 32,
 	SetMode   =64,
 	SetRGB	  =1024,
-	SetRestore = 2048   //should have the same name
+	SetRestore = 2048,   //should have the same name
+	RgbSaveState = 4096
 };
 class RGBStripController;
 typedef CManualStateController<RGBStripController, RGBState, RGBCMD> RGBStrip;

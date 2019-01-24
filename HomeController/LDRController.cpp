@@ -55,6 +55,8 @@ void LDRController::run() {
 	}
 	command cmd;
 	while (commands.Dequeue(&cmd)) {
+		if (this->baseprocesscommands(cmd))
+			continue;
 		LDRState newState = cmd.state;
 
 		this->set_state(newState);
