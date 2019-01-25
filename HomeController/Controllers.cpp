@@ -30,7 +30,7 @@ Ticker mqttReconnectTimer;
 #endif 
 #endif
 
-static Controllers* _instance;
+static Controllers* _instance=NULL;
 
 Controllers::Controllers():
 	triggers(*(new Triggers()))
@@ -229,17 +229,26 @@ void Controllers::setuphandlers(AsyncWebServer& server) {
 		},[](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
 			
 		},[ctl](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-			DBG_OUTPUT_PORT.println("body 2");
-			uint8_t * bodydata = (uint8_t *)malloc(len + 1);
-			memcpy(bodydata, data, len);
-			bodydata[len] = NULL;
-			String body = (char*)bodydata;
-			DBG_OUTPUT_PORT.println(body);
-			if (body.length() > 0) {
-				ctl->deserializestate(body);
+			DBG_OUTPUT_PORT.println("body load");
+			DBG_OUTPUT_PORT.printf("len %d, index %d, total %d ",len,index,total);
+			DBG_OUTPUT_PORT.println("");
+			uint8_t * bodydata = NULL;
+			if (index == 0) {//starts
+				bodydata=ctl->allocatebuffer(total);
 			}
-			free(bodydata);
-
+			else { ///continue
+				bodydata = ctl->bodybuffer;
+			}
+			memcpy(bodydata+ ctl->bodyindex, data, len);
+			ctl->bodyindex += len;
+			if (ctl->bodyindex >= total) { //all collected
+				String body = (char*)bodydata;
+				DBG_OUTPUT_PORT.println(body);
+				if (body.length() > 0) {
+					ctl->deserializestate(body);
+				}
+				ctl->cleanbuffer();
+			}
 
 
 		}
@@ -335,9 +344,16 @@ void onMqttConnect(bool sessionPresent) {
 	DBG_OUTPUT_PORT.println(inTopic);
 	uint16_t packetIdSub1 = amqttClient.subscribe((char *)inTopic.c_str(), qossub);
 }
+void publishinitialstate() {
+	DBG_OUTPUT_PORT.println("MQTT: Publishing initial state");
+	if (!_instance)
+		return;
+	for (int i = 0;i < _instance->GetSize();i++)
+		onstatechanged(_instance->GetAt(i));
+}
 void onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {
 	if (WiFi.isConnected()) {
-		Serial.println("Connecting to MQTT...");
+		DBG_OUTPUT_PORT.println("Connecting to MQTT...");
 		mqttReconnectTimer.attach(2, realconnectToMqtt);
 	}
 }

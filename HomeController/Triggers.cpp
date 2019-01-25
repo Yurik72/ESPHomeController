@@ -158,12 +158,16 @@ void CBaseTimeTrigger<TM>::processrecord(time_t currentTime, TM& rec, Controller
 	DBG_OUTPUT_PORT.println(getFormattedTime(rec.timeToTrigger));
 	DBG_OUTPUT_PORT.print("lastTriggered ");
 	DBG_OUTPUT_PORT.println(getFormattedTime(rec.lastTriggered));
-	DBG_OUTPUT_PORT.println((long)this);
+	
 #endif
 	if (rec.timetype == dailly) {
 		if (rec.timeToTrigger == 0) { //not triggered yet
-
-			rec.timeToTrigger = apply_hours_minutes_fromhhmm(currentTime, rec.time,this->get_timeoffs());
+			//to be check timezones ESP32/ESP8266
+#if defined(ESP8266)
+			rec.timeToTrigger = apply_hours_minutes_fromhhmm(currentTime, rec.time,0);
+#else
+			rec.timeToTrigger = apply_hours_minutes_fromhhmm(currentTime, rec.time, this->get_timeoffs());
+#endif
 #ifdef	TRIGGER_DEBUG
 			DBG_OUTPUT_PORT.print("init trigger time ");
 			DBG_OUTPUT_PORT.println(getFormattedTime(rec.timeToTrigger));
@@ -183,10 +187,23 @@ void CBaseTimeTrigger<TM>::processrecord(time_t currentTime, TM& rec, Controller
 			}
 		}
 		if (istimetotrigger(rec.timeToTrigger, currentTime)) {
-			if (!istimetotrigger(rec.lastTriggered, currentTime)) { //already triggered
+#ifdef	TRIGGER_DEBUG
+			DBG_OUTPUT_PORT.println("istimetotrigger");
+#endif
+			//if (!istimetotrigger(rec.lastTriggered, currentTime)) { //already triggered
+			if( abs(rec.lastTriggered - rec.timeToTrigger) < SEC_TOLLERANCE){
+#ifdef	TRIGGER_DEBUG
+				DBG_OUTPUT_PORT.println("Switching to the next day");
+#endif
+
 				//set next time to trigger
 				time_t nextday = currentTime + NEXT_DAY_SEC;
-				rec.timeToTrigger = apply_hours_minutes_fromhhmm(nextday, rec.time,this->get_timeoffs());
+#if defined(ESP8266)
+				rec.timeToTrigger = apply_hours_minutes_fromhhmm(nextday, rec.time, 0);
+#else
+				rec.timeToTrigger = apply_hours_minutes_fromhhmm(nextday, rec.time, this->get_timeoffs());
+#endif
+				
 			}
 			else {
 				this->dotrigger(rec, pctlss);
@@ -197,7 +214,7 @@ void CBaseTimeTrigger<TM>::processrecord(time_t currentTime, TM& rec, Controller
 }
 template<typename TM>
 bool CBaseTimeTrigger<TM>::istimetotrigger(time_t time, time_t currentTime) {
-	return  (time > currentTime) && ((time - currentTime) < 1200);  //2min
+	return  (time < currentTime) && (abs(time - currentTime) < SEC_TOLLERANCE);  //2min
 }
 template<typename TM>
 void CBaseTimeTrigger<TM>::handleloop(CBaseController*pBase, Controllers* pctlss) {
@@ -240,10 +257,11 @@ void TimeToRGBStripTrigger::loadconfig(JsonObject& json) {
 		timerecRGB & rec = *(new timerecRGB());
 		JsonObject json = arr[i];
 		this->parsetime(json,rec);
-
+		rec.isOn = arr[i]["isOn"].as<bool>();
 		rec.color= arr[i]["color"].as<int>();
-		rec.brightness = arr[i]["bg"].as<int>();
+		rec.brightness = arr[i]["br"].as<int>();
 		rec.wxmode = arr[i]["wxmode"].as<int>();
+		rec.isLdr = arr[i]["isLdr"].as<int>();
 		times.Add(rec);
 	}
 }
@@ -253,6 +271,9 @@ void TimeToRGBStripTrigger::loadconfig(JsonObject& json) {
 
 
 void TimeToRGBStripTrigger::dotrigger(timerecRGB & rec, Controllers* pctlss) {
+#ifdef	TRIGGER_DEBUG
+	DBG_OUTPUT_PORT.println("TimeToRGBStripTrigger::dotrigger");
+#endif
 	if (!this->get_stripctl()) {
 		CBaseController* pBase = pctlss->GetByName(this->dst.c_str());
 		if (pBase == NULL) {
@@ -266,13 +287,22 @@ void TimeToRGBStripTrigger::dotrigger(timerecRGB & rec, Controllers* pctlss) {
 	RGBState newstate = pStrip->get_state();
 
 	if (rec.isOn) {
+#ifdef	TRIGGER_DEBUG
+		DBG_OUTPUT_PORT.println("Mode On");
+#endif
+		newstate.isOn = true;
+		this->get_stripctl()->AddCommand(newstate, On, srcTrigger);
+		newstate.isLdr = rec.isLdr;
+		this->get_stripctl()->AddCommand(newstate, SetLdrVal, srcTrigger);
 		newstate.brightness = rec.brightness;
 		this->get_stripctl()->AddCommand(newstate, SetBrigthness, srcTrigger);
 		newstate.color = rec.color;
 		this->get_stripctl()->AddCommand(newstate, SetColor, srcTrigger);
 	}
 	else{
-
+#ifdef	TRIGGER_DEBUG
+		DBG_OUTPUT_PORT.println("Mode Off");
+#endif
 		this->get_stripctl()->AddCommand(newstate, Off, srcTrigger);
 	}
 

@@ -41,6 +41,7 @@ class CBaseController
 {
 public:
 	CBaseController();
+	friend class Controllers;
 	virtual String  serializestate() = 0;
 	virtual bool  deserializestate(String jsonstate)=0;
 	virtual void setup() ;
@@ -103,6 +104,10 @@ private:
 #if !defined(ESP8266)
 	TaskHandle_t taskhandle;
 #endif
+	void cleanbuffer();
+	uint8_t * allocatebuffer(size_t size);
+	uint8_t * bodybuffer; ///handle collection of post request
+	size_t bodyindex; 
 };
 
 
@@ -130,8 +135,9 @@ public:
 	}
 	virtual bool baseprocesscommands(command cmd) {
 		if (cmd.mode == BaseSaveState) {
-			return true;
+			
 			this->savestate();
+			return true;
 		}
 		return false;
 	}
@@ -184,7 +190,11 @@ public:
 			P saved = this->get_state();
 			this->set_prevstate(saved);
 			if (this->manualtime != 0) {
+				DBG_OUTPUT_PORT.println(this->get_name());
+				DBG_OUTPUT_PORT.print("Activate manual time");
+				
 				this->mswhenrestore = millis() + this->manualtime * 1000;//wil be handled in next(if manualtime =0 , never)
+				DBG_OUTPUT_PORT.println(this->mswhenrestore);
 				this->isrestoreactivated = true;
 			}
 		}
@@ -193,6 +203,8 @@ public:
 	virtual void run() {
 		CController<T, P, M>::run();
 		if (this->isrestoreactivated && this->mswhenrestore <= millis()) { // need restore
+			DBG_OUTPUT_PORT.print(this->get_name());
+			DBG_OUTPUT_PORT.println(" : Restore after manual set");
 			this->restorestate();
 		}
 	}

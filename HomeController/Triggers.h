@@ -6,6 +6,7 @@
 #include "Array.h"
 
 #define NEXT_DAY_SEC (1 * 24 * 60 * 60)
+#define SEC_TOLLERANCE 1200  //2 min
 //forward declaration
 class Controllers;
 class RGBStripController;
@@ -94,6 +95,7 @@ struct timerecRGB {
 	TimeType timetype = dailly;
 	time_t timeToTrigger=0;
 	time_t lastTriggered=0;
+	bool isLdr = false;
 };
 class TimeToRGBStripTrigger :public CBaseTimeTrigger<timerecRGB> {
 public:

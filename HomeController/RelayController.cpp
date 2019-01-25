@@ -60,15 +60,16 @@ void RelayController::run() {
 	   }
 		this->set_state(newState);
 	}
-	CBaseController::run();
+	Relay::run();
 }
 void RelayController::set_state(RelayState state) {
 
 	DBG_OUTPUT_PORT.print("RelayController state:");
 	DBG_OUTPUT_PORT.println(state.isOn?"ON":"OFF");
-	CController::set_state(state);
+	Relay::set_state(state);
 
 	digitalWrite(pin, state.isOn?HIGH:LOW);
+
 }
 
 bool RelayController::onpublishmqtt(String& endkey, String& payload) {

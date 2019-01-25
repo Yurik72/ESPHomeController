@@ -12,11 +12,23 @@ CBaseController::CBaseController() {
 	this->enabled = false;
 	this->_cached_next_run = 0;
 	this->onstatechanged = NULL;
+	this->bodybuffer = NULL;
+	this->bodyindex = 0;
 }
 void CBaseController::set_name(const char* name) {
 	strncpy(this->name, name, MAXLEN_NAME);
 }
-
+void CBaseController::cleanbuffer() {
+	if (bodybuffer != NULL)
+		free(bodybuffer);
+	bodyindex = 0;
+}
+uint8_t * CBaseController::allocatebuffer(size_t size) {
+	this->cleanbuffer();
+	this->bodybuffer=(uint8_t *)malloc(size + 1);
+	this->bodybuffer[size] = NULL;
+	return this->bodybuffer;
+}
 String CBaseController::get_filename_state() {
 	
 	String file = "/";

@@ -28,7 +28,8 @@ String  RGBStripController::serializestate() {
 	root["color"] = this->get_state().color;
 	root["wxmode"] = this->get_state().wxmode;
 	root["wxspeed"] = this->get_state().wxspeed;
-
+	root["isLdr"] = this->get_state().isLdr;
+	root["ldrValue"] = this->get_state().ldrValue;
 	String json;
 	serializeJson(root, json);
 
@@ -50,6 +51,8 @@ bool  RGBStripController::deserializestate(String jsonstate) {
 	newState.color = root["color"];
 	newState.wxmode = root["wxmode"];
 	newState.wxspeed = root["wxspeed"];
+	newState.isLdr = root["isLdr"];
+	newState.ldrValue = root["ldrValue"];
 	//this->set_state(newState);
 	this->AddCommand(newState, SetRGB, srcState);
 	return true;
@@ -98,6 +101,9 @@ void RGBStripController::run() {
 		case SetMode:
 			newState.wxmode = cmd.state.wxmode;
 			break;
+		case SetIsLdr:
+			newState.isLdr = cmd.state.isLdr;
+			break;
 		case SetRGB:
 		case SetRestore:
 			newState = cmd.state;
@@ -114,6 +120,7 @@ void RGBStripController::run() {
 void RGBStripController::set_state(RGBState state) {
 	RGBState oldState = this->get_state();
 	
+
 	if (oldState.isOn != state.isOn) {  // on/off
 		if (state.isOn) {
 			DBG_OUTPUT_PORT.println("Switching On");
@@ -131,6 +138,8 @@ void RGBStripController::set_state(RGBState state) {
 		}
 
 	}
+	
+
 	if (state.isOn) {
 		if (oldState.wxmode != state.wxmode) {
 			DBG_OUTPUT_PORT.println("oldState.wxmode != state.wxmod");
