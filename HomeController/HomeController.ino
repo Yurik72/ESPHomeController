@@ -148,13 +148,17 @@ void setup()
 	if (!readConfigFS())
 		DBG_OUTPUT_PORT.println("Fail To Load config.json ! ");
 #if defined(ESP8266)
+	DBG_OUTPUT_PORT.print("Setup station name ");
+	DBG_OUTPUT_PORT.println(HOSTNAME);
 	wifi_station_set_hostname(const_cast<char*>(HOSTNAME));
 #else
 	WiFi.setHostname(HOSTNAME);
 #endif
 
 #if defined ASYNC_WEBSERVER
+	DBG_OUTPUT_PORT.println("Setupr DNS ");
 	DNSServer dns;
+	DBG_OUTPUT_PORT.println("AsyncWiFiManager");
 	AsyncWiFiManager wifiManager(&asserver, &dns);
 #else
 	WiFiManager wifiManager;

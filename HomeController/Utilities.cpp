@@ -44,6 +44,11 @@ bool writeConfigFS(bool saveConfig) {
 bool readConfigFS() {
 	//read configuration from FS JSON
 
+	memset(mqtt_host, 0, sizeof(mqtt_host));
+	memset(mqtt_port, 0, sizeof(mqtt_port));
+	memset(mqtt_user, 0, sizeof(mqtt_user));
+	memset(mqtt_pass, 0, sizeof(mqtt_pass));
+
 	if (SPIFFS.exists("/config.json")) {
 		//file exists, reading and loading
 		DBG_OUTPUT_PORT.print("Reading config file... ");
@@ -60,14 +65,36 @@ bool readConfigFS() {
 				JsonObject json = jsonBuffer.as<JsonObject>();
 				serializeJson(json, DBG_OUTPUT_PORT);
 				char localHost[32];
-				strcpy(localHost, json[name_localhost_host]);
-				if (strlen(localHost)>0);
-					strcpy(HOSTNAME, localHost);
+				memset(localHost, 0, sizeof(localHost));
+				const char * jsondata = json[name_localhost_host];
+				if (jsondata && strlen(jsondata) > 0) {
+					strcpy(localHost, json[name_localhost_host]);
+					if (strlen(localHost) > 0)
+						strcpy(HOSTNAME, localHost);
+					else
+						DBG_OUTPUT_PORT.println("Invalid hostname param in config");
+				}
+				else
+					DBG_OUTPUT_PORT.println("Invalid load host name");
+
+			    DBG_OUTPUT_PORT.println("Host copied");
 #if defined ENABLE_HOMEBRIDGE
-				strcpy(mqtt_host, json[name_mqtt_host]);
-				strcpy(mqtt_port, json[name_mqtt_port]);
-				strcpy(mqtt_user, json[name_mqtt_user]);
-				strcpy(mqtt_pass, json[name_mqtt_pass]);
+				jsondata = json[name_mqtt_host];
+				if (jsondata && strlen(jsondata) > 0)
+					strcpy(mqtt_host, jsondata);
+				jsondata = json[name_mqtt_port];
+				if (jsondata && strlen(jsondata) > 0)
+					strcpy(mqtt_port, jsondata);
+
+				jsondata = json[name_mqtt_user];
+				if (jsondata && strlen(jsondata) > 0)
+					strcpy(mqtt_user, jsondata);
+
+				jsondata = json[name_mqtt_pass];
+				if (jsondata && strlen(jsondata) > 0)
+					strcpy(mqtt_pass, jsondata);
+
+				
 #endif
 				return true;
 			}
