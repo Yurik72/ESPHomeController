@@ -45,6 +45,9 @@ CBaseController* Controllers::GetByName(const char* name) {
 	}
 	return NULL;
 }
+Controllers* Controllers::getInstance() {
+	return _instance;
+}
 void Controllers::setup() {
 
 	this->loadconfig();
@@ -189,12 +192,19 @@ void Controllers::setuphandlers(AsyncWebServer& server) {
 		info += ASYNC;
 		info += ",\"hostname\":\"";
 		info += HOSTNAME;
-		info += "\"}";
-
+		info += "\",\"mem\":";
+		info += String(ESP.getFreeHeap());
+		info += "}";
 		AsyncWebServerResponse *response = request->beginResponse(200, "application/json", info.c_str());
 		//response->addHeader("Access-Control-Allow-Origin", "*");
 		//response->addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
 
+		request->send(response);
+	});
+	server.on("/get_log", HTTP_GET, [](AsyncWebServerRequest *request) {
+
+		AsyncWebServerResponse *response = request->beginResponse(200, "application/json", GET_CONSTCHARGLOG);
+	
 		request->send(response);
 	});
 	for (int i = 0;i < this->GetSize();i++) {
@@ -209,7 +219,7 @@ void Controllers::setuphandlers(AsyncWebServer& server) {
 			AsyncWebServerResponse *response = request->beginResponse(200, "application/json", ctl->serializestate().c_str());
 			//response->addHeader("Access-Control-Allow-Origin", "*");
 			//response->addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
-
+			
 			request->send(response);
 		});
 		String pathset = path + String("/set_state");
@@ -248,6 +258,7 @@ void Controllers::setuphandlers(AsyncWebServer& server) {
 					ctl->deserializestate(body);
 				}
 				ctl->cleanbuffer();
+				DBG_OUTPUT_PORT.println("Buffer cleaned");
 			}
 
 

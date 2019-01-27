@@ -20,6 +20,8 @@ class RelayController;
 typedef CController<RelayController, RelayState, RelayCMD> Relay;
 class RelayController: public Relay
 {
+public:
+	RelayController();
 	virtual String  serializestate();
 	virtual bool  deserializestate(String jsonstate);
 	virtual void setup();
@@ -30,6 +32,7 @@ class RelayController: public Relay
 	virtual void onmqqtmessage(String topic, String payload);
 protected:
 	uint pin;
+	bool isinvert;
 };
 
 

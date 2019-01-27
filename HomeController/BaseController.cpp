@@ -21,12 +21,14 @@ void CBaseController::set_name(const char* name) {
 void CBaseController::cleanbuffer() {
 	if (bodybuffer != NULL)
 		free(bodybuffer);
-	bodyindex = 0;
+	this->bodybuffer = NULL;
+	this->bodyindex = 0;
 }
 uint8_t * CBaseController::allocatebuffer(size_t size) {
 	this->cleanbuffer();
 	this->bodybuffer=(uint8_t *)malloc(size + 1);
 	this->bodybuffer[size] = NULL;
+	this->bodyindex = 0;
 	return this->bodybuffer;
 }
 String CBaseController::get_filename_state() {

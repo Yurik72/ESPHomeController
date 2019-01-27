@@ -30,6 +30,7 @@ class Controllers :public CSimpleArray< CBaseController*>
 {
 public:
 	Controllers();
+	static Controllers* getInstance();
 	static CBaseController* CreateByName(const char* name);
 	CBaseController* GetByName(const char* name);
 	void setup();

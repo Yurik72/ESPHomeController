@@ -1,9 +1,24 @@
 #ifndef config_h
 #define config_h
+
 #define ENABLE_HOMEBRIDGE    //if defined will communicate to MQTT Home bdridge
 #define HTTP_OTA             // If defined, enable ESP8266HTTPUpdateServer/ESP32HTTPUpdateServer/ESPAsyncUpdateServer OTA code.
 
+#define LOG_STRING_LOGGER
+#define LOG_SERIAL
+
+#if defined(LOG_SERIAL) && !defined(LOG_STRING_LOGGER)
 #define DBG_OUTPUT_PORT Serial  // Set debug output port
+#define GET_LOG String("")
+#define GET_CONSTCHARGLOG ""
+#endif
+#if defined(LOG_SERIAL) && defined(LOG_STRING_LOGGER)
+#include "Logger.h"
+#define DBG_OUTPUT_PORT ESPLogger  // Set debug output port
+#define GET_STRINGLOG ESPLogger.LOG()
+#define GET_CONSTCHARGLOG ESPLogger.LOG().c_str()
+#endif
+
 
 #define CONFIG_PORTAL_TIMEOUT 600/// secs , to wait configuration has been done by user
 #define ASYNC_WEBSERVER    // !Important , this is switching between WebServer and AsyncWebserver.
@@ -42,3 +57,5 @@ extern short qossub ; // AMQTT can sub qos 0 or 1 or 2
 #else
 #define ASYNC "\"false\""
 #endif
+
+///Loggger and debugger

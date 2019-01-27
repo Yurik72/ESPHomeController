@@ -7,7 +7,7 @@
 
 
 
-const size_t bufferSize = JSON_OBJECT_SIZE(20);
+const size_t bufferSize = JSON_OBJECT_SIZE(40);
 
 RGBStripController::RGBStripController() {
 	this->pStrip = NULL;
@@ -144,7 +144,7 @@ void RGBStripController::set_state(RGBState state) {
 		if (oldState.wxmode != state.wxmode) {
 			DBG_OUTPUT_PORT.println("oldState.wxmode != state.wxmod");
 			if (pStrip->isRunning())pStrip->stop();
-			if (state.wxmode > 0) pStrip->setMode(state.wxmode);
+			if (state.wxmode >= 0) pStrip->setMode(state.wxmode);
 			if (!pStrip->isRunning()) pStrip->start();
 		}
 		if (state.isLdr) {

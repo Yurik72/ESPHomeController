@@ -4,6 +4,10 @@
 #include "BaseController.h"
 #include "RelayController.h"
 const size_t bufferSize = JSON_OBJECT_SIZE(20);
+
+RelayController::RelayController() {
+	this->isinvert = false;
+}
 String  RelayController::serializestate() {
 	
 	DynamicJsonDocument jsonBuffer(bufferSize);
@@ -34,10 +38,11 @@ bool  RelayController::deserializestate(String jsonstate) {
 }
 void RelayController::loadconfig(JsonObject& json) {
 	pin= json["pin"];
+	isinvert= json["isinvert"];
 }
 void  RelayController::setup() {
 	pinMode(pin, OUTPUT);
-	digitalWrite(pin, LOW);
+	digitalWrite(pin, this->isinvert?HIGH:LOW);
 }
 
 void RelayController::run() {
@@ -68,7 +73,7 @@ void RelayController::set_state(RelayState state) {
 	DBG_OUTPUT_PORT.println(state.isOn?"ON":"OFF");
 	Relay::set_state(state);
 
-	digitalWrite(pin, state.isOn?HIGH:LOW);
+	digitalWrite(pin, (state.isOn ^ this->isinvert)?HIGH:LOW);
 
 }
 
