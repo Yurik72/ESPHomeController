@@ -44,7 +44,13 @@ size_t Logger::write(uint8_t ch) {
 		pSerial->write(ch);
 	return sizeof(ch);
 }
+#if defined(ESP8266)
+void Logger::begin(unsigned long baud) {
+	if (pSerial)
+		pSerial->begin(baud);
+#else
 void Logger::begin(unsigned long baud, uint32_t config , int8_t rxPin, int8_t txPin , bool invert){
 	if (pSerial)
 		pSerial->begin(baud, config, rxPin, txPin, invert);
+#endif 
 }
