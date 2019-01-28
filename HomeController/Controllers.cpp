@@ -55,7 +55,11 @@ void Controllers::setup() {
 	for (int i = 0; i < this->GetSize(); i++) {
 		CBaseController* ctl = this->GetAt(i);
 		ctl->setup();
-		if (ctl->ispersiststate()) ctl->loadstate();
+		if (ctl->ispersiststate()) {
+			DBG_OUTPUT_PORT.print(ctl->get_name());
+			DBG_OUTPUT_PORT.println(" : Restore persist state");
+			ctl->loadstate();
+		}
 		ctl->set_power_on();
 	}
 }

@@ -15,7 +15,7 @@ String  LDRController::serializestate() {
 
 	return json;
 }
-bool  LDRController::deserializestate(String jsonstate) {
+bool  LDRController::deserializestate(String jsonstate, CmdSource src) {
 
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	DeserializationError error = deserializeJson(jsonBuffer, jsonstate);
@@ -28,7 +28,9 @@ bool  LDRController::deserializestate(String jsonstate) {
 	LDRState newState;
 	newState.isOn = root["isOn"];
 	newState.ldrValue = root["ldrValue"];
-	this->set_state(newState);
+	
+	this->AddCommand(newState, Measure, src);
+	//this->set_state(newState);
 	return true;
 
 }

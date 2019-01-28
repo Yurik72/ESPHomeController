@@ -33,7 +33,7 @@ String  TimeController::serializestate() {
 
 	return json;
 }
-bool  TimeController::deserializestate(String jsonstate) {
+bool  TimeController::deserializestate(String jsonstate, CmdSource src) {
 
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	DeserializationError error = deserializeJson(jsonBuffer, jsonstate);
@@ -45,7 +45,8 @@ bool  TimeController::deserializestate(String jsonstate) {
 	JsonObject root = jsonBuffer.as<JsonObject>();
 	TimeState newState;
 	newState.time = root["time"];
-	this->set_state(newState);
+	//this->set_state(newState);
+	this->AddCommand(newState, SET, src);
 	return true;
 
 }
@@ -97,6 +98,7 @@ void TimeController::run() {
 
 #endif
 		//this->commands.Add(newcmd);
+		newcmd.mode = SET;
 		this->AddCommand(newcmd.state, newcmd.mode, srcSelf);
 
 #if defined TIMECONTROLLER_DEBUG

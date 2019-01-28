@@ -35,8 +35,12 @@ String  RGBStripController::serializestate() {
 
 	return json;
 }
-bool  RGBStripController::deserializestate(String jsonstate) {
-	DBG_OUTPUT_PORT.print("RGBStripController::deserializestate");
+bool  RGBStripController::deserializestate(String jsonstate, CmdSource src) {
+	DBG_OUTPUT_PORT.println("RGBStripController::deserializestate");
+	if (jsonstate.length() == 0) {
+		DBG_OUTPUT_PORT.println("State is empty");
+		return false;
+	}
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	DeserializationError error = deserializeJson(jsonBuffer, jsonstate);
 	if (error) {
@@ -54,7 +58,7 @@ bool  RGBStripController::deserializestate(String jsonstate) {
 	newState.isLdr = root["isLdr"];
 	newState.ldrValue = root["ldrValue"];
 	//this->set_state(newState);
-	this->AddCommand(newState, SetRGB, srcState);
+	this->AddCommand(newState, SetRGB, src);
 	return true;
 
 }

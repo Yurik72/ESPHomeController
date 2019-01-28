@@ -29,7 +29,8 @@ enum CmdSource
 	srcState = 0,
 	srcTrigger = 1,
 	srcMQTT = 2,
-	srcSelf = 3
+	srcSelf = 3,
+	srcRestore=4
 };
 enum BaseCMD :uint {
 	BaseOn=1,
@@ -43,7 +44,7 @@ public:
 	CBaseController();
 	friend class Controllers;
 	virtual String  serializestate() = 0;
-	virtual bool  deserializestate(String jsonstate)=0;
+	virtual bool  deserializestate(String jsonstate, CmdSource src= srcState)=0;
 	virtual void setup() ;
 	const char* get_name() {
 		return name;
@@ -157,7 +158,7 @@ public:
 		return state;
 	}
 	virtual bool loadstate() {
-		return this->deserializestate(readfile(this->get_filename_state().c_str()));
+		return this->deserializestate(readfile(this->get_filename_state().c_str()), srcRestore);
 	}
 protected:
 	CSimpleArray<command> commands;

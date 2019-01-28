@@ -43,7 +43,7 @@ public:
 	RGBStripController();
 	~RGBStripController();
 	virtual String  serializestate();
-	virtual bool  deserializestate(String jsonstate);
+	virtual bool  deserializestate(String jsonstate, CmdSource src = srcState);
 	virtual void setup();
 	void loadconfig(JsonObject& json);
 	virtual void run();

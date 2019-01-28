@@ -19,7 +19,7 @@ String  RelayController::serializestate() {
 
 	return json;
 }
-bool  RelayController::deserializestate(String jsonstate) {
+bool  RelayController::deserializestate(String jsonstate, CmdSource src) {
 	
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	DeserializationError error = deserializeJson(jsonBuffer, jsonstate);
@@ -31,7 +31,7 @@ bool  RelayController::deserializestate(String jsonstate) {
 	JsonObject root = jsonBuffer.as<JsonObject>();
 	RelayState newState;
 	newState.isOn= root["isOn"];
-	this->AddCommand(newState, Set, srcState);
+	this->AddCommand(newState, Set, src);
 	//this->set_state(newState);
 	return true;
 	
