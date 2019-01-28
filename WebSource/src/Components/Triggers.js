@@ -26,34 +26,35 @@ class Triggers extends React.Component {
     constructor(props) {
         super(props);
 
-        const { triggedata, servicedata} = props;
-        this.triggers = triggedata;
+        //const { triggedata, servicedata } = props;
+        console.log("Triggers constructor");
+        console.log(props);
+        //this.triggers = triggedata;
         this.state = {};
        
         this.handleChange = (idx) => event => {
             console.debug("handleChange triggers");
             this.assigntotrigger(idx, function (it) { it[event.target.name] = event.target.value; });
-            /*
-            let triggers = this.clonetriggers(); //all new copy
 
-            let item = { ...triggers[idx] }; //edited item
-
-            item[event.target.name] = event.target.value;
-            
-            triggers[idx] = item; 
-            console.debug("handleChange triggers");
-            console.debug(triggers);
-            this.setState({ triggers });
-            */
         }
         this.doSave = this.doSave.bind(this);
-        this.state.triggers = this.triggers;
-        this.state.services = servicedata;
+        this.state.triggers = [];
+        this.state.services = [];
         this.state.expstate = {};
-        console.log(this.state.services)
 
-        console.log(this.state.servicenames )
+       
+       
+       
     };
+    componentWillReceiveProps(nextProps) {
+       // console.log("componentWillReceiveProps");
+       // console.log(nextProps);
+        if (nextProps.triggedata !== this.props.triggedata) {
+            const { triggedata, servicedata } = nextProps;
+
+            this.setState({ triggers: triggedata, services: servicedata});
+        }
+    }
     setTriggerprop(idx,name,val) {
         this.assigntotrigger(idx, function (it) { it[name] = val; });
     }
@@ -64,6 +65,7 @@ class Triggers extends React.Component {
         return { ...this.clonetriggers()[idx] };
     }
     assigntotrigger(idx, callback) {
+       // console.debug("assigntotrigger");
         let triggers = this.clonetriggers(idx) //all new copy
         let item = { ...triggers[idx] }; //edited item
         //item = { ...item, ...obj };
@@ -74,31 +76,19 @@ class Triggers extends React.Component {
         return triggers;
     }
     assigntotriggervalue(val, tidx, idx) {
+        //console.debug("assigntotriggervalue");
         return this.assigntotrigger(tidx, function (item) {
             let values = [...item.value];//copy of values
             let itemvalue = { ...values[idx] }; //edited value of item
             itemvalue = { ...itemvalue, ...val }; ///merge within new fields
             values[idx] = itemvalue; //back edited value
-            item.value = values; //back values
+            item.value = values; //back values 
         });
     }
     handlecomponentindexedchange(val, tidx, idx) {
         //console.debug("handlecomponentchange triggers");
         this.assigntotriggervalue(val, tidx, idx);
-        //console.log(val);
-        /*
-        let triggers = [...this.state.triggers]; //all new copy
-        let item = { ...triggers[tidx] }; //edited item
-        let values = [...item.value];//copy of values
-        let itemvalue = { ...values[idx] }; //edited value of item
-        itemvalue = { ...itemvalue,...val }; ///merge within new fields
-        values[idx] = itemvalue; //back edited value
-        item.value = values; //back values
-        //let value = { ...values[idx]}
-        triggers[tidx] = item;   //back item  
-        //console.debug(triggers);
-        this.setState({ triggers });
-        */
+
     }
 
     componentWillMount() {
@@ -130,16 +120,18 @@ class Triggers extends React.Component {
        
     }
     renderSwitchType(item, idx) {
+        //console.log("renderSwitchType");
         if (item.type === 'TimeToRGBStrip')
             return this.renderTimeRgb(item.value, idx);
     }
     renderTimeRgb(times, tidx) {
+       // console.log("renderTimeRgb");
         if (!times || !Array.isArray(times))
             times = [];
-        console.log(this.state.expstate);
+        
         return (
             <>
-                <div className="row" >
+                <div className="row blue-grey lighten-5" >
                     <div className="col s2">
                         Timing rules 
                     </div>
@@ -150,8 +142,8 @@ class Triggers extends React.Component {
                 {
                    
                     times.map((item, idx) => {
-                        console.debug("render trigger");
-                        console.debug(item);
+                      //  console.debug("render trigger");
+                       // console.debug(item);
                         var trkey = "tri" + tidx + idx;
                         var expstate = this.state.expstate;
                         var isshow = expstate[trkey];
@@ -224,13 +216,14 @@ class Triggers extends React.Component {
         console.debug(item.value);
         triggers[trindex] = item;   //back item  
         console.log(triggers);
-        this.setState({ triggers });
+      //  this.setState({ triggers });
     }
     addtrigger(triggertype) {
+        console.log("addtrigger");
         let triggers = this.clonetriggers();
         triggers.push({ type: triggertype });
         console.log(triggers);
-        this.setState({ triggers });
+        //this.setState({ triggers });
     }
     handleselectchange(ev,close) {
         console.log("handle select");
@@ -239,12 +232,14 @@ class Triggers extends React.Component {
         close();
     }
     render() {
-
+        //console.log("triggers render");
+        //console.log(this.state);
+       
         return (
 
             <div>
  
-                <div className="row">
+                <div className="row  blue-grey lighten-1">
                     <div className="col s2">
                         <h5>Triggers</h5>
                     </div>
@@ -282,17 +277,18 @@ class Triggers extends React.Component {
                     </div>
                 </div>
                 {
-
+                    
                     this.state.triggers.map((item, idx) => {
 
                         const tkey = "tr" + idx;
                         var expstate = this.state.expstate;
                         var isshow = expstate[tkey];
+                        console.log("triggers item render");
                         return (
 
 
                             <div key={tkey}>
-                            <div className="row" >
+                                <div className="row blue-grey lighten-3" >
                                 <div className="col s2">
                                     <Button label="X" classNames="red"
                                         onClick={() => (idx) > this.removeTrigger(idx)}

@@ -1,4 +1,5 @@
 import React from "react";
+//import { setTimeout } from "timers";
 
 class RangeCtl extends React.Component {
     constructor(props) {
@@ -7,15 +8,22 @@ class RangeCtl extends React.Component {
           
             rangevalue: 0
         };
-        
+ 
         this.handleChange = this.handleChange.bind(this);
+      
+        
     }
     handleChange(e) {
         const { handleRangeChange } = this.props;
+       
         let newState = { rangevalue: e.target.value };
-        this.setState(newState);
-        //if (handleRangeChange)
-            handleRangeChange(this);
+        var self = this;
+
+        this.setState(newState, () => {
+            if (handleRangeChange)
+                handleRangeChange(self);
+        });
+       
     }
     render() {
         const { label,rangevalue } = this.props;

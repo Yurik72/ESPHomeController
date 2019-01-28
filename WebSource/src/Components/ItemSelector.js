@@ -32,16 +32,25 @@ class ItemSelector extends React.Component {
         close();
     }
     render() {
-        //const dfltclassNames = "btn waves-effect waves-light btn_mode_static";
-        const { label, message, onSelect, items,valuekey,textkey } = this.getComponentprops();
-        //const { classNames } = this.props;
+       
+        const { label, message, onSelect, items, valuekey, textkey, showcurrent, currentval } = this.getComponentprops();
+       
         var itemsex = items;
         if ((itemsex || itemsex.length === 0) && (this.state && this.state.items && this.state.items.length !== 0))
             itemsex = this.state.items;
+        var currentitem;
+        
+        if (showcurrent && itemsex) {
+           
+            var found = itemsex.find((item) => item[valuekey] === currentval);
+           
+            if (found)
+                currentitem = found[textkey];
+        }
        
         return (
 
-            <Popup trigger={<Button label={label} />} position="right center">
+            <Popup trigger={<Button label={label + (currentitem ? currentitem:"")} />} position="right center">
                 {close => (
                     <div>
                         <div className="row">
@@ -66,7 +75,8 @@ class ItemSelector extends React.Component {
 
                     </div>
                 )}
-            </Popup>
+                </Popup>
+
         );
     }
 }

@@ -5,6 +5,7 @@ import RangeCtl from "./RangeCtl";
 import { getBaseuri, doFetch } from "./utils"
 import ColorWeel from "./ColorWeel"
 import ItemSelector from "./ItemSelector"
+import { clearTimeout, setTimeout } from "timers";
 class RGBStrip extends React.Component {
     constructor(props) {
         super(props);
@@ -14,17 +15,15 @@ class RGBStrip extends React.Component {
         //this.state = { isOn: false };
         this.toggleCheckbox = ch => {
             let newstate={ isOn: ch.state.isChecked }
-            this.RGBState = Object.assign(this.RGBState, newstate);
+            this.RGBState = { ...this.RGBState, ...newstate };
             this.setState(newstate);
             this.SendStateUpdate();
 
         };
         this.API = getBaseuri() + "/" + compprops.name;
-        //this.getMousePos = this.getMousePos.bind(this);
-       // this.setupColorWill = this.setupColorWill.bind(this);
-        //this.doClick = this.doClick.bind(this);
-       // this.updateStatus = this.updateStatus.bind(this);
+
         this.onBrigthnessChanged = this.onBrigthnessChanged.bind(this);
+        this.internal_setState = this.internal_setState.bind(this);
        // this.doTouch = this.doTouch.bind(this);
        // this.canvas = {};
        // this.context = {};
@@ -33,12 +32,10 @@ class RGBStrip extends React.Component {
         this.modeselector = {};
         this.RGBState = { isOn: false ,brightness:150,color:280};
         this.state = this.RGBState;
+        this.timer_id = 0;
+       
     }
-    componentWillMount() {
-        //this.canvas = document.getElementById("myCanvas");
-        //this.context=this.canvas.getContext('2d');
-        
-    }
+
     componentDidMount() {
        
    
@@ -54,12 +51,23 @@ class RGBStrip extends React.Component {
         });
     }
     onBrigthnessChanged(ctl) {
-        //this.setState({ brigthness: ctl.state.rangevalue });
-        let newstate = { brightness: ctl.state.rangevalue }
+       
+        this.internal_setState({ brightness: ctl.state.rangevalue },300)
+
+    }
+    internal_setState(newstate,delay) {
+        
         this.RGBState = { ...this.RGBState, ...newstate };
 
         this.setState(newstate);
-        this.SendStateUpdate();
+        if (delay) {
+            clearTimeout(this.timer_id);
+            var self = this;
+            this.timer_id=setTimeout(() => { self.SendStateUpdate() }, delay);
+        }
+        else {
+            this.SendStateUpdate();
+        }
     }
     SendStateUpdate() {
 
@@ -100,6 +108,7 @@ class RGBStrip extends React.Component {
                             <RangeCtl
                                 ref={el => this.brigctl = el}
                                 label="Brigthness"
+                                
                                 rangevalue={this.state.brightness}
                                 handleRangeChange={this.onBrigthnessChanged}
                                 />
@@ -112,11 +121,8 @@ class RGBStrip extends React.Component {
                                 height={330}
                                 onSelect={(intcolor, hexcolor) => {
                                     
-                                    let newstate = { color: intcolor }
-                                    //console.log(newstate);
-                                    this.RGBState = { ...this.RGBState, ...newstate };
-                                    this.setState(newstate);
-                                    this.SendStateUpdate();
+                                    this.internal_setState({ color: intcolor });
+
                                 }}
                             />
                         </div>
@@ -127,34 +133,31 @@ class RGBStrip extends React.Component {
                         </div>
                     </div>
                     <div className="row">
-                    <div className="col s4">
+                         <div className="col s2">
                             <label htmlFor="mode">Mode</label>
                             <input type="text" value={this.state.wxmode} name="mode"
                             onChange={ev => {
                                 var val = parseInt(ev.target.value) || 0;
 
-                                let newstate = { wxmode: val }
-                                //console.log(newstate);
-                                this.RGBState = { ...this.RGBState, ...newstate };
-                                this.setState(newstate);
-                                this.SendStateUpdate();
+                                this.internal_setState({ wxmode: val });
+
                             }}
                             />
 
                         </div>
+
                         <div className=" col s1" >
                             <ItemSelector ref={el => this.modeselector = el} label="..." message={"select mode"}
                                 valuekey={"mode"}
                                 textkey={"name"}
+                                showcurrent={true}
+                                currentval={this.state.wxmode}
                                 onSelect={(selval) => {
-                                    console.log("mode changed");
+    
                                     var val = parseInt(selval) || 0;
                                     
-                                    let newstate = { wxmode: val }
-                                    //console.log(newstate);
-                                    this.RGBState = { ...this.RGBState, ...newstate };
-                                    this.setState(newstate);
-                                    this.SendStateUpdate();
+                                    this.internal_setState({ wxmode: val });
+
                                 }}
                             />
                         </div>

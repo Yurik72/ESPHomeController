@@ -27,6 +27,11 @@ export default ({ close,services }) => (
                    Setup ->  Triggers
                 </NavLink>
             </li>
+            <li>
+                <NavLink onClick={close} activeClassName="LogView" to="LogView">
+                    LogView
+                </NavLink>
+            </li>
 
         </ul>
     </div>

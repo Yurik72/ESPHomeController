@@ -15,7 +15,7 @@ export function getServices() {
 }
 export function getBaseuri() {
     var path;
-    console.log(process.env.NODE_ENV);
+   // console.log(process.env.NODE_ENV);
     if (typeof window !== 'undefined') {
         var path = window.location.protocol + '//' + window.location.host ; // (or whatever)
     } else {
@@ -30,10 +30,10 @@ var entrance = 0;
 const timeout = 100;
 export function doFetch(apiurl, callback) {
     
-    console.log("entrance count" + entrance);
+   // console.log("entrance count" + entrance);
     setTimeout(() => internaldoFetch(apiurl, callback, 3, () => {
         entrance--;
-        console.log("entrance leave:" + entrance);
+   //     console.log("entrance leave:" + entrance);
     }), (entrance * timeout));
     entrance++;
 }
@@ -45,11 +45,11 @@ function internaldoFetch(apiurl, callback, iter,leave) {
         leave();
         return;
     }
-    console.log("execution " + apiurl );
+    //console.log("execution " + apiurl );
     fetch(apiurl)
         .then(response => {
             leave();
-            console.log("success leave" + apiurl + "->" + entrance)
+           // console.log("success leave" + apiurl + "->" + entrance)
             if (response.status === 200) {
                 //console.log(response);
                 return response.json()

@@ -8,6 +8,7 @@ import BurgerIcon from "./Components/BurgerIcon";
 import Relay from "./Components/Relay";
 import Services from "./Components/Services";
 import LDR from "./Components/LDR"
+import LogView from "./Components/LogView"
 import { getHomeUrl, getConfigData, getBaseuri, doFetch } from "./Components/utils"
 
 import Triggers from './Components/Triggers';
@@ -37,14 +38,17 @@ const Home = () => (
 class App extends Component {
     constructor(props) {
         super(props)
-        this.state = { services: [] ,triggers:[]}
+        this.state = { services: [], triggers: [] }
+        console.log("App ctor");
     }
     componentDidMount() {
-        doFetch(getBaseuri() + "/get_info", (data) => { this.setHeaderdata(data) });
+        console.log("App componentDidMount");
+        //doFetch(getBaseuri() + "/get_info", (data) => { this.setHeaderdata(data) });
         doFetch(getBaseuri() + "/services.json", (data) => { console.log(data); this.setState({ services: data }); });
         doFetch(getBaseuri() + "/triggers.json", (data) => { console.log(data); this.setState({ triggers: data }); });
     }
     componentWillMount() {
+        console.log("App componentWillMount");
         //var obj = JSON.parse('[{"service":"RelayController","name":"Relay","enabled":true,"interval":100,"pin":5},{"service":"TimeController","name":"Time","enabled":true,"interval":1000,"timeoffs":7200,"dayloffs":3600,"server":"pool.ntp.org"},{"service":"RGBStripController","name":"RGBStrip","enabled":true,"interval":1,"pin":23,"numleds":8},{"service":"LDRController","name":"LDR","enabled":true,"interval":1000,"pin":0}]');
         //var obj1 = JSON.parse('[{"type":"TimeToRGBStrip","source":"Time","destination":"Relay","value":[{"isOn":true,"isLdr":true,"time":0,"bg":1,"wxmode":-1}]}]');
        // this.setState({ services : obj });
@@ -82,7 +86,7 @@ class App extends Component {
         //compprops.servicename = "RelaySwitch"
         //console.debug("AppRender");
        // console.debug(getBaseuri());
-
+        console.debug("AppRender");
     return (
         <div key={"App"} className="App">
        
@@ -135,7 +139,10 @@ class App extends Component {
                             render={(props => <Services key="services" {...props} compprops={this.state.services} />)}
                         />
                       
-                        
+                        <Route path="/LogView" component={LogView}>
+                          
+                         </Route>
+
                  
                                           
                 </div>
