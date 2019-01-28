@@ -8,7 +8,6 @@
 
 
 
-
 #include "config.h"
 
 #if defined(ESP8266)

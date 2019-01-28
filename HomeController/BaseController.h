@@ -196,6 +196,8 @@ public:
 				
 				this->mswhenrestore = millis() + this->manualtime * 1000;//wil be handled in next(if manualtime =0 , never)
 				DBG_OUTPUT_PORT.println(this->mswhenrestore);
+				DBG_OUTPUT_PORT.println("Current");
+				DBG_OUTPUT_PORT.println(millis());
 				this->isrestoreactivated = true;
 			}
 		}
@@ -203,6 +205,7 @@ public:
 	}
 	virtual void run() {
 		CController<T, P, M>::run();
+
 		if (this->isrestoreactivated && this->mswhenrestore <= millis()) { // need restore
 			DBG_OUTPUT_PORT.print(this->get_name());
 			DBG_OUTPUT_PORT.println(" : Restore after manual set");

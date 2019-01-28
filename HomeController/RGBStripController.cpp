@@ -226,10 +226,18 @@ void RGBStripController::onmqqtmessage(String topic, String payload) {
 	}else if(topic.endsWith("Hue")) {
 		this->mqtt_hue= payload.toFloat();
 		setcmd.state.color = HSVColor(this->mqtt_hue, this->mqtt_saturation, setcmd.state.brightness);
+		setcmd.mode = SetColor;
+		DBG_OUTPUT_PORT.print("Mqtt: Hue,hue = color = ");
+		DBG_OUTPUT_PORT.println(this->mqtt_hue);
+		DBG_OUTPUT_PORT.println(setcmd.state.color);
 	}
 	else if (topic.endsWith("Saturation")) {
 		this->mqtt_saturation = payload.toFloat();
 		setcmd.state.color = HSVColor(this->mqtt_hue, this->mqtt_saturation, setcmd.state.brightness);
+		setcmd.mode = SetColor;
+		DBG_OUTPUT_PORT.print("Mqtt: Saturation,sat- color = ");
+		DBG_OUTPUT_PORT.println(this->mqtt_hue);
+		DBG_OUTPUT_PORT.println(setcmd.state.color);
 	}
 	this->AddCommand(setcmd.state, setcmd.mode, srcMQTT);
 }

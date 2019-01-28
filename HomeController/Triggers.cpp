@@ -113,6 +113,7 @@ void TriggerFromService<SRC, DST>::handleloop(CBaseController* pBase, Controller
 		this->set_srcctl(psrc);
 
 	}
+	this->handleloopsvc(this->get_srcctl(), this->get_dstctl());
 }
 template<class SRC, class DST>
 void TriggerFromService<SRC, DST>::handleloopsvc(SRC* ps, DST* pd) {
@@ -313,10 +314,15 @@ LDRToRGBStrip::LDRToRGBStrip() {
 }
 
 void LDRToRGBStrip::handleloopsvc(LDRController* ps, RGBStripController* pd) {
+	TriggerFromService< LDRController, RGBStripController>::handleloopsvc(ps, pd);
 	LDRState l = ps->get_state();
 	RGBState rState;
 	rState.ldrValue = l.ldrValue;
 	RGBCMD cmd = SetLdrVal;
+#ifdef	TRIGGER_DEBUG
+	DBG_OUTPUT_PORT.println("LDRToRGBStrip set ");
+	DBG_OUTPUT_PORT.println(rState.ldrValue);
+#endif	TRIGGER_DEBUG
 	pd->AddCommand(rState, cmd, srcTrigger);
 }
 
