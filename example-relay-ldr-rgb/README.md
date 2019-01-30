@@ -6,6 +6,7 @@ Given example contains ready configuration for platform which has connected
  - LDR
  - RGB strib
  - Relay
+
 Wires are following:
 
 LDR connected to pin A0 , (second wire is connected to ground via resistor 1k)
@@ -28,7 +29,7 @@ When system properly configured by wiring setting. You can
         - See LDR value
     
     - Use Home Kit on mobile (check *homekit2mqtt_config.json* to MQTT connectio)
-         - Switch ON/OFF Relay
+        - Switch ON/OFF Relay
         - Switch ON/OFF RGB strip
         - Handle color and brigthness of RGB 
         - See LDR value
