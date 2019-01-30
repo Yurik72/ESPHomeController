@@ -24,17 +24,27 @@ When system properly configured by wiring setting.
 You can:
 
  - Use internal web site to
+ 
         - Switch ON/OFF Relay
+        
         - Switch ON/OFF RGB strip
+        
         - Handle color and brigthness of RGB 
+        
         - Set animation of RGB
+        
         - See time value
+        
         - See LDR value
     
-    - Use Home Kit on mobile (check *homekit2mqtt_config.json* to MQTT connectio)
+    - Use Home Kit on mobile (check *homekit2mqtt_config.json* to MQTT connection)
+    
         - Switch ON/OFF Relay
+        
         - Switch ON/OFF RGB strip
+        
         - Handle color and brigthness of RGB 
+        
         - See LDR value
 
 System contains following Automation/Triggers (see *triggers.json*):
