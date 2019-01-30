@@ -1,0 +1,1 @@
+[{"type":"TimeToRGBStrip","source":"Time","destination":"RGBStrip","value":[{"isOn":true,"isLdr":true,"time":1900,"bg":1,"color":3432432,"wxmode":0},{"isOn":false,"isLdr":true,"time":2200,"bg":0,"color":3432432,"wxmode":0}]},{"type":"LDRToRGBStrip","source":"LDR","destination":"RGBStrip"}]
