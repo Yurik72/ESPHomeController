@@ -29,7 +29,7 @@
 //#define TRIGGER_DEBUG  //debug triggers output enable
 //#define TIMECONTROLLER_DEBUG  //debug timecontroller output enable
 //#define LDRCONTROLLER_DEBUG  //debug timecontroller output enable
-
+//#define BMECONTROLLER_DEBUG    //debug bme280controller output enable
 const char name_localhost_host[] = "localhost";
 const char name_mqtt_host[] = "mqtt_host";
 const char name_mqtt_port[] = "mqtt_port";

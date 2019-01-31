@@ -8,10 +8,8 @@ class RangeCtl extends React.Component {
           
             rangevalue: 0
         };
- 
-        this.handleChange = this.handleChange.bind(this);
-      
-        
+         this.handleChange = this.handleChange.bind(this);
+         
     }
     handleChange(e) {
         const { handleRangeChange } = this.props;

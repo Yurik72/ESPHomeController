@@ -24,9 +24,7 @@ class RGBStrip extends React.Component {
 
         this.onBrigthnessChanged = this.onBrigthnessChanged.bind(this);
         this.internal_setState = this.internal_setState.bind(this);
-       // this.doTouch = this.doTouch.bind(this);
-       // this.canvas = {};
-       // this.context = {};
+
         this.cstate = {};
         this.brigctl = {};
         this.modeselector = {};

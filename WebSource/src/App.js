@@ -14,6 +14,7 @@ import { getHomeUrl, getConfigData, getBaseuri, doFetch } from "./Components/uti
 import Triggers from './Components/Triggers';
 import RGBStrip from './Components/RGBStrip';
 import TimeCtl from "./Components/TimeCtl"
+import BME280Ctl from "./Components/BME280Ctl"
 
 const styles = {
     fontFamily: "sans-serif",
@@ -49,10 +50,10 @@ class App extends Component {
     }
     componentWillMount() {
         console.log("App componentWillMount");
-        //var obj = JSON.parse('[{"service":"RelayController","name":"Relay","enabled":true,"interval":100,"pin":5},{"service":"TimeController","name":"Time","enabled":true,"interval":1000,"timeoffs":7200,"dayloffs":3600,"server":"pool.ntp.org"},{"service":"RGBStripController","name":"RGBStrip","enabled":true,"interval":1,"pin":23,"numleds":8},{"service":"LDRController","name":"LDR","enabled":true,"interval":1000,"pin":0}]');
-        //var obj1 = JSON.parse('[{"type":"TimeToRGBStrip","source":"Time","destination":"Relay","value":[{"isOn":true,"isLdr":true,"time":0,"bg":1,"wxmode":-1}]}]');
-       // this.setState({ services : obj });
-        //this.setState({ triggers : obj1 });
+        var obj = JSON.parse('[{"service":"RelayController","name":"Relay","enabled":true,"interval":100,"pin":5},{"service":"TimeController","name":"Time","enabled":true,"interval":1000,"timeoffs":7200,"dayloffs":3600,"server":"pool.ntp.org"},{"service":"RGBStripController","name":"RGBStrip","enabled":true,"interval":1,"pin":23,"numleds":8},{"service":"LDRController","name":"LDR","enabled":true,"interval":1000,"pin":0}]');
+        var obj1 = JSON.parse('[{"type":"TimeToRGBStrip","source":"Time","destination":"Relay","value":[{"isOn":true,"isLdr":true,"time":0,"bg":1,"wxmode":-1}]}]');
+        this.setState({ services : obj });
+        this.setState({ triggers : obj1 });
        
     }
     setHeaderdata(data) {
@@ -73,6 +74,8 @@ class App extends Component {
                 return (props => <LDR {...props} compprops={svc} />);
             case "TimeController":
                 return (props => <TimeCtl {...props} compprops={svc} />);
+            case "BME280Controller":
+                return (props => <BME280Ctl {...props} compprops={svc} />);
             default:
                 return (props =><div></div>);
                 break;

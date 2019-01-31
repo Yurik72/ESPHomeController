@@ -236,7 +236,7 @@ void RGBStripController::onmqqtmessage(String topic, String payload) {
 		setcmd.state.color = HSVColor(this->mqtt_hue, this->mqtt_saturation, setcmd.state.brightness);
 		setcmd.mode = SetColor;
 		DBG_OUTPUT_PORT.print("Mqtt: Saturation,sat- color = ");
-		DBG_OUTPUT_PORT.println(this->mqtt_hue);
+		DBG_OUTPUT_PORT.println(this->mqtt_saturation);
 		DBG_OUTPUT_PORT.println(setcmd.state.color);
 	}
 	this->AddCommand(setcmd.state, setcmd.mode, srcMQTT);

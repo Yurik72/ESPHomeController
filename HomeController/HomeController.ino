@@ -209,6 +209,7 @@ void setup()
 		ESP.restart();  
 		delay(1000);  
 	}
+	
 #if ! defined ASYNC_WEBSERVER
 	if (shouldSaveConfig) {
 		char localHost[32];
@@ -231,7 +232,7 @@ void setup()
 	if (MDNS.begin(HOSTNAME)) {
 		DBG_OUTPUT_PORT.println("MDNS responder started");
 	}
-
+	
 	SETUP_FILEHANDLES  ///setup file browser
 
 	// ***************************************************************************
