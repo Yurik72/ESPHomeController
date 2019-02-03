@@ -143,7 +143,7 @@ void RGBStripController::set_state(RGBState state) {
 
 	}
 	
-
+	
 	if (state.isOn) {
 		if (oldState.wxmode != state.wxmode) {
 			DBG_OUTPUT_PORT.println("oldState.wxmode != state.wxmod");
@@ -161,8 +161,17 @@ void RGBStripController::set_state(RGBState state) {
 		}
 		if (oldState.color != state.color)
 			pStrip->setColor(REDVALUE(state.color), GREENVALUE(state.color), BLUEVALUE(state.color));
-		
+
+		if ((oldState.color != state.color) || (oldState.brightness != state.brightness)) {
+			double intensity = 0.0;
+			double hue = 0.0;
+			double saturation = 0.0;
+			ColorToHSI(state.color, state.brightness, hue, saturation, intensity);
+			this->mqtt_hue = hue;
+			this->mqtt_saturation = saturation;
+		}
 	}
+	
 	pStrip->trigger();
 	//CController::set_state(state);
 	//CManualStateController<RGBStripController, RGBState, RGBCMD>::set_state(state);
