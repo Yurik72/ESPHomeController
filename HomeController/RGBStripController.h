@@ -11,7 +11,11 @@
 #define MAX_LDRVAL 4095
 
 #endif
+
+
+
 class WS2812FX;
+class Ticker;
 struct RGBState
 {
 	bool isOn;
@@ -23,8 +27,8 @@ struct RGBState
 	bool isLdr = false;
 };
 enum RGBCMD :uint {
-	On = 1,
-	Off = 2,
+	On = BaseOn,
+	Off = BaseOff,
 	SetBrigthness = 4,
 	SetSpeed = 8,
 	SetColor = 16,
@@ -64,16 +68,19 @@ public:
 #if defined ASYNC_WEBSERVER
 	virtual void setuphandlers(AsyncWebServer& server);
 #endif
-
+	void setbrightness(int br, CmdSource src = srcState);
 protected:
 	uint pin;
 	uint numleds;
+
 private:
 	String string_modes(void);
 	WS2812FX* pStrip;
 	float mqtt_saturation;
 	float mqtt_hue;
-
+	CSmoothVal* pSmooth;
+	bool isEnableSmooth;
+	
 };
 
 #endif

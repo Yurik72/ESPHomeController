@@ -9,6 +9,8 @@
 #include "time.h"
 #endif
 #include "Utilities.h"
+#include <Ticker.h>
+
 
 bool writeConfigFS(bool saveConfig) {
 	if (saveConfig) {
@@ -279,4 +281,50 @@ bool savefile(const char* filename, String data) {
 		return true;
 	}
 	return false;
+}
+
+CSmoothVal::CSmoothVal() {
+	pTicker = NULL;
+	isactive = false;
+}
+void CSmoothVal::start(int from, int to, funconchangeval func, funconend onendfunc, uint32_t duration , uint32_t count ) {
+	this->stop();
+	this->pTicker = new Ticker();
+	this->from = from;
+	this->to = to;
+	this->duration = duration;
+	this->count = count;
+	this->counter = 0;
+	this->onchangeval = func;
+	this->onendfunc = onendfunc;
+	this->isactive = true;
+	this->pTicker->attach_ms<CSmoothVal*>(this->duration / this->count, CSmoothVal::callback,this);
+}
+void CSmoothVal::oncallback() {
+	this->counter++;
+	if (this->counter > this->count) {
+		this->stop();
+		
+		if (this->onendfunc)
+			this->onendfunc();
+	}
+	else {
+		uint32_t curval = this->counter*(this->to - this->from) / this->count + this->from;
+		if(this->onchangeval)
+			this->onchangeval(curval);
+	}
+
+}
+void CSmoothVal::callback(CSmoothVal* self) {
+	self->oncallback();
+}
+void CSmoothVal::stop() {
+	if (this->pTicker) {
+		//if (this->pTicker->active())
+		//	this->pTicker->detach();
+		delete this->pTicker;
+		this->pTicker = NULL;
+	}
+	this->isactive = false;
+	this->isactive = false;
 }

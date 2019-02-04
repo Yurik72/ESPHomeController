@@ -4,7 +4,7 @@
 #include "Utilities.h"
 #include "BaseController.h"
 #include "RGBStripController.h"
-
+#include <Ticker.h>
 
 
 const size_t bufferSize = JSON_OBJECT_SIZE(40);
@@ -13,7 +13,8 @@ RGBStripController::RGBStripController() {
 	this->pStrip = NULL;
 	this->mqtt_hue = 0.0;
 	this->mqtt_saturation = 0.0;
-
+	this->pSmooth = new CSmoothVal();
+	this->isEnableSmooth = false;
 }
 RGBStripController::~RGBStripController() {
 	if (pStrip)
@@ -63,7 +64,7 @@ bool  RGBStripController::deserializestate(String jsonstate, CmdSource src) {
 
 }
 void RGBStripController::loadconfig(JsonObject& json) {
-	CManualStateController<RGBStripController, RGBState, RGBCMD>::loadconfig(json);
+	RGBStrip::loadconfig(json);
 	pin = json["pin"];
 	numleds = json["numleds"];
 }
@@ -86,8 +87,16 @@ void RGBStripController::run() {
 		if (this->baseprocesscommands(cmd))
 			continue;
 		RGBState newState = this->get_state();
+		RGBStripController* self = this;
 		switch (cmd.mode) {
 		case On:
+			if (this->isEnableSmooth && !pSmooth->isActive()) {
+				pSmooth->stop();
+				pSmooth->start(0, newState.brightness, 
+					[self](int val) {self->setbrightness(val, srcSmooth);},
+					[self, newState]() {self->AddCommand(newState, SetRGB, srcState);});
+				return;
+			}
 			newState.isOn = true;
 			break;
 		case Off:
@@ -305,6 +314,19 @@ void RGBStripController::setuphandlers(AsyncWebServer& server) {
 		DBG_OUTPUT_PORT.println("Processed");
 	});
 
+
+}
+
+void RGBStripController::setbrightness(int br, CmdSource src) {
+	RGBState st = this->get_state();
+	if (st.brightness == 0 && br!=0) 
+		this->AddCommand(st, On, src);
+
+	st.brightness = br;
+	this->AddCommand(st, SetBrigthness, src);
+	if (br == 0) 
+		this->AddCommand(st, Off, src);
+	
 
 }
 #endif

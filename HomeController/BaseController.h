@@ -30,7 +30,9 @@ enum CmdSource
 	srcTrigger = 1,
 	srcMQTT = 2,
 	srcSelf = 3,
-	srcRestore=4
+	srcRestore=4,
+	srcPowerOn=5,
+	srcSmooth=6,
 };
 enum BaseCMD :uint {
 	BaseOn=1,
@@ -187,7 +189,9 @@ public:
 		CController<T, P, M>::loadconfig(json);
 	}
 	virtual int AddCommand(P state, M mode, CmdSource src) {
-		if (src == srcState) { //save state
+		if (src == srcState || src==srcPowerOn) { //save state
+			DBG_OUTPUT_PORT.print("Add command keep previous state -> ");
+			DBG_OUTPUT_PORT.println(this->get_name());
 			P saved = this->get_state();
 			this->set_prevstate(saved);
 			if (this->manualtime != 0) {
@@ -219,11 +223,13 @@ public:
 		this->AddCommand(saved, val, srcSelf);
 	}
 	virtual void set_power_on() {
+		CController<T, P, M>::set_power_on();
 		P current= this->get_state();
-		
+		DBG_OUTPUT_PORT.print("set_power_on ->");
+		DBG_OUTPUT_PORT.println(this->get_name());
 		M val = (M)(int)BaseOn;
 		
-		this->AddCommand(current, val, srcSelf);
+		this->AddCommand(current, val, srcPowerOn);
 	};
 protected: 
 	P prevState;

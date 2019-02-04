@@ -37,6 +37,7 @@ bool  RelayController::deserializestate(String jsonstate, CmdSource src) {
 	
 }
 void RelayController::loadconfig(JsonObject& json) {
+	Relay::loadconfig(json);
 	pin= json["pin"];
 	isinvert= json["isinvert"];
 }
@@ -48,19 +49,25 @@ void  RelayController::setup() {
 void RelayController::run() {
 	command cmd;
 	while (commands.Dequeue(&cmd)) {
+		DBG_OUTPUT_PORT.print("Process Command ");
 		RelayState newState = cmd.state;
 		switch (cmd.mode) {
 			case Switch:
 				newState.isOn = !newState.isOn;
+				DBG_OUTPUT_PORT.println("Switch");
 				break;
 			case Set:
 			case RelayRestore:
 				newState.isOn = cmd.state.isOn;
+				DBG_OUTPUT_PORT.println("RelayRestore/Set");
 				break;
 			case RelayOn:
 				newState.isOn = true;
+				DBG_OUTPUT_PORT.println("RelayOn");
+				break;
 			case RelayOff:
 				newState.isOn = false;
+				DBG_OUTPUT_PORT.println("RelayOff");
 			default:break;
 	   }
 		this->set_state(newState);

@@ -7,17 +7,17 @@
 
 struct RelayState
 {
-	bool isOn;
+	bool isOn=false;
 };
 enum RelayCMD {
-	RelayOn=1,
-	RelayOff=2,
+	RelayOn=BaseOn,
+	RelayOff= BaseOff,
 	Switch=4,
 	Set=8,
 	RelayRestore = 2048
 };
 class RelayController;
-typedef CController<RelayController, RelayState, RelayCMD> Relay;
+typedef CManualStateController<RelayController, RelayState, RelayCMD> Relay;
 class RelayController: public Relay
 {
 public:

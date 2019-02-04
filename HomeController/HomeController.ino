@@ -131,7 +131,7 @@ WebServer server(80);
 	 DBG_OUTPUT_PORT.println(myWiFiManager->getConfigPortalSSID());
  }
 #endif
-
+ void wificonnect();
 // The setup() function runs once each time the micro-controller starts
 void setup()
 {
@@ -154,78 +154,7 @@ void setup()
 	WiFi.setHostname(HOSTNAME);
 #endif
 
-#if defined ASYNC_WEBSERVER
-	DBG_OUTPUT_PORT.println("Setupr DNS ");
-	DNSServer dns;
-	DBG_OUTPUT_PORT.println("AsyncWiFiManager");
-	AsyncWiFiManager wifiManager(&asserver, &dns);
-#else
-	WiFiManager wifiManager;
-#endif
-
-
-	wifiManager.setAPCallback(configModeCallback);
-
-#if !defined ASYNC_WEBSERVER
-	WiFiManagerParameter local_host(name_localhost_host, "Local hostname", HOSTNAME, 64);
-	wifiManager.addParameter(&local_host);
-#else
-	AsyncWiFiManagerParameter local_host(name_localhost_host, "Local hostname", HOSTNAME, 64);
-	wifiManager.addParameter(&local_host);
-#endif
-
-#if defined ENABLE_HOMEBRIDGE
-	//set config save notify callback
-#if! defined ASYNC_WEBSERVER	
-	WiFiManagerParameter hb_mqtt_host("host", "MQTT hostname", mqtt_host, 64);
-	WiFiManagerParameter hb_mqtt_port("port", "MQTT port", mqtt_port, 6);
-	WiFiManagerParameter hb_mqtt_user("user", "MQTT user", mqtt_user, 32);
-	WiFiManagerParameter hb_mqtt_pass("pass", "MQTT pass", mqtt_pass, 32);
-	//add all your parameters here
-	wifiManager.addParameter(&hb_mqtt_host);
-	wifiManager.addParameter(&hb_mqtt_port);
-	wifiManager.addParameter(&hb_mqtt_user);
-	wifiManager.addParameter(&hb_mqtt_pass);
-	
-#else
-	AsyncWiFiManagerParameter hb_mqtt_host("host", "MQTT hostname", mqtt_host, 64);
-	AsyncWiFiManagerParameter hb_mqtt_port("port", "MQTT port", mqtt_port, 6);
-	AsyncWiFiManagerParameter hb_mqtt_user("user", "MQTT user", mqtt_user, 32);
-	AsyncWiFiManagerParameter hb_mqtt_pass("pass", "MQTT pass", mqtt_pass, 32);
-	wifiManager.addParameter(&hb_mqtt_host);
-	wifiManager.addParameter(&hb_mqtt_port);
-	wifiManager.addParameter(&hb_mqtt_user);
-	wifiManager.addParameter(&hb_mqtt_pass);
-	
-#endif	
-#endif
-
-	wifiManager.setSaveConfigCallback(saveConfigCallback);
-	wifiManager.setConfigPortalTimeout(CONFIG_PORTAL_TIMEOUT);
-	//finally let's wait normal wifi connection
-	if (!wifiManager.autoConnect(HOSTNAME)) {
-		DBG_OUTPUT_PORT.println("failed to connect and hit timeout");
-		//reset and try again, or maybe put it to deep sleep
-		ESP.restart();  
-		delay(1000);  
-	}
-	
-#if ! defined ASYNC_WEBSERVER
-	if (shouldSaveConfig) {
-		char localHost[32];
-		strcpy(localHost, local_host.getValue());
-		if (strlen(localHost) > 0);
-			strcpy(HOSTNAME, localHost);
-#if defined ENABLE_HOMEBRIDGE
-		strcpy(mqtt_host, hb_mqtt_host.getValue());
-		strcpy(mqtt_port, hb_mqtt_port.getValue());
-		strcpy(mqtt_user, hb_mqtt_user.getValue());
-		strcpy(mqtt_pass, hb_mqtt_pass.getValue());
-#endif
-		writeConfigFS(true);
-
-	}
-#endif
+	wificonnect();
 	//setup mdns
 	DBG_OUTPUT_PORT.print("Starting MDNS  host:");
 	DBG_OUTPUT_PORT.println(HOSTNAME);
@@ -275,6 +204,82 @@ void loop()
 	
 }
 
+
+void wificonnect() {
+#if defined ASYNC_WEBSERVER
+	DBG_OUTPUT_PORT.println("Setupr DNS ");
+	DNSServer dns;
+	DBG_OUTPUT_PORT.println("AsyncWiFiManager");
+	
+	AsyncWiFiManager wifiManager(&asserver, &dns);
+#else
+	WiFiManager wifiManager;
+#endif
+
+
+	wifiManager.setAPCallback(configModeCallback);
+
+#if !defined ASYNC_WEBSERVER
+	WiFiManagerParameter local_host(name_localhost_host, "Local hostname", HOSTNAME, 64);
+	wifiManager.addParameter(&local_host);
+#else
+	AsyncWiFiManagerParameter local_host(name_localhost_host, "Local hostname", HOSTNAME, 64);
+	wifiManager.addParameter(&local_host);
+#endif
+
+#if defined ENABLE_HOMEBRIDGE
+	//set config save notify callback
+#if! defined ASYNC_WEBSERVER	
+	WiFiManagerParameter hb_mqtt_host("host", "MQTT hostname", mqtt_host, 64);
+	WiFiManagerParameter hb_mqtt_port("port", "MQTT port", mqtt_port, 6);
+	WiFiManagerParameter hb_mqtt_user("user", "MQTT user", mqtt_user, 32);
+	WiFiManagerParameter hb_mqtt_pass("pass", "MQTT pass", mqtt_pass, 32);
+	//add all your parameters here
+	wifiManager.addParameter(&hb_mqtt_host);
+	wifiManager.addParameter(&hb_mqtt_port);
+	wifiManager.addParameter(&hb_mqtt_user);
+	wifiManager.addParameter(&hb_mqtt_pass);
+
+#else
+	AsyncWiFiManagerParameter hb_mqtt_host("host", "MQTT hostname", mqtt_host, 64);
+	AsyncWiFiManagerParameter hb_mqtt_port("port", "MQTT port", mqtt_port, 6);
+	AsyncWiFiManagerParameter hb_mqtt_user("user", "MQTT user", mqtt_user, 32);
+	AsyncWiFiManagerParameter hb_mqtt_pass("pass", "MQTT pass", mqtt_pass, 32);
+	wifiManager.addParameter(&hb_mqtt_host);
+	wifiManager.addParameter(&hb_mqtt_port);
+	wifiManager.addParameter(&hb_mqtt_user);
+	wifiManager.addParameter(&hb_mqtt_pass);
+
+#endif	
+#endif
+
+	wifiManager.setSaveConfigCallback(saveConfigCallback);
+	wifiManager.setConfigPortalTimeout(CONFIG_PORTAL_TIMEOUT);
+	//finally let's wait normal wifi connection
+	if (!wifiManager.autoConnect(HOSTNAME)) {
+		DBG_OUTPUT_PORT.println("failed to connect and hit timeout");
+		//reset and try again, or maybe put it to deep sleep
+		ESP.restart();  
+		delay(1000);  
+	}
+
+#if ! defined ASYNC_WEBSERVER
+	if (shouldSaveConfig) {
+		char localHost[32];
+		strcpy(localHost, local_host.getValue());
+		if (strlen(localHost) > 0);
+		strcpy(HOSTNAME, localHost);
+#if defined ENABLE_HOMEBRIDGE
+		strcpy(mqtt_host, hb_mqtt_host.getValue());
+		strcpy(mqtt_port, hb_mqtt_port.getValue());
+		strcpy(mqtt_user, hb_mqtt_user.getValue());
+		strcpy(mqtt_pass, hb_mqtt_pass.getValue());
+#endif
+		writeConfigFS(true);
+
+	}
+#endif
+}
 
 // gets called when WiFiManager enters configuration mode
 
