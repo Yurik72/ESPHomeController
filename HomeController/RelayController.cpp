@@ -15,6 +15,7 @@ String  RelayController::serializestate() {
 	root["isOn"] = this->get_state().isOn;
 
 	String json;
+	json.reserve(128);
 	serializeJson(root, json);
 
 	return json;

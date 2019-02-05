@@ -222,6 +222,7 @@ void Controllers::setuphandlers(AsyncWebServer& server) {
 		server.on(pathget.c_str(), HTTP_GET, [ctl](AsyncWebServerRequest *request) {
 
 			AsyncWebServerResponse *response = request->beginResponse(200, "application/json", ctl->serializestate().c_str());
+			//AsyncWebServerResponse *response = request->beginResponse(200, "application/json", "{\"is\":true}");
 			//response->addHeader("Access-Control-Allow-Origin", "*");
 			//response->addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
 			

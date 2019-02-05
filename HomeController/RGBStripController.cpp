@@ -8,7 +8,7 @@
 
 
 const size_t bufferSize = JSON_OBJECT_SIZE(40);
-
+static String rgbModes;
 RGBStripController::RGBStripController() {
 	this->pStrip = NULL;
 	this->mqtt_hue = 0.0;
@@ -32,6 +32,7 @@ String  RGBStripController::serializestate() {
 	root["isLdr"] = this->get_state().isLdr;
 	root["ldrValue"] = this->get_state().ldrValue;
 	String json;
+	json.reserve(256);
 	serializeJson(root, json);
 
 	return json;
@@ -260,6 +261,8 @@ void RGBStripController::onmqqtmessage(String topic, String payload) {
 	this->AddCommand(setcmd.state, setcmd.mode, srcMQTT);
 }
 String RGBStripController::string_modes(void) {
+	if (rgbModes.length() > 0)
+		return rgbModes;
 	const size_t bufferSize = JSON_ARRAY_SIZE(pStrip->getModeCount() + 1) + pStrip->getModeCount()*JSON_OBJECT_SIZE(2);
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	JsonArray json = jsonBuffer.to<JsonArray>();
@@ -271,7 +274,9 @@ String RGBStripController::string_modes(void) {
 	JsonObject object = json.createNestedObject();
 
 	String json_str;
+	json_str.reserve(4096);
 	serializeJson(json, json_str);
+	rgbModes = json_str;
 	return json_str;
 }
 #if !defined ASYNC_WEBSERVER
@@ -305,13 +310,16 @@ void RGBStripController::setuphandlers(AsyncWebServer& server) {
 	path += String("/get_modes");
 	RGBStripController* self = this;
 	server.on(path.c_str(), HTTP_GET, [self](AsyncWebServerRequest *request) {
-		DBG_OUTPUT_PORT.println("get modes request");
+	   // DBG_OUTPUT_PORT.println("get modes request");
+		DBG_OUTPUT_PORT.println(ESP.getFreeHeap());
 		AsyncWebServerResponse *response = request->beginResponse(200, "application/json", 
 			self->string_modes().c_str());
+		//AsyncWebServerResponse *response = request->beginResponse(200, "application/json","");
 		//response->addHeader("Access-Control-Allow-Origin", "*");
 		//response->addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
 		request->send(response);
-		DBG_OUTPUT_PORT.println("Processed");
+		DBG_OUTPUT_PORT.println(ESP.getFreeHeap());
+	//	DBG_OUTPUT_PORT.println("Processed");
 	});
 
 

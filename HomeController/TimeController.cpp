@@ -29,6 +29,7 @@ String  TimeController::serializestate() {
 	root["time"] = this->get_state().time;
 
 	String json;
+	json.reserve(128);
 	serializeJson(root, json);
 
 	return json;

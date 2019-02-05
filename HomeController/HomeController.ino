@@ -131,7 +131,8 @@ WebServer server(80);
 	 DBG_OUTPUT_PORT.println(myWiFiManager->getConfigPortalSSID());
  }
 #endif
- void wificonnect();
+ void startwifimanager();
+ bool wifidirectconnect();
 // The setup() function runs once each time the micro-controller starts
 void setup()
 {
@@ -153,8 +154,12 @@ void setup()
 #else
 	WiFi.setHostname(HOSTNAME);
 #endif
-
-	wificonnect();
+#if defined(ESP8266)
+	startwifimanager();
+#else
+	if(!wifidirectconnect())   //this will decrease sketch size
+		startwifimanager();
+#endif
 	//setup mdns
 	DBG_OUTPUT_PORT.print("Starting MDNS  host:");
 	DBG_OUTPUT_PORT.println(HOSTNAME);
@@ -204,8 +209,11 @@ void loop()
 	
 }
 
+bool wifidirectconnect() {
 
-void wificonnect() {
+	return false;
+}
+void startwifimanager() {
 #if defined ASYNC_WEBSERVER
 	DBG_OUTPUT_PORT.println("Setupr DNS ");
 	DNSServer dns;
@@ -256,6 +264,7 @@ void wificonnect() {
 	wifiManager.setSaveConfigCallback(saveConfigCallback);
 	wifiManager.setConfigPortalTimeout(CONFIG_PORTAL_TIMEOUT);
 	//finally let's wait normal wifi connection
+	
 	if (!wifiManager.autoConnect(HOSTNAME)) {
 		DBG_OUTPUT_PORT.println("failed to connect and hit timeout");
 		//reset and try again, or maybe put it to deep sleep

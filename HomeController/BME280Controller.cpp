@@ -24,6 +24,7 @@ String  BME280Controller::serializestate() {
 	root["hum"] = this->get_state().hum;
 	root["pres"] = this->get_state().pres;
 	String json;
+
 	serializeJson(root, json);
 
 	return json;
@@ -126,9 +127,9 @@ void BME280Controller::onmqqtmessage(String topic, String payload) {
 void BME280Controller::meassure(BMEState& state) {
 	if (this->uselegacy) {
 		if (this->pbme && this->isinit) {
-			state.temp = this->pbme->readTemperature();
-			state.pres = this->pbme->readPressure();
-			state.hum = this->pbme->readHumidity();
+			state.temp = constrain(this->pbme->readTemperature(),-30,100);
+			state.pres = constrain(this->pbme->readPressure(),0,2000);
+			state.hum = constrain( this->pbme->readHumidity(),0,100);
 		}
 	}
 	else {
@@ -325,7 +326,12 @@ void BME280Controller::directmeassure(BMEState& state) {
 	DBG_OUTPUT_PORT.print(humidity);
 	DBG_OUTPUT_PORT.println(" RH");
 #endif
-	state.temp = cTemp;
-	state.pres = pressure;
-	state.hum = humidity;
+	cTemp = isnan(cTemp) ? 0.0 : cTemp;
+	pressure = isnan(pressure) ? 0.0 : pressure;
+	humidity = isnan(humidity) ? 0.0 : humidity;
+	state.temp =round( constrain(cTemp,-30.0,100.0)*100)/100;
+	state.pres = round(constrain(pressure,0.0,2000.0)*100)/100;
+	state.hum =round(constrain( humidity,0.0,100.0)*100)/100;
+	
+
 }
