@@ -1,6 +1,9 @@
 import React from "react";
 import Button from "./Button"
 import { getHomeUrl, getConfigData, getBaseuri } from "./utils"
+import { Card, Row, Col } from "./Card"
+import Arrow from "./Arrow"
+
 class Services extends React.Component {
     constructor(props) {
         super(props);
@@ -31,6 +34,8 @@ class Services extends React.Component {
     renderAllProps(item, sidx) {
         //console.debug(getBaseuri());
         return (
+            <>
+                <h3>Services</h3>
             <table className="tableservice">
                
                 {
@@ -49,8 +54,11 @@ class Services extends React.Component {
                     })
                 }
                 </table> 
+            </>   
              );
-     };
+            
+           };
+          
     render() {
 
         return ( 
@@ -63,27 +71,31 @@ class Services extends React.Component {
                         var expstate = this.state.expstate;
                         var isshow = expstate[skey];
                         return(
-                        <>
-                            <div className="row">
-                                <div className="green light-greenXXX input-field col s6 l1 ">
-                                    {item.service}
-                                 </div>
-                                <div className="col s2">
-                                        <Button classNames="yellow" onClick={() => { expstate[skey] = !isshow; this.setState({ expstate }) }}
-                                        label={isshow ? "Hide" : "Show"} />
+                            <>
+                                <Card  hidecontent={!isshow} title={() => {
+                                    return (
 
-                                </div>
-                            </div>
-                                {isshow &&
-                                    <div key={skey} className="row">
-                                        <div className="input-field col s12 l2 ">
+                                        <>
 
-                                            <div>
-                                                {this.renderAllProps(item, sidx)}
-                                            </div>
-                                        </div>
-                                    </div>
-                                }
+                                            <Col num={4}>
+                                                <h6>{ item.service }</h6>
+                                                
+                                            </Col>
+
+                                            <Col num={1} className="btn-collapse">
+                                                <Button className="btn-collapse" nostyle={true} onClick={() => { expstate[skey] = !isshow; this.setState({ expstate }) }}
+                                                    label={isshow ? "Hide" : "Show"}>
+                                                    <Arrow dir={isshow ? "up" : "down"} />
+                                                </Button>
+
+                                            </Col>
+                                        </>
+
+                                    );
+                                }}>
+                                    {this.renderAllProps(item, sidx)}
+                                </Card>
+  
                         </>
                     )}
                     )

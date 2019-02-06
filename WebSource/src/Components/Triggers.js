@@ -305,9 +305,9 @@ class Triggers extends React.Component {
                                         onClick={() => (idx) > this.removeTrigger(idx)}
                                     />
                                     </div>
-                                    <div className="col s4">
+                                    <Col num={4}>
                                         <p> {item.type}</p>
-                                    </div>
+                                    </Col>
                                     <div className="col s1  btn-collapse">
                                         <Button className="btn-collapse" nostyle={true} onClick={() => { expstate[tkey] = !isshow; this.setState({ expstate }) }}
                                                 label={isshow ? "Hide" : "Show"} >
@@ -330,13 +330,13 @@ class Triggers extends React.Component {
                                                 />
                                             </div>
 
-                                            <div className="col s4 left valign-wrapper">
+                                        <Col num={4} className="left valign-wrapper">
                                                 <InpText item={item} idx={idx} onchange={this.handleChange(idx)} name={"destination"} />
                                                 <ItemSelector label="..." message="select service"
                                                     items={this.state.services.reduce((acc, item) => { if (item.service === "RGBStripController") acc.push(item.name); return acc; }, [])}
                                                     onSelect={(v) => { this.setTriggerprop(idx, "destination", v) }}
                                                 />
-                                            </div>
+                                            </Col>
                                         </Row>
 
                                         <Row>

@@ -30,29 +30,29 @@ class RGBTimeRecord extends React.Component {
         return (
             <>
                 <Row>
-                <div className="col s4">
+                <Col num={4}>
                 <TimePickCtl
                     label="Time"
                     timevalue={item.time}
                     handleTimeChange={t => (this.onChangeVal({ time: t.state.timevalue }))}
                     />
-                </div>
-                <div className="col s2">
+                </Col>
+                <Col num={2}>
                 <Checkbox
                     isChecked={item.isOn}
                     label="IsOn"
                     handleCheckboxChange={ch => (this.onChangeVal({ isOn: ch.state.isChecked }))}
                     key="isOn"
                     />
-                </div>
-                <div className="col s2">
+                </Col>
+                <Col num={2}>
                 <Checkbox
                     isChecked={item.isLdr}
                     label="IsLdr"
                     handleCheckboxChange={ch => (this.onChangeVal({ isLdr: ch.state.isChecked }))}
                     key="isLdr"
                     />
-                    </div>
+                </Col>
                 </Row>
                 <Row>
                     <RangeCtl
@@ -63,14 +63,14 @@ class RGBTimeRecord extends React.Component {
                         />
                 </Row>
                 <Row>
-                    <div className="col s4">
+                   <Col num={4}>
                         <ColorWeel
                             width={200}
                             height={200}
                             onSelect={(intcolor, hexcolor) => { this.onChangeVal({ color: intcolor }) }}
                         />
-                    </div>
-                    <div className="col s4">
+                    </Col>
+                    <Col num={4}>
                         <label htmlFor="1">Color</label>
                         <input type="text" value={item.color} name="color"
                             onChange={ev => {
@@ -79,10 +79,10 @@ class RGBTimeRecord extends React.Component {
                                 //this.cs.setBkColor(col);
                             }}
                         />
-                    </div>
-                    <div className="col s4">
+                    </Col>
+                    <Col num={4}>
                         <ColorStatus ref={el => this.cs = el} color={item.color}/>
-                    </div>
+                    </Col>
                 </Row>
             </>
      );
