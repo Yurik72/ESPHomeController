@@ -50,7 +50,7 @@ class ItemSelector extends React.Component {
        
         return (
 
-            <Popup trigger={<Button label={label + (currentitem ? currentitem:"")} />} position="right center">
+            <Popup trigger={<Button className="left btn-small" label={label + (currentitem ? currentitem:"")} />} position="right center">
                 {close => (
                     <div>
                         <div className="row">

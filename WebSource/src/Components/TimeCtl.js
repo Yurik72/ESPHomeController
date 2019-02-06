@@ -1,5 +1,6 @@
 import React from "react";
 import { getBaseuri, doFetch } from "./utils"
+import Card from "./Card"
 
 class TimeCtl extends React.Component {
     constructor(props) {
@@ -28,18 +29,16 @@ class TimeCtl extends React.Component {
 
         const { compprops } = this.props;
         const tm = this.time_tToHHMM(this.state.time);
+        
         return (
 
-            <div>
-
-                <h2>{compprops.name} </h2>
-                <div className="row">
-                    <div className="col s12 green">
-                        <h3>{tm} </h3>
+            <Card title={() => { return (<p>{compprops.name} </p>); }}>
+                     <div className="row">
+                        <div className="col s12 green">
+                            <h3>{tm} </h3>
+                        </div>
                     </div>
-
-                </div>
-            </div>
+            </Card>
         );
     }
 }

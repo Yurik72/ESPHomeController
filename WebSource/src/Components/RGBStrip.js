@@ -6,6 +6,8 @@ import { getBaseuri, doFetch } from "./utils"
 import ColorWeel from "./ColorWeel"
 import ItemSelector from "./ItemSelector"
 import { clearTimeout, setTimeout } from "timers";
+import { Card, Row, Col } from "./Card"
+
 class RGBStrip extends React.Component {
     constructor(props) {
         super(props);
@@ -86,39 +88,44 @@ class RGBStrip extends React.Component {
         const { compprops } = this.props;
 
         return (
-
-            <div>
-
-                <h2>{compprops.name} </h2>
+            <Card title={() => { return (<h3>{compprops.name} </h3>); }}>
                 <div className="section">
-                    <div className="row">
-                        <div className="col s12">
+                    <Row>
+                        <Col num={6}>
                             <Checkbox
                                 isChecked={this.state.isOn}
                                 label={compprops.name}
                                 handleCheckboxChange={this.toggleCheckbox}
                                 key={compprops.name}
                             />
-                        </div>
-                    </div>
-                    <div className="row">
-                        <div className="col s12">
+                        </Col>
+                        <Col num={6}>
+                            <Checkbox
+                                isChecked={this.state.isLdr}
+                                label={"Is LDR"}
+                                handleCheckboxChange={this.toggleCheckbox}
+                                key="ldr"
+                            />
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col num={12}>
                             <RangeCtl
                                 ref={el => this.brigctl = el}
                                 label="Brigthness"
-                                
+
                                 rangevalue={this.state.brightness}
                                 handleRangeChange={this.onBrigthnessChanged}
-                                />
-                        </div>
-                    </div>
-                    <div className="row">
+                            />
+                        </Col>
+                    </Row>
+                    <Row >
                         <div className="col s12 m6">
                             <ColorWeel
                                 width={330}
                                 height={330}
                                 onSelect={(intcolor, hexcolor) => {
-                                    
+
                                     this.internal_setState({ color: intcolor });
 
                                 }}
@@ -129,39 +136,39 @@ class RGBStrip extends React.Component {
 
                             </ColorStatus>
                         </div>
-                    </div>
-                    <div className="row">
-                         <div className="col s2">
-                            <label htmlFor="mode">Mode</label>
-                            <input type="text" value={this.state.wxmode} name="mode"
-                            onChange={ev => {
-                                var val = parseInt(ev.target.value) || 0;
+                    </Row>
+                    <Row>
+                        <Col num={2} className="left valign-wrapper">
+                            <label htmlFor="mode" className="input-label">Mode</label>
+                            <input type="text"  className="input-input" value={this.state.wxmode} name="mode"
+                                onChange={ev => {
+                                    var val = parseInt(ev.target.value) || 0;
 
-                                this.internal_setState({ wxmode: val });
+                                    this.internal_setState({ wxmode: val });
 
-                            }}
+                                }}
                             />
-
-                        </div>
-
-                        <div className=" col s1" >
+                        </Col>
+                        <Col num={1}>
                             <ItemSelector ref={el => this.modeselector = el} label="..." message={"select mode"}
                                 valuekey={"mode"}
                                 textkey={"name"}
                                 showcurrent={true}
                                 currentval={this.state.wxmode}
                                 onSelect={(selval) => {
-    
+
                                     var val = parseInt(selval) || 0;
-                                    
+
                                     this.internal_setState({ wxmode: val });
 
                                 }}
                             />
-                        </div>
-                    </div>
+                        </Col>
+                    </Row>
                 </div>
-            </div>
+            </Card>
+
+         
         );
     }
 

@@ -4,7 +4,7 @@ import RangeCtl from "./RangeCtl"
 import TimePickCtl from "./TimePickCtl"
 import ColorStatus from "./ColorStatus"
 import ColorWeel from "./ColorWeel"
-
+import { Card, Row, Col } from "./Card"
 class RGBTimeRecord extends React.Component {
     constructor(props) {
         super(props);
@@ -29,6 +29,7 @@ class RGBTimeRecord extends React.Component {
         
         return (
             <>
+                <Row>
                 <div className="col s4">
                 <TimePickCtl
                     label="Time"
@@ -51,14 +52,17 @@ class RGBTimeRecord extends React.Component {
                     handleCheckboxChange={ch => (this.onChangeVal({ isLdr: ch.state.isChecked }))}
                     key="isLdr"
                     />
-                </div>
-                <RangeCtl
+                    </div>
+                </Row>
+                <Row>
+                    <RangeCtl
                     
-                    label="Brigthness"
-                    rangevalue={item.br}
-                    handleRangeChange={br => this.onChangeVal({ bg: br.state.rangevalue })}
-                />
-                <div className="row">
+                        label="Brigthness"
+                        rangevalue={item.br}
+                        handleRangeChange={br => this.onChangeVal({ bg: br.state.rangevalue })}
+                        />
+                </Row>
+                <Row>
                     <div className="col s4">
                         <ColorWeel
                             width={200}
@@ -79,7 +83,7 @@ class RGBTimeRecord extends React.Component {
                     <div className="col s4">
                         <ColorStatus ref={el => this.cs = el} color={item.color}/>
                     </div>
-                </div>
+                </Row>
             </>
      );
     }

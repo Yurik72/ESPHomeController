@@ -5,6 +5,9 @@ import Popup from "reactjs-popup";
 import { getBaseuri } from "./utils"
 import ColorStatus from "./ColorStatus"
 import ItemSelector from "./ItemSelector"
+import Arrow from "./Arrow"
+
+import { Card, Row, Col } from "./Card"
 const InpText = (props) => {
 
    
@@ -12,14 +15,14 @@ const InpText = (props) => {
     //console.debug(props);
     return (
 
-        <div className="col s12 m6">
-            <div className="left "><br />
-                <label htmlFor="1">{name}</label>
-                <input key={name+idx} type="text" value={item[name]} name={name}
-                    onChange={onchange}
+        <>
+
+            <label htmlFor="1" className="input-label">{name}</label>
+            <input key={name + idx} type="text" value={item[name]} name={name}
+                onChange={onchange} className="input-input"
                 />
-            </div>
-        </div>
+            
+        </>
     );
 }
 class Triggers extends React.Component {
@@ -27,11 +30,14 @@ class Triggers extends React.Component {
         super(props);
 
         //const { triggedata, servicedata } = props;
-        console.log("Triggers constructor");
-        console.log(props);
+        //console.log("Triggers constructor");
+        ///console.log(props);
         //this.triggers = triggedata;
         this.state = {};
-       
+        const { triggedata, servicedata } = props;
+        ///only test purpose !
+        this.setState({ triggers: triggedata, services: servicedata });
+
         this.handleChange = (idx) => event => {
             console.debug("handleChange triggers");
             this.assigntotrigger(idx, function (it) { it[event.target.name] = event.target.value; });
@@ -47,8 +53,8 @@ class Triggers extends React.Component {
        
     };
     componentWillReceiveProps(nextProps) {
-       // console.log("componentWillReceiveProps");
-       // console.log(nextProps);
+        console.log("Triggers componentWillReceiveProps");
+        console.log(nextProps);
         if (nextProps.triggedata !== this.props.triggedata) {
             const { triggedata, servicedata } = nextProps;
 
@@ -131,12 +137,12 @@ class Triggers extends React.Component {
         
         return (
             <>
-                <div className="row blue-grey lighten-5" >
+                <div className="row blue-grey lighten-5 valign-wrapper" >
                     <div className="col s2">
                         Timing rules 
                     </div>
                     <div className="col s2">
-                        <Button label="+" classNames="green" onClick={() => tidx > this.addValueRecord(tidx, "time")} />
+                        <Button label="+" className="green" onClick={() => tidx > this.addValueRecord(tidx, "time")} />
                     </div>
                 </div>
                 {
@@ -148,32 +154,36 @@ class Triggers extends React.Component {
                         var expstate = this.state.expstate;
                         var isshow = expstate[trkey];
                         return (
-                            < div key={trkey}>
-                                <div className="row blue" >
-
-                                    <div className="col s2">
-                                        <Button label="X" classNames="red" onClick={() => (tidx, idx) > this.removeValueRecord(tidx, idx)} />
-                                    </div>
-                                    <div className="col s4">
+                            <Card key={trkey} hidecontent={!isshow} title={() => { return (
+                               
+                                <>
+                                    <Col num={2} className="left leftcolholder">
+                                        <Button label="X" className="red left btn-small" onClick={() => (tidx, idx) > this.removeValueRecord(tidx, idx)} />
+                                    </Col>
+                                    <Col num={4}>
                                         <h6>{"Time record #:" + idx} {" Trigger time:" + item.time}</h6>
                                         <div className={item.isOn ? "green" : "red"}>{item.isOn?"ON":"OFF"}</div>
-                                    </div>
-                                    <div className="col s4">
+                                    </Col>
+                                    <Col num={4}>
                                         <ColorStatus  color={item.color} />
-                                     </div>
-                                    <div className="col s2">
-                                        <Button classNames="yellow" onClick={() => { expstate[trkey] = !isshow; this.setState({ expstate }) }}
-                                            label={isshow ? "Hide" : "Show"}/>
+                                     </Col>
+                                    <Col num={2}>
+                                        <Button className="btn-collapse" nostyle={true} onClick={() => { expstate[trkey] = !isshow; this.setState({ expstate }) }}
+                                            label={isshow ? "Hide" : "Show"}>
+                                            <Arrow dir={isshow ? "up" : "down" }/>
+                                          </Button>
                                         
-                                    </div>
-                                </div>
-
-                                {isshow &&
-                                    <div className="row" >
-                                    <RGBTimeRecord item={item} idx={idx} handlechange={val => this.handlecomponentindexedchange(val, tidx, idx)} />
-                                    </div>
-                                }
-                            </div>
+                                    </Col>
+                                </>
+                                
+                            );
+                            }}>
+                               
+                                   
+                                 <RGBTimeRecord item={item} idx={idx} handlechange={val => this.handlecomponentindexedchange(val, tidx, idx)} />
+                                  
+                                
+                            </Card>
                         )
 
                     })
@@ -234,12 +244,12 @@ class Triggers extends React.Component {
     render() {
         //console.log("triggers render");
         //console.log(this.state);
-       
+        console.log(this.state.triggers);
         return (
 
             <div>
  
-                <div className="row  blue-grey lighten-1">
+                <div className="row  blue-grey lighten-1 valign-wrapper">
                     <div className="col s2">
                         <h5>Triggers</h5>
                     </div>
@@ -271,13 +281,13 @@ class Triggers extends React.Component {
                      
                     </div>
                     <div className="col s2">
-                        <Button label="Save" classNames="blue"
+                        <Button label="Save" className="blue"
                             onClick={this.doSave}
                         />
                     </div>
                 </div>
                 {
-                    
+                   
                     this.state.triggers.map((item, idx) => {
 
                         const tkey = "tr" + idx;
@@ -287,52 +297,55 @@ class Triggers extends React.Component {
                         return (
 
 
-                            <div key={tkey}>
-                                <div className="row blue-grey lighten-3" >
-                                <div className="col s2">
-                                    <Button label="X" classNames="red"
+                            <div key={tkey} className="card" >
+                                
+                                <div className="row blue-grey lighten-3 valign-wrapper cardtitle" >
+                                    <div className="col s1 left leftcolholder">
+                                        <Button label="X" className="red left btn-small"
                                         onClick={() => (idx) > this.removeTrigger(idx)}
                                     />
-                                </div>
-                                <div className="col s2">
-                                    <p> {item.type}</p>
-                                </div>
-                                <div className="col s2">
-                                        <Button classNames="yellow" onClick={() => { expstate[tkey] = !isshow; this.setState({ expstate }) }}
-                                        label={isshow ? "Hide" : "Show"} />
+                                    </div>
+                                    <div className="col s4">
+                                        <p> {item.type}</p>
+                                    </div>
+                                    <div className="col s1  btn-collapse">
+                                        <Button className="btn-collapse" nostyle={true} onClick={() => { expstate[tkey] = !isshow; this.setState({ expstate }) }}
+                                                label={isshow ? "Hide" : "Show"} >
+                                                <Arrow dir={isshow ? "up" : "down" }/>
+                                            </Button>
+
+                                    </div>
 
                                 </div>
-                            </div>
+                               
                                 {isshow &&
-                                    <div className="row" >
-                                        <div className=" col s1" >
-                                            <ItemSelector label="..." message="select service"
-                                                items={this.state.services.reduce((acc, item) => { if (item.service === "TimeController") acc.push(item.name); return acc; }, [])}
+                                    <div className="card-content">
+                                        <Row className="valign-wrapper" >
+
+                                            <div className="col s4 left valign-wrapper">
+                                                <InpText item={item} idx={idx} onchange={this.handleChange(idx)} name={"source"} />
+                                                <ItemSelector label="..." message="select service"
+                                                    items={this.state.services.reduce((acc, item) => { if (item.service === "TimeController") acc.push(item.name); return acc; }, [])}
                                                 onSelect={(v) => { this.setTriggerprop(idx, "source", v) }}
-                                            />
-                                        </div>
-                                        <div className="col s4">
-                                            <InpText item={item} idx={idx} onchange={this.handleChange(idx)} name={"source"} />
+                                                />
+                                            </div>
 
-                                        </div>
-                                        <div className=" col s1" >
-                                            <ItemSelector label="..." message="select service"
-                                                items={this.state.services.reduce((acc, item) => { if (item.service === "RGBStripController") acc.push(item.name); return acc; }, [])}
-                                                onSelect={(v) => { this.setTriggerprop(idx, "destination", v) }}
-                                            />
-                                        </div>
-                                        <div className="col s4">
-                                            <InpText item={item} idx={idx} onchange={this.handleChange(idx)} name={"destination"} />
-                                        </div>
-                                    </div>
-                                }
-                                {isshow &&
-                                    <div className="row" >
+                                            <div className="col s4 left valign-wrapper">
+                                                <InpText item={item} idx={idx} onchange={this.handleChange(idx)} name={"destination"} />
+                                                <ItemSelector label="..." message="select service"
+                                                    items={this.state.services.reduce((acc, item) => { if (item.service === "RGBStripController") acc.push(item.name); return acc; }, [])}
+                                                    onSelect={(v) => { this.setTriggerprop(idx, "destination", v) }}
+                                                />
+                                            </div>
+                                        </Row>
 
-                                        {this.renderSwitchType(item, idx)}
-                                    </div>
+                                        <Row>
+
+                                            {this.renderSwitchType(item, idx)}
+                                        </Row>
+                                    </div>      
                                 }
-                                    
+                             
                         </div>
                     )
                         }

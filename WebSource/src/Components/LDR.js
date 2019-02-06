@@ -1,5 +1,6 @@
 import React from "react";
 import { getBaseuri, doFetch} from "./utils"
+import { Card, Row, Col } from "./Card"
 
 class LDR extends React.Component {
     constructor(props) {
@@ -13,24 +14,9 @@ class LDR extends React.Component {
     }
     
     componentDidMount() {
-        //const { compprops } = this.props;
 
-       // console.log(this.API);
         doFetch(this.API+"/get_state", (data) => { this.setState(data) });
-       /*
-        fetch(this.API + "/get_state")
-            .then(response => {
-                console.log(response);
-               return response.json()
-            }
-            )
-            .then(data => { this.setState(data) })
-            .catch(function (error) {
-                console.log("123211212");
-                console.log(error);
-             });
-       
-       */
+
 
 
     }
@@ -41,17 +27,14 @@ class LDR extends React.Component {
         const { compprops } = this.props;
 
         return (
-
-            <div>
-
-                <h2>{compprops.name} </h2>
-                <div className="row">
-                    <div className="col s12 green">
+            <Card title={() => { return (<p>{compprops.name} </p>); }}>
+                <Row>
+                    <Col num={12} className="green">
                         <h3>{this.state.ldrValue} </h3>
-                    </div>
+                    </Col>
+                </Row>
+            </Card>
 
-                </div>
-            </div>
         );
     }
 }

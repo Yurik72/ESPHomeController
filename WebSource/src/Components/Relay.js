@@ -1,6 +1,7 @@
 import React from "react";
 import Checkbox from "./Checkbox";
 import { getBaseuri, doFetch } from "./utils"
+import { Card, Row ,Col} from "./Card"
 
 class Relay extends React.Component {
     constructor(props) {
@@ -20,17 +21,9 @@ class Relay extends React.Component {
        
     }
     componentDidMount() {
-        //const { compprops } = this.props;
-        //this.loadtest();
-        //return;
-        //alert(API);
+
         doFetch(this.API + "/get_state", (data) => { this.setState(data) });
-        //fetch(this.API + "/get_state")
-        //    .then(response => response.json())
-        //    .then(data => { this.setState(data) });
-            
-        //alert(JSON.stringify(compprops));
-        //this.setState({ services: compprops });
+
     }
     loadtest() {
 
@@ -54,27 +47,24 @@ class Relay extends React.Component {
     }
 
     render() {
-        //{JSON.stringify(this.props)} 
-        //const { label } = 'switch'; 
+
         const { compprops } = this.props;
     
         return (
-
-    <div>
-           
-                <h2>{compprops.name} </h2>
-                <div className="row">
-                    <div className="col s12 "> 
+            <Card title={() => { return (<h3>{compprops.name} </h3>); }}>
+                <Row>
+                    <Col num={12}>
                         <Checkbox
                             isChecked={this.state.isOn}
                             label={compprops.name}
                             handleCheckboxChange={this.toggleCheckbox}
                             key={compprops.name}
                         />
-                </div>  
+                    </Col>
+                </Row>
+            </Card>
 
-        </div>
-    </div>
+
      );
     }
 }
