@@ -53,6 +53,13 @@ void BME280Controller::loadconfig(JsonObject& json) {
 	i2caddr = json["i2caddr"];
 	uselegacy = json["uselegacy"];
 }
+void BME280Controller::getdefaultconfig(JsonObject& json) {
+	json["i2caddr"]= i2caddr;
+	json["uselegacy"]= uselegacy;
+	json["service"] = "BME280Controller";
+	json["name"] = "BME";
+	BME::getdefaultconfig(json);
+}
 void  BME280Controller::setup() {
 	if (this->uselegacy) {
 		DBG_OUTPUT_PORT.println("Init Adafruit_BME280");

@@ -20,7 +20,9 @@ WiFiUDP ntpUDP;
 const size_t bufferSize = JSON_OBJECT_SIZE(20);
 
 TimeController::TimeController() {
-
+	this->ntpServer = "pool.ntp.org";
+	this->gmtOffset_sec = 0;
+	this->daylightOffset_sec = 0;
 }
 String  TimeController::serializestate() {
 
@@ -56,6 +58,15 @@ void TimeController::loadconfig(JsonObject& json) {
 	gmtOffset_sec = json["timeoffs"];
 	daylightOffset_sec = json["dayloffs"];
 	ntpServer = json["server"].as<String>();
+}
+void TimeController::getdefaultconfig(JsonObject& json) {
+	json["timeoffs"]= gmtOffset_sec;
+	json["dayloffs"]= daylightOffset_sec;
+	json["timeoffs"]= gmtOffset_sec;
+	json["server"]= ntpServer.c_str();
+	json["service"] = "TimeController";
+	json["name"] = "Time";
+	TimeCtl::getdefaultconfig(json);
 }
 void  TimeController::setup() {
 #if defined TIMECONTROLLER_DEBUG
@@ -122,10 +133,10 @@ void TimeController::run() {
 		//DBG_OUTPUT_PORT.println(getFormattedTime(newState.time));
 		this->set_state(newState);
 	}
-	CBaseController::run();
+	TimeCtl::run();
 }
 void TimeController::set_state(TimeState state) {
 
-	CController::set_state(state);
+	TimeCtl::set_state(state);
 	
 }

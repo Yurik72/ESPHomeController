@@ -69,6 +69,13 @@ void RGBStripController::loadconfig(JsonObject& json) {
 	pin = json["pin"];
 	numleds = json["numleds"];
 }
+void RGBStripController::getdefaultconfig(JsonObject& json) {
+	json["pin"]= pin;
+	json["numleds"]= numleds;
+	json["service"] = "RGBStripController";
+	json["name"] = "RGBStrip";
+	RGBStrip::getdefaultconfig(json);
+}
 void  RGBStripController::setup() {
 	pStrip =new  WS2812FX(numleds, pin, NEO_GRB + NEO_KHZ800);
 	pStrip->init();

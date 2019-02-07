@@ -4,6 +4,9 @@
 
 #include "LDRController.h"
 const size_t bufferSize = JSON_OBJECT_SIZE(20);
+LDRController::LDRController() {
+	this->pin = 0;
+}
 String  LDRController::serializestate() {
 
 	DynamicJsonDocument jsonBuffer(bufferSize);
@@ -38,6 +41,12 @@ bool  LDRController::deserializestate(String jsonstate, CmdSource src) {
 void LDRController::loadconfig(JsonObject& json) {
 	pin = json["pin"];
 }
+void LDRController::getdefaultconfig(JsonObject& json) {
+	json["pin"] = pin;
+	json["service"] = "LDRController";
+	json["name"] = "LDR";
+	LDR::getdefaultconfig(json);
+}
 void  LDRController::setup() {
 	pinMode(pin, INPUT);
 	//digitalWrite(pin, LOW);
@@ -64,11 +73,11 @@ void LDRController::run() {
 
 		this->set_state(newState);
 	}
-	CBaseController::run();
+	LDR::run();
 }
 void LDRController::set_state(LDRState state) {
 
-	CController::set_state(state);
+	LDR::set_state(state);
 	
 }
 

@@ -7,6 +7,7 @@ const size_t bufferSize = JSON_OBJECT_SIZE(20);
 
 RelayController::RelayController() {
 	this->isinvert = false;
+	this->pin = 0;
 }
 String  RelayController::serializestate() {
 	
@@ -41,6 +42,14 @@ void RelayController::loadconfig(JsonObject& json) {
 	Relay::loadconfig(json);
 	pin= json["pin"];
 	isinvert= json["isinvert"];
+}
+void RelayController::getdefaultconfig(JsonObject& json) {
+	json["pin"]= pin;
+	json["isinvert"]= isinvert;
+	json["service"] = "RelayController";
+	json["name"] = "Relay";
+	
+	Relay::getdefaultconfig(json);
 }
 void  RelayController::setup() {
 	pinMode(pin, OUTPUT);

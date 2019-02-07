@@ -47,6 +47,8 @@ public:
 	friend class Controllers;
 	virtual String  serializestate() = 0;
 	virtual bool  deserializestate(String jsonstate, CmdSource src= srcState)=0;
+	virtual String getdefaultconfig();
+	virtual void getdefaultconfig(JsonObject& json);
 	virtual void setup() ;
 	const char* get_name() {
 		return name;

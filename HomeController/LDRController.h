@@ -17,10 +17,12 @@ typedef CController<LDRController, LDRState, LDRCMD> LDR;
 class LDRController : public LDR
 {
 public:
+	LDRController();
 	virtual String  serializestate();
 	virtual bool  deserializestate(String jsonstate, CmdSource src = srcState);
 	virtual void setup();
 	void loadconfig(JsonObject& json);
+	virtual void getdefaultconfig(JsonObject& json);
 	virtual void run();
 	virtual void set_state(LDRState state);
 	virtual bool onpublishmqtt(String& endkey, String& payload);

@@ -278,7 +278,7 @@ class Triggers extends React.Component {
                                 </div>
                             )}
                         </Popup>
-                     
+                    
                     </div>
                     <div className="col s2">
                         <Button label="Save" className="blue"

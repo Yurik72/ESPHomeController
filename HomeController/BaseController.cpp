@@ -14,6 +14,7 @@ CBaseController::CBaseController() {
 	this->onstatechanged = NULL;
 	this->bodybuffer = NULL;
 	this->bodyindex = 0;
+	this->interval = 1000;
 }
 void CBaseController::set_name(const char* name) {
 	strncpy(this->name, name, MAXLEN_NAME);
@@ -67,6 +68,21 @@ void CBaseController::run() {
 	runned();
 }
 void CBaseController::loadconfig(JsonObject& json) {
+
+}
+String CBaseController::getdefaultconfig() {
+	DynamicJsonDocument jsonBuffer(JSON_OBJECT_SIZE(40));
+	JsonObject root = jsonBuffer.to<JsonObject>();
+	root["enabled"]= enabled;
+	root["interval"]= interval;
+	this->getdefaultconfig(root);
+	String json;
+	json.reserve(200);
+	serializeJson(root, json);
+
+	return json;
+}
+void CBaseController::getdefaultconfig(JsonObject& json) {
 
 }
 void CBaseController::loadconfigbase(JsonObject& json) {

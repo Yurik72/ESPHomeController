@@ -212,11 +212,30 @@ void Controllers::setuphandlers(AsyncWebServer& server) {
 	
 		request->send(response);
 	});
+	server.on("/get_defaultconfig", HTTP_GET, [](AsyncWebServerRequest *request) {
+		DBG_OUTPUT_PORT.println("get_defaultconfig request");
+		String cname;
+		if(request->args()>0)
+			cname = request->arg((size_t)0);
+		DBG_OUTPUT_PORT.println(cname);
+		if (cname.length() == 0) {
+			request->send(500, "text/plain", "BAD ARGS");
+			return;
+		}
+		CBaseController* pcontroller = Controllers::CreateByName(cname.c_str());
+		if (pcontroller == NULL) {
+			request->send(500, "text/plain", "Non exists controller name");
+			return;
+		}
+		AsyncWebServerResponse *response = request->beginResponse(200, "application/json", pcontroller->getdefaultconfig().c_str());
+		request->send(response);
+		delete pcontroller;
+	});
 	for (int i = 0;i < this->GetSize();i++) {
 		CBaseController*ctl = this->GetAt(i);
 		String path = "/";
 		path += ctl->get_name();
-		DBG_OUTPUT_PORT.println("setup async handlers");
+		//DBG_OUTPUT_PORT.println("setup async handlers");
 		//DBG_OUTPUT_PORT.println((int)ctl);
 		String pathget = path + String("/get_state");
 		server.on(pathget.c_str(), HTTP_GET, [ctl](AsyncWebServerRequest *request) {
