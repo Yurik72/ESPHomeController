@@ -320,7 +320,7 @@ void Controllers::handleloops() {
 		CBaseController*ctl = this->GetAt(i);
 
 
-		if (ctl->shouldRun() && !ctl->get_iscore() && ctl->isenabled()) {
+		if (ctl->shouldRun() && (ctl->get_coremode() == NonCore  || ctl->get_coremode()==Both) && ctl->isenabled()) {
 
 			ctl->run();
 

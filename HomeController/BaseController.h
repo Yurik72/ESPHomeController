@@ -14,11 +14,13 @@
 #include <ESPmDNS.h>
 #endif
 #endif
+
+
 #include "Utilities.h"
 #include "Array.h"
 #define MAXLEN_NAME 30
 #if !defined(ESP8266)
-void runcore(void*param);
+void runcoreloop(void*param);
 #endif
 
 #if defined ASYNC_WEBSERVER
@@ -40,6 +42,13 @@ enum BaseCMD :uint {
 	BaseSetRestore = 2048,
 	BaseSaveState  =4096
 };
+
+enum CoreMode :uint{
+	NonCore=0,
+	Core   =1,
+	Both   =2
+};
+
 class CBaseController
 {
 public:
@@ -62,6 +71,7 @@ public:
 	// Default is to mark it runned "now"
 	void runned() { runned(millis()); }
 	virtual void run();
+	virtual void runcore();
 	bool isenabled() { return enabled; }
 #if !defined ASYNC_WEBSERVER
 #if defined(ESP8266)
@@ -84,7 +94,8 @@ public:
 	virtual bool onpublishmqtt(String& endkey, String& payload);
 	virtual bool onpublishmqttex(String& endkey, String& payload,int topicnr) { return false; };
 	virtual void onmqqtmessage(String topic, String payload);
-	bool get_iscore() { return isCore; };
+	CoreMode get_coremode() { return coreMode; };
+
 	short get_core() { return core; };
 	short get_priority() { return priority; };
 	virtual bool ispersiststate() { return false; }
@@ -96,16 +107,17 @@ protected:
 	
 	char name[MAXLEN_NAME];
 	unsigned long interval;
-	
+	CoreMode coreMode;
+	short core;
+	short priority;
 	// Last runned time in Ms
 private:
 	unsigned long last_run;
 	// Scheduled run in Ms (MUST BE CACHED) 
 	unsigned long _cached_next_run;
 	bool enabled;
-	bool isCore;
-	short core;
-	short priority;
+	
+
 #if !defined(ESP8266)
 	TaskHandle_t taskhandle;
 #endif

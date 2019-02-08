@@ -7,7 +7,7 @@
 #include <ESPAsyncWebServer.h>
 #endif
 CBaseController::CBaseController() {
-	this->isCore = false;
+	this->coreMode = NonCore;
 	this->core = 0;
 	this->enabled = false;
 	this->_cached_next_run = 0;
@@ -67,6 +67,12 @@ void CBaseController::run() {
 	//DBG_OUTPUT_PORT.println("Base run");
 	runned();
 }
+void CBaseController::runcore() {
+
+	// Update last_run and _cached_next_run
+	//DBG_OUTPUT_PORT.println("Base run");
+	//	runned();
+}
 void CBaseController::loadconfig(JsonObject& json) {
 
 }
@@ -102,11 +108,11 @@ void CBaseController::setuphandlers(WebServer& server) {
 #endif
 void CBaseController::setup() {
 #if !defined(ESP8266)
-	if (this->get_iscore()) {
+	if (this->get_coremode()== Core || this->get_coremode()==Both) {
 		unsigned char tname[50];
 		
 		xTaskCreatePinnedToCore(
-			runcore,
+			runcoreloop,
 			this->get_name(),
 			8192,
 			this,
@@ -130,14 +136,16 @@ void CBaseController::setuphandlers(AsyncWebServer& server) {
 #endif
 
 #if !defined(ESP8266)
-void runcore(void*param)
+void runcoreloop(void*param)
 {
 	CBaseController* self = static_cast<CBaseController*>(param);
 
 	for (;;) {
 
-		if (self != NULL &&  self->shouldRun())
-			self->run();
+		if (self != NULL ) // &&  self->shouldRun())
+			self->runcore();
+			if(self->get_coremode() == Core  &&  self->shouldRun())
+				self->run();
 		
 	}
 }
