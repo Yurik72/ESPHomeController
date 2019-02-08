@@ -52,6 +52,10 @@ class Triggers extends React.Component {
        
        
     };
+    componentDidMount() {
+        const { servicedata, triggedata } = this.props;
+        this.setState({ triggers: triggedata, services: servicedata });
+    }
     componentWillReceiveProps(nextProps) {
         console.log("Triggers componentWillReceiveProps");
         console.log(nextProps);

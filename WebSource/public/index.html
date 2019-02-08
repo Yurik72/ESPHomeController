@@ -4,6 +4,43 @@
     <meta charset="utf-8" />
     <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/0.100.2/css/materialize.min.css" media="screen,projection" />
+   <style>
+      /*moved from app.css*/ 
+       .App {
+           text-align: center;
+       }
+
+       .App-logo {
+           animation: App-logo-spin infinite 20s linear;
+           height: 40vmin;
+       }
+
+       .App-header {
+           background-color: #282c34;
+           min-height: 100vh;
+           display: flex;
+           flex-direction: column;
+           align-items: center;
+           justify-content: center;
+           font-size: calc(10px + 2vmin);
+           color: white;
+       }
+
+       .App-link {
+           color: #61dafb;
+       }
+
+       @keyframes App-logo-spin {
+           from {
+               transform: rotate(0deg);
+           }
+
+           to {
+               transform: rotate(360deg);
+           }
+       }
+
+   </style>
     <style>
         body {
             margin: 0;
@@ -95,6 +132,47 @@
         .tableservice td .input-field{
             margin-top:1px;
         }
+        .card .cardtitle {
+            border-top-left-radius: 10px;
+            border-top-right-radius: 10px;
+            font-size: 18px;
+            font-weight: 500;
+            line-height:1;
+            min-height:30px;
+        }
+            .card .cardtitle p, .card .cardtitle h3, .card .cardtitle div {
+                margin-left: auto;
+                margin-right: auto;
+                width: 80%;
+            }
+        .cardtitle .col.leftcolholder {
+            margin-left: 0;
+        }
+        .btn.btn-small{
+            padding:0 1rem;
+        }
+        .row .col.left{
+            margin-left:0;
+        }
+        label.input-label {
+            margin: 0px 10px 0px 10px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        input[type=text].input-input {
+            margin: 0px 10px 0px 10px;
+            min-width:40px;
+        }
+        .btn-collapse {
+            float: right !important;
+            margin-right: unset !important;
+            margin-left: unset !important;
+        }
+        .popup-header {
+            padding: 5px;
+            border-radius:5px;
+            background-color:lightyellow;
+        }
     </style>
     <meta name="viewport"
           content="width=device-width, initial-scale=1, shrink-to-fit=no" />
@@ -117,7 +195,7 @@
 </head>
 <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
-    <nav class="blue light-blueXXX lighten-1XXX" role="navigation" id="mc-nav">
+    <nav class="blue" role="navigation" id="mc-nav">
 
         <div class="nav-wrapper">
             <a id="logo-container" href="#" class="brand-logo">Home controller</a>
@@ -126,9 +204,7 @@
                 <li><a href="#"><i id="id_host" class="left">host</i></a></li>
                 <li><a href="#"><i id="id_async" class="left">?</i></a></li>
             </ul>
-            <ul class="left">
-                <li><a href="/browse"><i id="id_async" class="left">filebrowser</i></a></li>
-            </ul>
+
         </div>
  
     </nav>

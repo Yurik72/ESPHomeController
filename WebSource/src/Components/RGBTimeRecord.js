@@ -34,7 +34,7 @@ class RGBTimeRecord extends React.Component {
                 <TimePickCtl
                     label="Time"
                     timevalue={item.time}
-                    handleTimeChange={t => (this.onChangeVal({ time: t.state.timevalue }))}
+                    handleTimeChange={t => (this.onChangeVal({ time: t.getIntTime() /*t.state.timevalue*/ }))}
                     />
                 </Col>
                 <Col num={2}>
@@ -58,7 +58,7 @@ class RGBTimeRecord extends React.Component {
                     <RangeCtl
                     
                         label="Brigthness"
-                        rangevalue={item.br}
+                        rangevalue={item.bg}
                         handleRangeChange={br => this.onChangeVal({ bg: br.state.rangevalue })}
                         />
                 </Row>
@@ -71,7 +71,7 @@ class RGBTimeRecord extends React.Component {
                         />
                     </Col>
                     <Col num={4}>
-                        <label htmlFor="1">Color</label>
+                        <label htmlFor="1"className="input-label" >Color</label>
                         <input type="text" value={item.color} name="color"
                             onChange={ev => {
                                 var val = parseInt( ev.target.value);

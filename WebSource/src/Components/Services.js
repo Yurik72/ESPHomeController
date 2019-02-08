@@ -5,6 +5,18 @@ import { getHomeUrl, getConfigData, getBaseuri, doFetch } from "./utils"
 import { Card, Row, Col } from "./Card"
 import Arrow from "./Arrow"
 
+const RunState = (props) => {
+
+    const { enabled } = props;
+    const style = { fill: (enabled ? "green" : "red") };
+    return (
+       
+        <svg viewBox="0 0 10 10" width="10px" height="10px">
+            <circle cx="5" cy="5" r="5" style={style} />
+        </svg>
+    );
+}
+
 class Services extends React.Component {
     constructor(props) {
         super(props);
@@ -36,8 +48,8 @@ class Services extends React.Component {
         this.state.expstate = {};
     }
     componentDidMount() {
-        const { compprops } = this.props;
-        this.setState({ services: compprops });
+        const { servicedata } = this.props;
+        this.setState({ services: servicedata });
     }
     doSave(e) {
         e.preventDefault();
@@ -45,6 +57,15 @@ class Services extends React.Component {
         console.log(this.state.services);
         if (window && window.confirm("Please confirm to save services ..."))
             this.sendSave();
+    }
+    componentWillReceiveProps(nextProps) {
+        console.log("Services componentWillReceiveProps");
+        console.log(nextProps);
+        if (nextProps.servicedata !== this.props.servicedata) {
+            const {  servicedata } = nextProps;
+
+            this.setState({ services: servicedata });
+        }
     }
     sendSave() {
         var url = getBaseuri() + "/jsonsave?";
@@ -89,25 +110,32 @@ class Services extends React.Component {
         //console.debug(getBaseuri());
         return (
             <>
-               
-            <table className="tableservice">
+
+            
                
                 {
                    
                     Object.keys(item).map((key, idx) => {
                        
-                        return <tr><td className="whiteSpaceNoWrap">
-                            <div className="input-field col s6 l2">
-                                <label for={sidx + key}>{key}</label>
-                                <input type="text" id={sidx + key} name={key} value={item[key]}
-                                    onChange={this.handleChange(sidx)}
-                                    style={{ marginLeft:"200px" }}
-                               />
-                            </div>
-                        </td></tr>
+                        return (
+                            <Row className="valign-wrapper" style={{marginBottom:"0px"}}>
+                                <Col num={2} className="left">
+                                    <label for={sidx + key} className="input-label">{key}</label>
+                                </Col>
+                                <Col num={4} className="left">
+                                    <input type="text" id={sidx + key} name={sidx +key} value={item[key]}
+                                        onChange={this.handleChange(sidx)}
+                                        
+                                    />
+                                </Col>
+
+                            </Row>
+
+
+                            )
                     })
                 }
-                </table> 
+               
             </>   
              );
             
@@ -117,8 +145,9 @@ class Services extends React.Component {
 
         return ( 
 
-            <div> 
-                <h3>Services</h3>
+            <div>
+                <h3 >Services</h3>
+
                 <Row>
                     <Col num={2}>
                         <Button label="Save" className="blue"
@@ -171,7 +200,9 @@ class Services extends React.Component {
                                     return (
 
                                         <>
-
+                                            <Col num={1} className="left">
+                                                <RunState enabled={item.enabled} />
+                                            </Col>
                                             <Col num={4}>
                                                 <h6>{ item.service }</h6>
                                                 

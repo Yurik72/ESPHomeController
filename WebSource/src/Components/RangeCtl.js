@@ -24,14 +24,17 @@ class RangeCtl extends React.Component {
        
     }
     render() {
-        const { label,rangevalue } = this.props;
+        const { label, rangevalue } = this.props;
+        
         return (
 
             <>
-                <label htmlFor="txt_delay">{label}</label><br />
+                <label htmlFor={"rng_" + label} className="input-label">{label + " " + rangevalue}</label><br />
                 <p className="range-field">
                     <input type="range"
-                        id={"rng_" + label} min="0" max="255"
+                        id={"rng_" + label}
+                        name={"rng_" + label}
+                        min="0" max="255"
                         value={rangevalue}
                         onChange={this.handleChange} 
                          /></p>

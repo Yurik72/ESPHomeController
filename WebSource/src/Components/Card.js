@@ -23,11 +23,10 @@ class Card extends React.Component {
 }
 const Row = (props) => {
 
+    const { style } = props ? props : { style: {}};
 
-   
-  
     return (
-        <div className={"row " +( props.className ? props.className : "")}>
+        <div className={"row " + (props.className ? props.className : "")} style={style}>
             {props.children}
         </div>
     );

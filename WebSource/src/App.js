@@ -44,14 +44,14 @@ class App extends Component {
     }
     componentDidMount() {
         console.log("App componentDidMount");
-       doFetch(getBaseuri() + "/get_info", (data) => { this.setHeaderdata(data) });
-        doFetch(getBaseuri() + "/services.json", (data) => { console.log(data); this.setState({ services: data }); });
-        doFetch(getBaseuri() + "/triggers.json", (data) => { console.log(data); this.setState({ triggers: data }); });
+      // doFetch(getBaseuri() + "/get_info", (data) => { this.setHeaderdata(data) });
+       // doFetch(getBaseuri() + "/services.json", (data) => { console.log(data); this.setState({ services: data }); });
+      //  doFetch(getBaseuri() + "/triggers.json", (data) => { console.log(data); this.setState({ triggers: data }); });
        
-        //var obj = JSON.parse('[{"service":"RelayController","name":"Relay","enabled":true,"interval":100,"pin":5},{"service":"TimeController","name":"Time","enabled":true,"interval":1000,"timeoffs":7200,"dayloffs":3600,"server":"pool.ntp.org"},{"service":"RGBStripController","name":"RGBStrip","enabled":true,"interval":1,"pin":23,"numleds":8},{"service":"LDRController","name":"LDR","enabled":true,"interval":1000,"pin":0}]');
-      //  var obj1 = JSON.parse('[{"type":"TimeToRGBStrip","source":"Time","destination":"Relay","value":[{"isOn":true,"isLdr":true,"time":0,"bg":1,"wxmode":-1}]}]');
-       // this.setState({ services: obj });
-       // this.setState({ triggers: obj1 });
+        var obj = JSON.parse('[{"service":"RelayController","name":"Relay","enabled":true,"interval":100,"pin":5},{"service":"TimeController","name":"Time","enabled":true,"interval":1000,"timeoffs":7200,"dayloffs":3600,"server":"pool.ntp.org"},{"service":"RGBStripController","name":"RGBStrip","enabled":true,"interval":1,"pin":23,"numleds":8},{"service":"LDRController","name":"LDR","enabled":true,"interval":1000,"pin":0}]');
+        var obj1 = JSON.parse('[{"type":"TimeToRGBStrip","source":"Time","destination":"Relay","value":[{"isOn":true,"isLdr":true,"time":0,"bg":1,"wxmode":-1}]}]');
+        this.setState({ services: obj });
+        this.setState({ triggers: obj1 });
     }
     componentWillMount() {
      //   console.log("App componentWillMount");
@@ -144,7 +144,7 @@ class App extends Component {
                             render={(props => <Triggers key="triggers" {...props} triggedata={this.state.triggers} servicedata={this.state.services} />)}
                         />
                         <Route path="/Services"
-                            render={(props => <Services key="services" {...props} compprops={this.state.services} />)}
+                            render={(props => <Services key="services" {...props} servicedata={this.state.services} />)}
                         />
                       
                         <Route path="/LogView" component={LogView}>
