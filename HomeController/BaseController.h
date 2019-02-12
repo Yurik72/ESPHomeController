@@ -48,7 +48,9 @@ enum CoreMode :uint{
 	Core   =1,
 	Both   =2
 };
-
+#if defined(ESP8266)
+class Ticker;
+#endif
 class CBaseController
 {
 public:
@@ -103,6 +105,10 @@ public:
 	virtual bool loadstate()=0;
 	String get_filename_state();
 	virtual void set_power_on() {};
+#if defined(ESP8266)
+	static void callback(CBaseController* self);
+	void oncallback();
+#endif
 protected:
 	
 	char name[MAXLEN_NAME];
@@ -110,6 +116,9 @@ protected:
 	CoreMode coreMode;
 	short core;
 	short priority;
+#if defined(ESP8266)
+	Ticker* pTicker;
+#endif
 	// Last runned time in Ms
 private:
 	unsigned long last_run;
@@ -182,6 +191,7 @@ protected:
 
 
 };
+
 template<class T, typename P, typename M>
 class CManualStateController : public CController<T, P, M>
 {
@@ -250,6 +260,7 @@ protected:
 	int manualtime;
 	int mswhenrestore;
 	bool isrestoreactivated;
+	
 };
 
 

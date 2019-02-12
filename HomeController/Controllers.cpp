@@ -11,6 +11,8 @@
 #include "RGBStripController.h"
 #include "LDRController.h"
 #include "BME280Controller.h"
+#include "ButtonController.h"
+
 #include "Controllers.h"
 #include <WiFiClient.h>
 #if defined(ESP8266)

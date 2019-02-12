@@ -266,8 +266,55 @@ void TimeToRGBStripTrigger::loadconfig(JsonObject& json) {
 		times.Add(rec);
 	}
 }
+TimeToRelayTrigger::TimeToRelayTrigger() {
+
+	this->pRelay = NULL;
+}
+void TimeToRelayTrigger::loadconfig(JsonObject& json) {
+	Trigger::loadconfig(json);
+	JsonArray arr = json["value"].as<JsonArray>();
+	for (int i = 0; i < arr.size(); i++) {
+		timerecRGB & rec = *(new timerecRGB());
+		JsonObject json = arr[i];
+		this->parsetime(json, rec);
+		rec.isOn = arr[i]["isOn"].as<bool>();
 
 
+		times.Add(rec);
+}
+}
+void TimeToRelayTrigger::dotrigger(timerecOn & rec, Controllers* pctlss) {
+#ifdef	TRIGGER_DEBUG
+	DBG_OUTPUT_PORT.println("TimeToRelayTrigger::dotrigger");
+#endif
+	if (!this->get_relayctl()) {
+		CBaseController* pBase = pctlss->GetByName(this->dst.c_str());
+		if (pBase == NULL) {
+			DBG_OUTPUT_PORT.println("Destination service not found");
+			return;
+	}
+
+		RelayController *pR = static_cast<RelayController*>(pBase);
+		this->set_relayctl(pR);
+}
+	RelayState newstate = this->get_relayctl()->get_state();
+
+	if (rec.isOn) {
+#ifdef	TRIGGER_DEBUG
+		DBG_OUTPUT_PORT.println("Mode On");
+#endif
+		newstate.isOn = true;
+		this->get_relayctl()->AddCommand(newstate, RelayOn, srcTrigger);
+		
+	}
+	else {
+#ifdef	TRIGGER_DEBUG
+		DBG_OUTPUT_PORT.println("Mode Off");
+#endif
+		this->get_relayctl()->AddCommand(newstate, RelayOff, srcTrigger);
+	}
+
+}
 
 
 
@@ -285,7 +332,7 @@ void TimeToRGBStripTrigger::dotrigger(timerecRGB & rec, Controllers* pctlss) {
 		RGBStripController *pStrip = static_cast<RGBStripController*>(pBase);
 		this->set_stripctl(pStrip);
 	}
-	RGBState newstate = pStrip->get_state();
+	RGBState newstate = this->get_stripctl()->get_state();
 
 	if (rec.isOn) {
 #ifdef	TRIGGER_DEBUG

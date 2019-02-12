@@ -153,8 +153,10 @@ class CSimpleArray
       memset((char*)data_storage, 0, sizeof(T)*newsize);
       if (data_size != 0) {
         memcpy(data_storage, olddata, sizeof(T)*data_size);
-        delete[] (char*)olddata;
+       // delete[] (char*)olddata;
       }
+	  if(olddata)
+		  delete[](char*)olddata;
       data_size = newsize;
     }
 

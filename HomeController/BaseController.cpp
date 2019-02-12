@@ -6,6 +6,10 @@
 #if defined ASYNC_WEBSERVER
 #include <ESPAsyncWebServer.h>
 #endif
+
+#if defined(ESP8266)
+#include <Ticker.h>
+#endif
 CBaseController::CBaseController() {
 	this->coreMode = NonCore;
 	this->core = 0;
@@ -15,6 +19,9 @@ CBaseController::CBaseController() {
 	this->bodybuffer = NULL;
 	this->bodyindex = 0;
 	this->interval = 1000;
+#if defined(ESP8266)
+	this->pTicker = NULL;;
+#endif
 }
 void CBaseController::set_name(const char* name) {
 	strncpy(this->name, name, MAXLEN_NAME);
@@ -120,8 +127,25 @@ void CBaseController::setup() {
 			&taskhandle,
 			this->get_core());
 	}
+#else
+	if (this->get_coremode() == Core || this->get_coremode() == Both) {
+		this->pTicker = new Ticker();
+		this->pTicker->attach_ms<CBaseController*>(this->interval?1:this->interval, CBaseController::callback, this);
+	}
 #endif
 }
+#if defined(ESP8266)
+#warning "There are NO RTOS on ESP8266, please be carefull and do not call delay in run or run core methods of this service"
+
+void CBaseController::callback(CBaseController* self) {
+	self->oncallback();
+}
+void CBaseController::oncallback() {
+	this->runcore();
+	if (this->get_coremode() == Core && this->shouldRun())
+		this->run();
+}
+#endif
 
 bool CBaseController::onpublishmqtt(String& endkey, String& payload) {
 	return false;

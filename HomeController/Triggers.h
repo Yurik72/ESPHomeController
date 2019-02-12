@@ -84,17 +84,23 @@ private :
 	TimeController* pTime;
 };
 ///time to rgb
-
-struct timerecRGB {
+struct timerecOn {
 	int time = 0;
+	bool isOn = false;
+	TimeType timetype = dailly;
+	time_t timeToTrigger = 0;
+	time_t lastTriggered = 0;
+};
+struct timerecRGB: public timerecOn {
+	//int time = 0;
 	
 	int brightness = 0;
 	int wxmode = 0;
-	bool isOn = false;
+//	bool isOn = false;
 	uint color;
-	TimeType timetype = dailly;
-	time_t timeToTrigger=0;
-	time_t lastTriggered=0;
+//	TimeType timetype = dailly;
+//	time_t timeToTrigger=0;
+//	time_t lastTriggered=0;
 	bool isLdr = false;
 };
 class TimeToRGBStripTrigger :public CBaseTimeTrigger<timerecRGB> {
@@ -110,6 +116,21 @@ private:
 	
 	
 	void dotrigger(timerecRGB & rec, Controllers* pctlss);
+};
+
+class TimeToRelayTrigger :public CBaseTimeTrigger<timerecOn> {
+public:
+	TimeToRelayTrigger();
+	virtual void loadconfig(JsonObject& json);
+protected:
+	RelayController* get_relayctl() { return pRelay; };
+	void set_relayctl(RelayController *pCtl) { pRelay = pCtl; };
+private:
+	RelayController *pRelay;
+	//void parsetime(JsonObject& json, timerecRGB & rec);
+
+
+	void dotrigger(timerecOn & rec, Controllers* pctlss);
 };
 class LDRToRGBStrip :public TriggerFromService< LDRController, RGBStripController>{
 public:
