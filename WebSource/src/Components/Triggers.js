@@ -132,13 +132,20 @@ class Triggers extends React.Component {
     renderSwitchType(item, idx) {
         //console.log("renderSwitchType");
         if (item.type === 'TimeToRGBStrip')
-            return this.renderTimeRgb(item.value, idx);
+            return this.renderTimeRgb(item.value, idx, "timergb");
+        if (item.type === 'TimeToRelay')
+            return this.renderTimeRgb(item.value, idx, "timerelay");
     }
-    renderTimeRgb(times, tidx) {
+    renderTimeRgb(times, tidx,timetype) {
        // console.log("renderTimeRgb");
+        if (!timetype)
+            timetype="timergb"
         if (!times || !Array.isArray(times))
             times = [];
-        
+        const showcolor = timetype  === "timergb";
+        const showbrightness = timetype === "timergb";
+        const showldr = timetype === "timergb";
+
         return (
             <>
                 <div className="row blue-grey lighten-5 valign-wrapper" >
@@ -146,7 +153,7 @@ class Triggers extends React.Component {
                         Timing rules 
                     </div>
                     <div className="col s2">
-                        <Button label="+" className="green" onClick={() => tidx > this.addValueRecord(tidx, "time")} />
+                        <Button label="+" className="green" onClick={() => tidx > this.addValueRecord(tidx, timetype)} />
                     </div>
                 </div>
                 {
@@ -168,9 +175,11 @@ class Triggers extends React.Component {
                                         <h6>{"Time record #:" + idx} {" Trigger time:" + item.time}</h6>
                                         <div className={item.isOn ? "green" : "red"}>{item.isOn?"ON":"OFF"}</div>
                                     </Col>
-                                    <Col num={4}>
-                                        <ColorStatus  color={item.color} />
-                                     </Col>
+                                    {showcolor &&
+                                        <Col num={4}>
+                                            <ColorStatus color={item.color} />
+                                        </Col>
+                                    }
                                     <Col num={2}>
                                         <Button className="btn-collapse" nostyle={true} onClick={() => { expstate[trkey] = !isshow; this.setState({ expstate }) }}
                                             label={isshow ? "Hide" : "Show"}>
@@ -184,7 +193,11 @@ class Triggers extends React.Component {
                             }}>
                                
                                    
-                                 <RGBTimeRecord item={item} idx={idx} handlechange={val => this.handlecomponentindexedchange(val, tidx, idx)} />
+                                <RGBTimeRecord item={item} idx={idx}
+                                    showcolor={showcolor}
+                                    showldr={showldr}
+                                    showbrightness={showbrightness}
+                                    handlechange={val => this.handlecomponentindexedchange(val, tidx, idx)} />
                                   
                                 
                             </Card>
@@ -209,8 +222,11 @@ class Triggers extends React.Component {
             item.value = [];
 
         let values = [...item.value];//copy of values
-        if (rtype === "time") {
+        if (rtype === "timergb") {
             values.push({ "isOn": true, "isLdr": true, "time": 0,  "bg": 1, "wxmode": -1 });
+        }
+        if (rtype === "timerelay") {
+            values.push({ "isOn": true, "time": 0 });
         }
         item.value = values; //back values
         triggers[trindex] = item;   //back item  
@@ -235,15 +251,30 @@ class Triggers extends React.Component {
     addtrigger(triggertype) {
         console.log("addtrigger");
         let triggers = this.clonetriggers();
-        triggers.push({ type: triggertype });
+        triggers.push({ type: triggertype, source: this.getsourceservices(triggertype).shift(), destination: this.getdestinationservices(triggertype).shift() });
         console.log(triggers);
-        //this.setState({ triggers });
+        this.setState({ triggers });
     }
     handleselectchange(ev,close) {
         console.log("handle select");
        
         this.addtrigger(ev.target.value);
         close();
+    }
+    getsourceservices(triggertype) {
+        if (triggertype === "TimeToRGBStrip" || triggertype === "TimeToRelay")
+            return this.state.services.reduce((acc, item) => { if (item.service === "TimeController") acc.push(item.name); return acc; }, []);
+        return [];
+    }
+
+    getdestinationservices(triggertype) {
+        return this.state.services.reduce((acc, sitem) => {
+            if ((sitem.service === "RGBStripController" && triggertype === "TimeToRGBStrip")
+                ||
+                (sitem.service === "RelayController" && triggertype === "TimeToRelay")
+            )
+                acc.push(sitem.name); return acc;
+        }, [])
     }
     render() {
         //console.log("triggers render");
@@ -275,6 +306,7 @@ class Triggers extends React.Component {
                                             <option value="" disabled>select type service below</option>
                                             <option value="TimeToRGBStrip" >TimeToRGBStrip</option>
                                             <option value="LDRToRGBStrip" >LDRToRGBStrip</option>
+                                            <option value="TimeToRelay" >TimeToRelay</option>
                                             
                                         </select>
                                     </div>
@@ -329,7 +361,7 @@ class Triggers extends React.Component {
                                             <div className="col s4 left valign-wrapper">
                                                 <InpText item={item} idx={idx} onchange={this.handleChange(idx)} name={"source"} />
                                                 <ItemSelector label="..." message="select service"
-                                                    items={this.state.services.reduce((acc, item) => { if (item.service === "TimeController") acc.push(item.name); return acc; }, [])}
+                                                items={this.getsourceservices(item.type)}
                                                 onSelect={(v) => { this.setTriggerprop(idx, "source", v) }}
                                                 />
                                             </div>
@@ -337,7 +369,7 @@ class Triggers extends React.Component {
                                         <Col num={4} className="left valign-wrapper">
                                                 <InpText item={item} idx={idx} onchange={this.handleChange(idx)} name={"destination"} />
                                                 <ItemSelector label="..." message="select service"
-                                                    items={this.state.services.reduce((acc, item) => { if (item.service === "RGBStripController") acc.push(item.name); return acc; }, [])}
+                                                items={this.getdestinationservices(item.type)}
                                                     onSelect={(v) => { this.setTriggerprop(idx, "destination", v) }}
                                                 />
                                             </Col>

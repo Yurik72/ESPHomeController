@@ -24,8 +24,8 @@ class RGBTimeRecord extends React.Component {
     render() {
 
         //console.debug("render rgbtimerecord");
-        
-        const { item,idx } = this.props;
+        const dfprops = { showcolor: true, showldr: true, showbrightness:true,showmode:true}
+        const { item, idx, showcolor, showldr, showbrightness } = { ...dfprops, ...this.props };
         
         return (
             <>
@@ -45,45 +45,51 @@ class RGBTimeRecord extends React.Component {
                     key="isOn"
                     />
                 </Col>
-                <Col num={2}>
-                <Checkbox
-                    isChecked={item.isLdr}
-                    label="IsLdr"
-                    handleCheckboxChange={ch => (this.onChangeVal({ isLdr: ch.state.isChecked }))}
-                    key="isLdr"
-                    />
-                </Col>
+                    {showldr &&
+                        <Col num={2}>
+                            <Checkbox
+                                isChecked={item.isLdr}
+                                label="IsLdr"
+                                handleCheckboxChange={ch => (this.onChangeVal({ isLdr: ch.state.isChecked }))}
+                                key="isLdr"
+                            />
+                        </Col>
+                    }
                 </Row>
-                <Row>
-                    <RangeCtl
-                    
-                        label="Brigthness"
-                        rangevalue={item.bg}
-                        handleRangeChange={br => this.onChangeVal({ bg: br.state.rangevalue })}
+                {showbrightness &&
+                    <Row>
+                        <RangeCtl
+
+                            label="Brigthness"
+                            rangevalue={item.bg}
+                            handleRangeChange={br => this.onChangeVal({ bg: br.state.rangevalue })}
                         />
-                </Row>
-                <Row>
-                   <Col num={4}>
-                        <ColorWeel
-                            width={200}
-                            height={200}
-                            onSelect={(intcolor, hexcolor) => { this.onChangeVal({ color: intcolor }) }}
-                        />
-                    </Col>
-                    <Col num={4}>
-                        <label htmlFor="1"className="input-label" >Color</label>
-                        <input type="text" value={item.color} name="color"
-                            onChange={ev => {
-                                var val = parseInt( ev.target.value);
-                                this.onChangeVal({ color: val });
-                                //this.cs.setBkColor(col);
-                            }}
-                        />
-                    </Col>
-                    <Col num={4}>
-                        <ColorStatus ref={el => this.cs = el} color={item.color}/>
-                    </Col>
-                </Row>
+                    </Row>
+                }
+                {showcolor &&
+                    <Row>
+                        <Col num={4}>
+                            <ColorWeel
+                                width={200}
+                                height={200}
+                                onSelect={(intcolor, hexcolor) => { this.onChangeVal({ color: intcolor }) }}
+                            />
+                        </Col>
+                        <Col num={4}>
+                            <label htmlFor="1" className="input-label" >Color</label>
+                            <input type="text" value={item.color} name="color"
+                                onChange={ev => {
+                                    var val = parseInt(ev.target.value);
+                                    this.onChangeVal({ color: val });
+                                    //this.cs.setBkColor(col);
+                                }}
+                            />
+                        </Col>
+                        <Col num={4}>
+                            <ColorStatus ref={el => this.cs = el} color={item.color} />
+                        </Col>
+                    </Row>
+                }
             </>
      );
     }
