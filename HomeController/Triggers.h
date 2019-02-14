@@ -13,6 +13,7 @@ class RGBStripController;
 class TimeController;
 class LDRController;
 class RelayController;
+class RFController;
 class Trigger{
 public:
 	Trigger() {};
@@ -155,5 +156,24 @@ protected:
 private:
 	short valueOn;
 	short valueOff;
+};
+
+struct RFRecord {
+	long rfkey = -1;
+	bool isswitch = true;
+	bool isOn = true;
+};
+class RFToRelay :public TriggerFromService< RFController, RelayController> {
+public:
+	RFToRelay();
+
+	virtual void handleloopsvc(RFController* ps, RelayController* pd);
+	virtual void loadconfig(JsonObject& json);
+	void processrecord(RFRecord& rec, RelayController* pr);
+protected:
+
+private:
+	long last_tick;
+	CSimpleArray<RFRecord> rfs;
 };
 #endif

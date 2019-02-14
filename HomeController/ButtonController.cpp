@@ -57,6 +57,7 @@ void ButtonController::getdefaultconfig(JsonObject& json) {
 }
 
 void  ButtonController::setup() {
+	Button::setup();
 	pinMode(pin, INPUT);
 	//digitalWrite(pin, LOW);
 }

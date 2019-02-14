@@ -163,7 +163,7 @@ void RGBStripController::set_state(RGBState state) {
 	
 	if (state.isOn) {
 		if (oldState.wxmode != state.wxmode) {
-			DBG_OUTPUT_PORT.println("oldState.wxmode != state.wxmod");
+			//DBG_OUTPUT_PORT.println("oldState.wxmode != state.wxmod");
 			if (pStrip->isRunning())pStrip->stop();
 			if (state.wxmode >= 0) pStrip->setMode(state.wxmode);
 			if (!pStrip->isRunning()) pStrip->start();

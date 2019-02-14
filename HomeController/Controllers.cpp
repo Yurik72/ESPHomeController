@@ -12,7 +12,7 @@
 #include "LDRController.h"
 #include "BME280Controller.h"
 #include "ButtonController.h"
-
+#include "RFController.h"
 #include "Controllers.h"
 #include <WiFiClient.h>
 #if defined(ESP8266)
@@ -308,6 +308,9 @@ CBaseController* Controllers::CreateByName(const char* name) { //to be rewrite b
 	}
 	else if (strcmp(name, "LDRController") == 0) {
 		return new LDRController();
+	}
+	else if (strcmp(name, "RFController") == 0) {
+		return new RFController();
 	}
 	else if (strcmp(name, "BME280Controller") == 0) {
 		return new BME280Controller();

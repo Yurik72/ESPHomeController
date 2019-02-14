@@ -9,6 +9,7 @@
 #include "Triggers.h"
 #include "Utilities.h"
 #include "RelayController.h"
+#include "RFController.h"
 #include "Controllers.h"
 
 
@@ -75,6 +76,12 @@ Trigger* Triggers::CreateByType(const char* nametype) {
 	}
 	else if (strcmp(nametype, "LDRToRGBStrip") == 0) {
 		res = new LDRToRGBStrip();
+	}
+	else if (strcmp(nametype, "TimeToRelay") == 0) {
+		res = new TimeToRelayTrigger();
+	}
+	else if (strcmp(nametype, "RFToRelay") == 0) {
+		res = new RFToRelay();
 	}
 	else {
 		res = new Trigger();
@@ -399,4 +406,57 @@ void LDRToRelay::loadconfig(JsonObject& json) {
 	JsonObject js = json["value"].as<JsonObject>();
 	this->valueOff = js["valueOff"];
 	this->valueOn = js["valueOn"];
+}
+
+RFToRelay::RFToRelay() {
+	this->last_tick = 0;
+}
+void RFToRelay::loadconfig(JsonObject& json) {
+	Trigger::loadconfig(json);
+	JsonArray arr = json["value"].as<JsonArray>();
+	for (int i = 0; i < arr.size(); i++) {
+		RFRecord & rec = *(new RFRecord());
+		JsonObject json = arr[i];
+		
+		rec.isOn = arr[i]["isOn"].as<bool>();
+		rec.isswitch = arr[i]["isswitch"].as<bool>();
+		rec.rfkey = arr[i]["rfkey"].as<long>();
+
+		rfs.Add(rec);
+	}
+}
+void RFToRelay::handleloopsvc(RFController* ps, RelayController* pd) {
+	
+
+	RFState rfstate = ps->get_state();
+	if (this->last_tick == rfstate.lastticks)
+		return;
+#ifdef	RF_TRIGGER_DEBUG
+	DBG_OUTPUT_PORT.println("RFToRelay detected new value");
+#endif 
+	this->last_tick = rfstate.lastticks;
+	for (int i = 0;i < this->rfs.GetSize();i++) {
+		RFRecord& rec = this->rfs.GetAt(i);
+		if (rec.rfkey == rfstate.lastReceive)
+			this->processrecord(rec, pd);
+	}
+
+
+
+}
+void RFToRelay::processrecord(RFRecord& rec, RelayController* pr) {
+	RelayState newState=pr->get_state();
+#ifdef	RF_TRIGGER_DEBUG
+	DBG_OUTPUT_PORT.print ("RFToRelay::processrecord with key");
+	DBG_OUTPUT_PORT.println(rec.rfkey);
+#endif 
+	RelayCMD cmd = Set;
+	if (rec.isswitch) {
+		cmd = Set;
+		newState.isOn = !newState.isOn;
+	}
+	else {
+		newState.isOn = rec.isOn;
+	}
+	pr->AddCommand(newState, cmd, srcTrigger);
 }
