@@ -13,7 +13,8 @@ Instead of that i decided to develop universal sketch to support code once, but 
  6. MQTT integration to be able control devices via Home Kit
  7. On board automation scripts/triggers.. Some times is not easy to setup this one via Home Kit or Home Kit doesn't exists
  8. Configuration portal after firts start (captive portal)
- 9. More and more
+ 9. Suports of RF 433 Mhz control by any existing transmitters
+ 10. More and more
  
 Ok, let's describe basic thing how it works
 Major element of this solution is **service**, like in windows unix , android etc. Each service are responsible to control one device wired to ESP. Hovewer it's possible to run 2 instances of the same service to control similar devices. List if services is configurable by json file with their properties
@@ -39,6 +40,8 @@ This project uses libraries and code by different authors:
 - [Adafruit NeoPixel](https://github.com/adafruit/Adafruit_NeoPixel) by adafruit (tested with 1.1.2)
 
 - [ESPAsyncWebServer](https://github.com/me-no-dev/ESPAsyncWebServer)
+
+ -[rc-switch](https://github.com/sui77/rc-switch) small changes are done to works with ESP32 as well
 
 Parts of the code were taken or inspired by the following sources:
 
