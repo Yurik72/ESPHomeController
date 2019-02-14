@@ -1,7 +1,7 @@
 import React from "react";
 import Button from "./Button"
 import Popup from "reactjs-popup";
-
+import { Card, Row, Col } from "./Card"
 const getDefaultProps = () => {
     return {
         label: "",
@@ -53,13 +53,13 @@ class ItemSelector extends React.Component {
             <Popup trigger={<Button className="left btn-small" label={label + (currentitem ? currentitem:"")} />} position="right center">
                 {close => (
                     <div>
-                        <div className="row">
+                        <Row>
                             {message}
                              <a className="close" onClick={close}>
                                 
                             </a>
-                        </div>
-                        <div className="row">
+                        </Row>
+                        <Row>
 
                             <select
                                 onChange={(ev) => this.handleselectchange(ev, close)}
@@ -71,7 +71,7 @@ class ItemSelector extends React.Component {
                                 
 
                             </select>
-                        </div>
+                        </Row>
 
                     </div>
                 )}

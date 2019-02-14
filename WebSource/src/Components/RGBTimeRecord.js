@@ -11,14 +11,12 @@ class RGBTimeRecord extends React.Component {
 
         const { handlechange } = props;
 
-        //console.debug("RGBTimeRecord");
-       // console.debug(props);
-        //this.state = { isOn: false, isLdr: false, time: 0, bg: 150, wxspeed: 1000, color: 0, wxmode: 0 };
+
         this.handlechange = handlechange;
         this.cs = {};
     };
     onChangeVal(newVal) {
-       // this.setState(newVal);
+
         this.handlechange(newVal);
     }
     render() {

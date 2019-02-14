@@ -6,11 +6,11 @@ import { getBaseuri } from "./utils"
 import ColorStatus from "./ColorStatus"
 import ItemSelector from "./ItemSelector"
 import Arrow from "./Arrow"
-
+import RFRecord from "./RFRecord"
 import { Card, Row, Col } from "./Card"
+
 const InpText = (props) => {
 
-   
     const { item, name, onchange, idx } = props;
     //console.debug(props);
     return (
@@ -135,6 +135,60 @@ class Triggers extends React.Component {
             return this.renderTimeRgb(item.value, idx, "timergb");
         if (item.type === 'TimeToRelay')
             return this.renderTimeRgb(item.value, idx, "timerelay");
+        if (item.type === 'RFToRelay')
+            return this.renderRF(item.value, idx, "rfrelay");
+    }
+    renderRF(values, tidx, rftype) {
+
+
+        return (
+            <>
+                <Row className="blue-grey lighten-5 valign-wrapper" >
+                    <Col num={2}>
+                        RF Rules
+                    </Col>
+                    <Col num={2}>
+                        <Button label="+" className="green" onClick={() => tidx > this.addValueRecord(tidx, rftype)} />
+                    </Col>
+                </Row>
+                {
+                    values.map((item, idx) => {
+                        //  console.debug("render trigger");
+                        // console.debug(item);
+                        var trkey = "tri" + tidx + idx;
+                        var expstate = this.state.expstate;
+                        var isshow = expstate[trkey];
+                        return (
+                            <Card key={trkey} hidecontent={!isshow} title={() => {
+                                return (
+                                    <>
+                                        <Col num={2} className="left leftcolholder">
+                                            <Button label="X" className="red left btn-small" onClick={() => (tidx, idx) > this.removeValueRecord(tidx, idx)} />
+                                        </Col>
+                                        <Col num={4}>
+                                            <h6>{"RF record #:" + idx}</h6>
+                                            <div className={item.isOn ? "green" : "red"}>{item.isOn ? "ON" : "OFF"}</div>
+                                        </Col>
+                                        <Col num={2}>
+                                            <Button className="btn-collapse" nostyle={true} onClick={() => { expstate[trkey] = !isshow; this.setState({ expstate }) }}
+                                                label={isshow ? "Hide" : "Show"}>
+                                                <Arrow dir={isshow ? "up" : "down"} />
+                                            </Button>
+
+                                        </Col>
+                                    </>
+                                )
+                            }}>
+                                <RFRecord item={item} idx={idx}
+
+                                    handlechange={val => this.handlecomponentindexedchange(val, tidx, idx)} />
+                            </Card>
+                            )
+                    })
+               }
+
+            </>
+            )
     }
     renderTimeRgb(times, tidx,timetype) {
        // console.log("renderTimeRgb");
@@ -148,14 +202,14 @@ class Triggers extends React.Component {
 
         return (
             <>
-                <div className="row blue-grey lighten-5 valign-wrapper" >
-                    <div className="col s2">
+                <Row className="blue-grey lighten-5 valign-wrapper" >
+                    <Col num={2}>
                         Timing rules 
-                    </div>
-                    <div className="col s2">
+                    </Col>
+                    <Col num={2}>
                         <Button label="+" className="green" onClick={() => tidx > this.addValueRecord(tidx, timetype)} />
-                    </div>
-                </div>
+                    </Col>
+                </Row>
                 {
                    
                     times.map((item, idx) => {
@@ -228,6 +282,9 @@ class Triggers extends React.Component {
         if (rtype === "timerelay") {
             values.push({ "isOn": true, "time": 0 });
         }
+        if (rtype === "rfrelay") {
+            values.push({ isOn: true, isSwitch: 0,rfkey:0});
+        }
         item.value = values; //back values
         triggers[trindex] = item;   //back item  
         
@@ -263,7 +320,14 @@ class Triggers extends React.Component {
     }
     getsourceservices(triggertype) {
         if (triggertype === "TimeToRGBStrip" || triggertype === "TimeToRelay")
-            return this.state.services.reduce((acc, item) => { if (item.service === "TimeController") acc.push(item.name); return acc; }, []);
+            return this.state.services.reduce((acc, item) => { if (item.service === "TimeController") acc.push(item.name);
+                return acc;
+            }, []);
+        if (triggertype === "RFToRelay")
+            return this.state.services.reduce((acc, item) => {
+                if (item.service === "RFToRelay") acc.push(item.name);
+                return acc;
+            }, []);
         return [];
     }
 
@@ -272,6 +336,8 @@ class Triggers extends React.Component {
             if ((sitem.service === "RGBStripController" && triggertype === "TimeToRGBStrip")
                 ||
                 (sitem.service === "RelayController" && triggertype === "TimeToRelay")
+                ||
+                (sitem.service === "RelayController" && triggertype === "RFToRelay")
             )
                 acc.push(sitem.name); return acc;
         }, [])
