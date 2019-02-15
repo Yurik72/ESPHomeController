@@ -74,8 +74,8 @@ class RGBTimeRecord extends React.Component {
                             />
                         </Col>
                         <Col num={4}>
-                            <label htmlFor="1" className="input-label" >Color</label>
-                            <input type="text" value={item.color} name="color"
+                        <label htmlFor="color" className="input-label" >Color</label>
+                            <input name="color" type="text" value={item.color} name="color"
                                 onChange={ev => {
                                     var val = parseInt(ev.target.value);
                                     this.onChangeVal({ color: val });

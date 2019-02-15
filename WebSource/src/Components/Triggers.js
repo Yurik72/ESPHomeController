@@ -136,9 +136,9 @@ class Triggers extends React.Component {
         if (item.type === 'TimeToRelay')
             return this.renderTimeRgb(item.value, idx, "timerelay");
         if (item.type === 'RFToRelay')
-            return this.renderRF(item.value, idx, "rfrelay");
+            return this.renderRF(item, idx, "rfrelay");
     }
-    renderRF(values, tidx, rftype) {
+    renderRF(trigger, tidx, rftype) {
 
 
         return (
@@ -152,7 +152,7 @@ class Triggers extends React.Component {
                     </Col>
                 </Row>
                 {
-                    values.map((item, idx) => {
+                    trigger.value.map((item, idx) => {
                         //  console.debug("render trigger");
                         // console.debug(item);
                         var trkey = "tri" + tidx + idx;
@@ -180,7 +180,7 @@ class Triggers extends React.Component {
                                 )
                             }}>
                                 <RFRecord item={item} idx={idx}
-
+                                    triggeritem={trigger}
                                     handlechange={val => this.handlecomponentindexedchange(val, tidx, idx)} />
                             </Card>
                             )
@@ -226,7 +226,7 @@ class Triggers extends React.Component {
                                         <Button label="X" className="red left btn-small" onClick={() => (tidx, idx) > this.removeValueRecord(tidx, idx)} />
                                     </Col>
                                     <Col num={4}>
-                                        <h6>{"Time record #:" + idx} {" Trigger time:" + item.time}</h6>
+                                        <h6> {"Time:" + item.time}</h6>
                                         <div className={item.isOn ? "green" : "red"}>{item.isOn?"ON":"OFF"}</div>
                                     </Col>
                                     {showcolor &&
@@ -263,13 +263,13 @@ class Triggers extends React.Component {
         );
     }
     removeTrigger(idx) {
-        console.debug("removeTrigger" + idx);
+       // console.debug("removeTrigger" + idx);
         let triggers = this.clonetriggers(); //all new copy
         triggers.splice(idx, 1);
         this.setState({ triggers });
     }
     addValueRecord(trindex, rtype) {
-        console.debug("addTimeRecord" + trindex);
+       // console.debug("addTimeRecord" + trindex);
         let triggers = [...this.state.triggers]; //all new copy
         let item = { ...triggers[trindex] }; //edited item
         if (!item.value || !Array.isArray(item.value))
@@ -292,7 +292,7 @@ class Triggers extends React.Component {
     }
 
     removeValueRecord(trindex,itemidx) {
-        console.log("removeValueRecord" + trindex + ":" + itemidx);
+        //console.log("removeValueRecord" + trindex + ":" + itemidx);
         let triggers = [...this.state.triggers]; //all new copy
         let item = { ...triggers[trindex] }; //edited item
         let values = [...item.value];//copy of values
@@ -300,20 +300,20 @@ class Triggers extends React.Component {
         values.splice(itemidx, 1);
         //console.debug(values);
         item.value = values; //back values
-        console.debug(item.value);
+       // console.debug(item.value);
         triggers[trindex] = item;   //back item  
-        console.log(triggers);
+       // console.log(triggers);
       //  this.setState({ triggers });
     }
     addtrigger(triggertype) {
-        console.log("addtrigger");
+       // console.log("addtrigger");
         let triggers = this.clonetriggers();
         triggers.push({ type: triggertype, source: this.getsourceservices(triggertype).shift(), destination: this.getdestinationservices(triggertype).shift() });
-        console.log(triggers);
+       // console.log(triggers);
         this.setState({ triggers });
     }
     handleselectchange(ev,close) {
-        console.log("handle select");
+      //  console.log("handle select");
        
         this.addtrigger(ev.target.value);
         close();
@@ -325,7 +325,7 @@ class Triggers extends React.Component {
             }, []);
         if (triggertype === "RFToRelay")
             return this.state.services.reduce((acc, item) => {
-                if (item.service === "RFToRelay") acc.push(item.name);
+                if (item.service === "RFController") acc.push(item.name);
                 return acc;
             }, []);
         return [];
@@ -333,19 +333,21 @@ class Triggers extends React.Component {
 
     getdestinationservices(triggertype) {
         return this.state.services.reduce((acc, sitem) => {
+
             if ((sitem.service === "RGBStripController" && triggertype === "TimeToRGBStrip")
                 ||
                 (sitem.service === "RelayController" && triggertype === "TimeToRelay")
                 ||
                 (sitem.service === "RelayController" && triggertype === "RFToRelay")
             )
-                acc.push(sitem.name); return acc;
+                acc.push(sitem.name);
+            return acc;
         }, [])
     }
     render() {
         //console.log("triggers render");
         //console.log(this.state);
-        console.log(this.state.triggers);
+      //  console.log(this.state.triggers);
         return (
 
             <div>
@@ -395,7 +397,7 @@ class Triggers extends React.Component {
                         const tkey = "tr" + idx;
                         var expstate = this.state.expstate;
                         var isshow = expstate[tkey];
-                        console.log("triggers item render");
+                       // console.log("triggers item render");
                         return (
 
 

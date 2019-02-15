@@ -61,6 +61,10 @@ class ColorStatus extends React.Component {
         if (hexString.length % 2) {
             hexString = '0' + hexString;
         }
+        if (hexString.length === 4)
+            hexString = '00' + hexString;
+        if (hexString.length === 2)
+            hexString = '0000' + hexString;
         return hexString;
     }
 }

@@ -123,9 +123,10 @@ class ColorWeel extends React.Component {
         //click position   
         var pos = this.getMousePos(this.canvas, event);
         //color
+       
         this.context = this.canvas.getContext('2d');
         var color = this.context.getImageData(pos.x, pos.y, 1, 1).data;
-
+        console.log(color);
         //console.log("click", pos.x, pos.y, color);
         this.updateStatus(pos, color);
 
@@ -159,11 +160,12 @@ class ColorWeel extends React.Component {
     }
     updateStatus(pos, color) {
         const { onSelect } = this.getComponentprops();
-
+        
         var hexColor = this.rgbToHex(color);
+        console.log(hexColor);
         var intcolor = parseInt("0x" + hexColor);
         //wsSetAll(hexColor);
-        
+        console.log(intcolor);
 
         hexColor = "#" + hexColor;
         onSelect(intcolor, hexColor);

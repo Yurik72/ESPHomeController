@@ -15,8 +15,9 @@ class RGBStrip extends React.Component {
         const { compprops } = props;
         
         //this.state = { isOn: false };
-        this.toggleCheckbox = ch => {
-            let newstate={ isOn: ch.state.isChecked }
+        this.toggleCheckbox = st => {
+            
+            let newstate = st;//;;{ isOn: ch.state.isChecked }
             this.RGBState = { ...this.RGBState, ...newstate };
             this.setState(newstate);
             this.SendStateUpdate();
@@ -95,7 +96,7 @@ class RGBStrip extends React.Component {
                             <Checkbox
                                 isChecked={this.state.isOn}
                                 label={compprops.name}
-                                handleCheckboxChange={this.toggleCheckbox}
+                                handleCheckboxChange={(ch) => this.toggleCheckbox({ isOn: ch.state.isChecked })}
                                 key={compprops.name}
                             />
                         </Col>
@@ -103,7 +104,7 @@ class RGBStrip extends React.Component {
                             <Checkbox
                                 isChecked={this.state.isLdr}
                                 label={"Is LDR"}
-                                handleCheckboxChange={this.toggleCheckbox}
+                                handleCheckboxChange={(ch) => this.toggleCheckbox({ isLdr: ch.state.isChecked })}
                                 key="ldr"
                             />
                         </Col>
