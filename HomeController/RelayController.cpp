@@ -3,6 +3,8 @@
 #include "config.h"
 #include "BaseController.h"
 #include "RelayController.h"
+
+REGISTER_CONTROLLER(RelayController)
 const size_t bufferSize = JSON_OBJECT_SIZE(20);
 
 RelayController::RelayController() {

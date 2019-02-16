@@ -4,6 +4,8 @@
 
 #include "ButtonController.h"
 
+
+REGISTER_CONTROLLER(ButtonController)
 const size_t bufferSize = JSON_OBJECT_SIZE(5);
 
 ButtonController::ButtonController() {

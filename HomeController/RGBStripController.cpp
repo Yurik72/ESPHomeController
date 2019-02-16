@@ -6,6 +6,7 @@
 #include "RGBStripController.h"
 #include <Ticker.h>
 
+REGISTER_CONTROLLER(RGBStripController)
 
 const size_t bufferSize = JSON_OBJECT_SIZE(40);
 static String rgbModes;

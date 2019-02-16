@@ -4,6 +4,9 @@
 
 #include "LDRController.h"
 
+
+REGISTER_CONTROLLER(LDRController)
+
 const size_t bufferSize = JSON_OBJECT_SIZE(20);
 LDRController::LDRController() {
 	this->pin = 0;

@@ -12,8 +12,8 @@ struct RFState
 	bool isOn = true;
 	bool isReceive = false;
 	bool isSend = false;
-	long lastReceive = 0;;
-	long lastticks = 0;
+	long rftoken = 0;;
+	long timetick = 0;
 
 };
 enum RFCMD :uint { OnReceive,Send, RFSaveState = 4096 };

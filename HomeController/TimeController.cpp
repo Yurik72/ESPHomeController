@@ -17,6 +17,10 @@
 #include <WiFiUdp.h>
 WiFiUDP ntpUDP;
 #endif
+
+
+REGISTER_CONTROLLER(TimeController)
+
 const size_t bufferSize = JSON_OBJECT_SIZE(20);
 
 TimeController::TimeController() {

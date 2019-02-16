@@ -233,6 +233,13 @@ void Controllers::setuphandlers(AsyncWebServer& server) {
 		request->send(response);
 		delete pcontroller;
 	});
+	server.on("/get_availablecontrollers", HTTP_GET, [](AsyncWebServerRequest *request) {
+		DBG_OUTPUT_PORT.println("get_availablecontrollers");
+
+		AsyncWebServerResponse *response = request->beginResponse(200, "application/json", Factories::string_controllers().c_str());
+		request->send(response);
+		
+	});
 	for (int i = 0;i < this->GetSize();i++) {
 		CBaseController*ctl = this->GetAt(i);
 		String path = "/";

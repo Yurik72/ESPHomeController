@@ -26,6 +26,79 @@ void runcoreloop(void*param);
 #if defined ASYNC_WEBSERVER
 #include <ESPAsyncWebServer.h>
 #endif
+
+class CBaseController;
+
+class ControllerFactory
+{
+public:
+	virtual CBaseController* create() = 0;
+
+};
+class Trigger;
+
+class TriggerFactory
+{
+public:
+	virtual Trigger* create() = 0;
+
+};
+
+template<class T>
+struct CtlRecord {
+	CtlRecord(String cname, T* pc) {
+		this->name = cname;
+		this->pCtl = pc;
+	};
+	String name;
+	T *pCtl;
+};
+typedef CtlRecord<ControllerFactory> ControllerRecord;
+typedef CtlRecord<TriggerFactory> TriggerRecord;
+class Factories
+{
+
+public:
+
+	static void registerController(const String& name, ControllerFactory *factory);
+	static void registerTrigger(const String& name, TriggerFactory *factory);
+	static ControllerFactory* get_ctlfactory(const  String& name);
+	static TriggerFactory* get_triggerfactory(const  String& name);
+	static String string_controllers(void);
+private:
+	static CSimpleArray<ControllerRecord*> ctlfactories;
+	static CSimpleArray<TriggerRecord*> triggerfactories;
+};
+
+
+#define REGISTER_CONTROLLER(cls) \
+    class cls##Factory : public ControllerFactory { \
+    public: \
+        cls##Factory() \
+        { \
+            Factories::registerController(#cls, this); \
+        } \
+        virtual CBaseController *create() { \
+            return new cls(); \
+        } \
+    }; \
+    static cls##Factory global_##cls##Factory;
+
+
+#define REGISTER_TRIGGER(trg) \
+    class trg##Factory : public TriggerFactory { \
+    public: \
+        trg##Factory() \
+        { \
+            Factories::registerTrigger(#trg, this); \
+        } \
+        virtual Trigger *create() { \
+            return new trg(); \
+        } \
+    }; \
+    static trg##Factory global_##trg##Factory;
+///////////////////////////////////////////////
+
 enum CmdSource
 {
 	srcState = 0,

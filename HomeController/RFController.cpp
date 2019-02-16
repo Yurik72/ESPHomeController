@@ -4,8 +4,10 @@
 #include "RCSwitch.h"
 #include "RFController.h"
 
-
+REGISTER_CONTROLLER(RFController)
 const size_t bufferSize = JSON_OBJECT_SIZE(5);
+
+
 
 RFController::RFController() {
 	this->pin = 0;
@@ -19,8 +21,8 @@ String  RFController::serializestate() {
 	JsonObject root = jsonBuffer.to<JsonObject>();
 	root["isReceive"] = this->get_state().isReceive;
 	root["isSend"] = this->get_state().isSend;
-	root["lastReceive"] = this->get_state().lastReceive;
-	root["lastticks"] = this->get_state().lastticks;
+	root["rftoken"] = this->get_state().rftoken;
+	root["timetick"] = this->get_state().timetick;
 	String json;
 	json.reserve(64);
 	serializeJson(root, json);
@@ -69,8 +71,8 @@ void RFController::run() {
 	if (this->pSwitch->available()) {
 		command newcmd;
 		newcmd.mode = OnReceive;
-		newcmd.state.lastReceive = this->pSwitch->getReceivedValue();
-		newcmd.state.lastticks = millis();
+		newcmd.state.rftoken = this->pSwitch->getReceivedValue();
+		newcmd.state.timetick = millis();
 		//Serial.println("received");
 		//output(mySwitch.getReceivedValue(), mySwitch.getReceivedBitlength(), mySwitch.getReceivedDelay(), mySwitch.getReceivedRawdata(), mySwitch.getReceivedProtocol());
 		this->AddCommand(newcmd.state, newcmd.mode, srcSelf);

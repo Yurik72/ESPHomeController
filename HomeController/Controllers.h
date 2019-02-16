@@ -24,8 +24,12 @@
 #endif 
 #endif
 
+
 #include "BaseController.h"
+
 class Triggers;
+
+
 class Controllers :public CSimpleArray< CBaseController*>
 {
 public:

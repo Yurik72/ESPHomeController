@@ -53,8 +53,6 @@ public:
 	Triggers() {};
 	static Trigger* CreateByType(const char* nametype);
 	void setup();
-	
-
 
 	void loadconfig();
 

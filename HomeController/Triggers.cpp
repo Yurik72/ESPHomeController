@@ -12,7 +12,10 @@
 #include "RFController.h"
 #include "Controllers.h"
 
-
+REGISTER_TRIGGER(TimeToRGBStripTrigger)
+REGISTER_TRIGGER(TimeToRelayTrigger)
+REGISTER_TRIGGER(LDRToRelay)
+REGISTER_TRIGGER(LDRToRGBStrip)
 
 void Triggers::setup() {
 	this->loadconfig();
@@ -429,15 +432,15 @@ void RFToRelay::handleloopsvc(RFController* ps, RelayController* pd) {
 	
 
 	RFState rfstate = ps->get_state();
-	if (this->last_tick == rfstate.lastticks)
+	if (this->last_tick == rfstate.timetick)
 		return;
 #ifdef	RF_TRIGGER_DEBUG
 	DBG_OUTPUT_PORT.println("RFToRelay detected new value");
 #endif 
-	this->last_tick = rfstate.lastticks;
+	this->last_tick = rfstate.timetick;
 	for (int i = 0;i < this->rfs.GetSize();i++) {
 		RFRecord& rec = this->rfs.GetAt(i);
-		if (rec.rfkey == rfstate.lastReceive)
+		if (rec.rfkey == rfstate.rftoken)
 			this->processrecord(rec, pd);
 	}
 

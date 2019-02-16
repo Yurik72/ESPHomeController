@@ -10,6 +10,68 @@
 #if defined(ESP8266)
 #include <Ticker.h>
 #endif
+
+CSimpleArray<ControllerRecord*> Factories::ctlfactories;
+CSimpleArray<TriggerRecord*> Factories::triggerfactories;
+void Factories::registerController(const String& name, ControllerFactory *factory)
+{
+	ControllerRecord* prec = new ControllerRecord(name, factory);
+	ctlfactories.Add(prec);
+};
+void Factories::registerTrigger(const String& name, TriggerFactory *factory)
+{
+	TriggerRecord* prec = new TriggerRecord(name, factory);
+	triggerfactories.Add(prec);
+};
+ControllerFactory* Factories::get_ctlfactory(const  String& name) {
+	for (int i = 0;i < ctlfactories.GetSize();i++)
+		if (ctlfactories.GetAt(i)->name == name)
+			return ctlfactories.GetAt(i)->pCtl;
+	return NULL;
+};
+
+TriggerFactory* Factories::get_triggerfactory(const  String& name) {
+	for (int i = 0;i < triggerfactories.GetSize();i++)
+		if (triggerfactories.GetAt(i)->name == name)
+			return triggerfactories.GetAt(i)->pCtl;
+	return NULL;
+};
+String Factories::string_controllers(void) {
+
+	const size_t bufferSize = JSON_ARRAY_SIZE(ctlfactories.GetSize() + 1) + ctlfactories.GetSize()*JSON_OBJECT_SIZE(2);
+	DynamicJsonDocument jsonBuffer(bufferSize);
+	JsonArray json = jsonBuffer.to<JsonArray>();
+	for (uint8_t i = 0; i < ctlfactories.GetSize(); i++) {
+		JsonObject object = json.createNestedObject();
+		
+		object["name"] = ctlfactories.GetAt(i)->name;
+	}
+	JsonObject object = json.createNestedObject();
+
+	String json_str;
+	json_str.reserve(4096);
+	serializeJson(json, json_str);
+	
+	return json_str;
+}
+String Factories::string_controllers(void) {
+
+	const size_t bufferSize = JSON_ARRAY_SIZE(ctlfactories.GetSize() + 1) + ctlfactories.GetSize()*JSON_OBJECT_SIZE(2);
+	DynamicJsonDocument jsonBuffer(bufferSize);
+	JsonArray json = jsonBuffer.to<JsonArray>();
+	for (uint8_t i = 0; i < ctlfactories.GetSize(); i++) {
+		JsonObject object = json.createNestedObject();
+
+		object["name"] = ctlfactories.GetAt(i)->name;
+	}
+	JsonObject object = json.createNestedObject();
+
+	String json_str;
+	json_str.reserve(4096);
+	serializeJson(json, json_str);
+
+	return json_str;
+}
 CBaseController::CBaseController() {
 	this->coreMode = NonCore;
 	this->core = 0;

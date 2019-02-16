@@ -13,6 +13,7 @@ struct LDRState
 enum LDRCMD :uint { Measure, LDRSaveState = 4096 };
 
 class LDRController;
+
 typedef CController<LDRController, LDRState, LDRCMD> LDR;
 class LDRController : public LDR
 {
