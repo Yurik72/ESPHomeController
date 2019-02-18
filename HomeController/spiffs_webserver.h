@@ -158,8 +158,7 @@ String getContentType(String filename) {
 
 bool handleFileRead(String path) {
 	DBG_OUTPUT_PORT.println("handleFileRead: " + path);
-	if (path.endsWith("/")) path += "index.html";
-	if(path.indexOf(".")==-1) path += "index.html"; //some body asking non existing service. can happen as well with react routing
+	if (path.endsWith("/")) path += "index.htm";
 	String contentType = getContentType(path);
 	path= urldecode(path);
 	String pathWithGz = path + ".gz";

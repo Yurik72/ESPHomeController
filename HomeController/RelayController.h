@@ -7,24 +7,15 @@
 
 struct RelayState
 {
-	bool isOn=false;
+	bool isOn;
 };
-enum RelayCMD {
-	RelayOn=BaseOn,
-	RelayOff= BaseOff,
-	Switch=4,
-	Set=8,
-	RelayRestore = 2048
-};
+enum RelayCMD  { Switch,Set };
 class RelayController;
-typedef CManualStateController<RelayController, RelayState, RelayCMD> Relay;
+typedef CController<RelayController, RelayState, RelayCMD> Relay;
 class RelayController: public Relay
 {
-public:
-	RelayController();
 	virtual String  serializestate();
-	virtual bool  deserializestate(String jsonstate, CmdSource src = srcState);
-	virtual void getdefaultconfig(JsonObject& json);
+	virtual bool  deserializestate(String jsonstate);
 	virtual void setup();
 	void loadconfig(JsonObject& json);
 	virtual void run();
@@ -33,7 +24,6 @@ public:
 	virtual void onmqqtmessage(String topic, String payload);
 protected:
 	uint pin;
-	bool isinvert;
 };
 
 

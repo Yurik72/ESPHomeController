@@ -10,20 +10,16 @@ struct LDRState
 	bool isOn=true;
 	int ldrValue=0;
 };
-enum LDRCMD :uint { Measure, LDRSaveState = 4096 };
-
+enum LDRCMD { Measure };
 class LDRController;
-
 typedef CController<LDRController, LDRState, LDRCMD> LDR;
 class LDRController : public LDR
 {
 public:
-	LDRController();
 	virtual String  serializestate();
-	virtual bool  deserializestate(String jsonstate, CmdSource src = srcState);
+	virtual bool  deserializestate(String jsonstate);
 	virtual void setup();
 	void loadconfig(JsonObject& json);
-	virtual void getdefaultconfig(JsonObject& json);
 	virtual void run();
 	virtual void set_state(LDRState state);
 	virtual bool onpublishmqtt(String& endkey, String& payload);

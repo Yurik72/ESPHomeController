@@ -9,13 +9,9 @@
 #include "Triggers.h"
 #include "Utilities.h"
 #include "RelayController.h"
-#include "RFController.h"
 #include "Controllers.h"
 
-REGISTER_TRIGGER(TimeToRGBStripTrigger)
-REGISTER_TRIGGER(TimeToRelayTrigger)
-REGISTER_TRIGGER(LDRToRelay)
-REGISTER_TRIGGER(LDRToRGBStrip)
+
 
 void Triggers::setup() {
 	this->loadconfig();
@@ -80,12 +76,6 @@ Trigger* Triggers::CreateByType(const char* nametype) {
 	else if (strcmp(nametype, "LDRToRGBStrip") == 0) {
 		res = new LDRToRGBStrip();
 	}
-	else if (strcmp(nametype, "TimeToRelay") == 0) {
-		res = new TimeToRelayTrigger();
-	}
-	else if (strcmp(nametype, "RFToRelay") == 0) {
-		res = new RFToRelay();
-	}
 	else {
 		res = new Trigger();
 	}
@@ -123,7 +113,6 @@ void TriggerFromService<SRC, DST>::handleloop(CBaseController* pBase, Controller
 		this->set_srcctl(psrc);
 
 	}
-	this->handleloopsvc(this->get_srcctl(), this->get_dstctl());
 }
 template<class SRC, class DST>
 void TriggerFromService<SRC, DST>::handleloopsvc(SRC* ps, DST* pd) {
@@ -169,16 +158,12 @@ void CBaseTimeTrigger<TM>::processrecord(time_t currentTime, TM& rec, Controller
 	DBG_OUTPUT_PORT.println(getFormattedTime(rec.timeToTrigger));
 	DBG_OUTPUT_PORT.print("lastTriggered ");
 	DBG_OUTPUT_PORT.println(getFormattedTime(rec.lastTriggered));
-	
+	DBG_OUTPUT_PORT.println((long)this);
 #endif
 	if (rec.timetype == dailly) {
 		if (rec.timeToTrigger == 0) { //not triggered yet
-			//to be check timezones ESP32/ESP8266
-#if defined(ESP8266)
-			rec.timeToTrigger = apply_hours_minutes_fromhhmm(currentTime, rec.time,0);
-#else
-			rec.timeToTrigger = apply_hours_minutes_fromhhmm(currentTime, rec.time, this->get_timeoffs());
-#endif
+
+			rec.timeToTrigger = apply_hours_minutes_fromhhmm(currentTime, rec.time,this->get_timeoffs());
 #ifdef	TRIGGER_DEBUG
 			DBG_OUTPUT_PORT.print("init trigger time ");
 			DBG_OUTPUT_PORT.println(getFormattedTime(rec.timeToTrigger));
@@ -198,23 +183,10 @@ void CBaseTimeTrigger<TM>::processrecord(time_t currentTime, TM& rec, Controller
 			}
 		}
 		if (istimetotrigger(rec.timeToTrigger, currentTime)) {
-#ifdef	TRIGGER_DEBUG
-			DBG_OUTPUT_PORT.println("istimetotrigger");
-#endif
-			//if (!istimetotrigger(rec.lastTriggered, currentTime)) { //already triggered
-			if( abs(rec.lastTriggered - rec.timeToTrigger) < SEC_TOLLERANCE){
-#ifdef	TRIGGER_DEBUG
-				DBG_OUTPUT_PORT.println("Switching to the next day");
-#endif
-
+			if (!istimetotrigger(rec.lastTriggered, currentTime)) { //already triggered
 				//set next time to trigger
 				time_t nextday = currentTime + NEXT_DAY_SEC;
-#if defined(ESP8266)
-				rec.timeToTrigger = apply_hours_minutes_fromhhmm(nextday, rec.time, 0);
-#else
-				rec.timeToTrigger = apply_hours_minutes_fromhhmm(nextday, rec.time, this->get_timeoffs());
-#endif
-				
+				rec.timeToTrigger = apply_hours_minutes_fromhhmm(nextday, rec.time,this->get_timeoffs());
 			}
 			else {
 				this->dotrigger(rec, pctlss);
@@ -225,7 +197,7 @@ void CBaseTimeTrigger<TM>::processrecord(time_t currentTime, TM& rec, Controller
 }
 template<typename TM>
 bool CBaseTimeTrigger<TM>::istimetotrigger(time_t time, time_t currentTime) {
-	return  (time < currentTime) && (abs(time - currentTime) < SEC_TOLLERANCE);  //2min
+	return  (time > currentTime) && ((time - currentTime) < 1200);  //2min
 }
 template<typename TM>
 void CBaseTimeTrigger<TM>::handleloop(CBaseController*pBase, Controllers* pctlss) {
@@ -268,70 +240,19 @@ void TimeToRGBStripTrigger::loadconfig(JsonObject& json) {
 		timerecRGB & rec = *(new timerecRGB());
 		JsonObject json = arr[i];
 		this->parsetime(json,rec);
-		rec.isOn = arr[i]["isOn"].as<bool>();
+
 		rec.color= arr[i]["color"].as<int>();
-		rec.brightness = arr[i]["br"].as<int>();
+		rec.brightness = arr[i]["bg"].as<int>();
 		rec.wxmode = arr[i]["wxmode"].as<int>();
-		rec.isLdr = arr[i]["isLdr"].as<int>();
 		times.Add(rec);
 	}
 }
-TimeToRelayTrigger::TimeToRelayTrigger() {
-
-	this->pRelay = NULL;
-}
-void TimeToRelayTrigger::loadconfig(JsonObject& json) {
-	Trigger::loadconfig(json);
-	JsonArray arr = json["value"].as<JsonArray>();
-	for (int i = 0; i < arr.size(); i++) {
-		timerecRGB & rec = *(new timerecRGB());
-		JsonObject json = arr[i];
-		this->parsetime(json, rec);
-		rec.isOn = arr[i]["isOn"].as<bool>();
 
 
-		times.Add(rec);
-}
-}
-void TimeToRelayTrigger::dotrigger(timerecOn & rec, Controllers* pctlss) {
-#ifdef	TRIGGER_DEBUG
-	DBG_OUTPUT_PORT.println("TimeToRelayTrigger::dotrigger");
-#endif
-	if (!this->get_relayctl()) {
-		CBaseController* pBase = pctlss->GetByName(this->dst.c_str());
-		if (pBase == NULL) {
-			DBG_OUTPUT_PORT.println("Destination service not found");
-			return;
-	}
-
-		RelayController *pR = static_cast<RelayController*>(pBase);
-		this->set_relayctl(pR);
-}
-	RelayState newstate = this->get_relayctl()->get_state();
-
-	if (rec.isOn) {
-#ifdef	TRIGGER_DEBUG
-		DBG_OUTPUT_PORT.println("Mode On");
-#endif
-		newstate.isOn = true;
-		this->get_relayctl()->AddCommand(newstate, RelayOn, srcTrigger);
-		
-	}
-	else {
-#ifdef	TRIGGER_DEBUG
-		DBG_OUTPUT_PORT.println("Mode Off");
-#endif
-		this->get_relayctl()->AddCommand(newstate, RelayOff, srcTrigger);
-	}
-
-}
 
 
 
 void TimeToRGBStripTrigger::dotrigger(timerecRGB & rec, Controllers* pctlss) {
-#ifdef	TRIGGER_DEBUG
-	DBG_OUTPUT_PORT.println("TimeToRGBStripTrigger::dotrigger");
-#endif
 	if (!this->get_stripctl()) {
 		CBaseController* pBase = pctlss->GetByName(this->dst.c_str());
 		if (pBase == NULL) {
@@ -342,26 +263,17 @@ void TimeToRGBStripTrigger::dotrigger(timerecRGB & rec, Controllers* pctlss) {
 		RGBStripController *pStrip = static_cast<RGBStripController*>(pBase);
 		this->set_stripctl(pStrip);
 	}
-	RGBState newstate = this->get_stripctl()->get_state();
+	RGBState newstate = pStrip->get_state();
 
 	if (rec.isOn) {
-#ifdef	TRIGGER_DEBUG
-		DBG_OUTPUT_PORT.println("Mode On");
-#endif
-		newstate.isOn = true;
-		this->get_stripctl()->AddCommand(newstate, On, srcTrigger);
-		newstate.isLdr = rec.isLdr;
-		this->get_stripctl()->AddCommand(newstate, SetLdrVal, srcTrigger);
 		newstate.brightness = rec.brightness;
-		this->get_stripctl()->AddCommand(newstate, SetBrigthness, srcTrigger);
+		this->get_stripctl()->AddCommand(newstate, SetBrigthness);
 		newstate.color = rec.color;
-		this->get_stripctl()->AddCommand(newstate, SetColor, srcTrigger);
+		this->get_stripctl()->AddCommand(newstate, SetColor);
 	}
 	else{
-#ifdef	TRIGGER_DEBUG
-		DBG_OUTPUT_PORT.println("Mode Off");
-#endif
-		this->get_stripctl()->AddCommand(newstate, Off, srcTrigger);
+
+		this->get_stripctl()->AddCommand(newstate, Off);
 	}
 
 }
@@ -371,16 +283,11 @@ LDRToRGBStrip::LDRToRGBStrip() {
 }
 
 void LDRToRGBStrip::handleloopsvc(LDRController* ps, RGBStripController* pd) {
-	TriggerFromService< LDRController, RGBStripController>::handleloopsvc(ps, pd);
 	LDRState l = ps->get_state();
 	RGBState rState;
 	rState.ldrValue = l.ldrValue;
 	RGBCMD cmd = SetLdrVal;
-#ifdef	TRIGGER_DEBUG
-	DBG_OUTPUT_PORT.println("LDRToRGBStrip set ");
-	DBG_OUTPUT_PORT.println(rState.ldrValue);
-#endif	TRIGGER_DEBUG
-	pd->AddCommand(rState, cmd, srcTrigger);
+	pd->AddCommand(rState, cmd);
 }
 
 //LDR to Realy
@@ -402,64 +309,11 @@ void LDRToRelay::handleloopsvc(LDRController* ps, RelayController* pd) {
 		newState.isOn = false;
 	}
 	if(newState.isOn!=prevState.isOn)
-		pd->AddCommand(newState, cmd, srcTrigger);
+		pd->AddCommand(newState, cmd);
 }
 void LDRToRelay::loadconfig(JsonObject& json) {
 	Trigger::loadconfig(json);
 	JsonObject js = json["value"].as<JsonObject>();
 	this->valueOff = js["valueOff"];
 	this->valueOn = js["valueOn"];
-}
-
-RFToRelay::RFToRelay() {
-	this->last_tick = 0;
-}
-void RFToRelay::loadconfig(JsonObject& json) {
-	Trigger::loadconfig(json);
-	JsonArray arr = json["value"].as<JsonArray>();
-	for (int i = 0; i < arr.size(); i++) {
-		RFRecord & rec = *(new RFRecord());
-		JsonObject json = arr[i];
-		
-		rec.isOn = arr[i]["isOn"].as<bool>();
-		rec.isswitch = arr[i]["isswitch"].as<bool>();
-		rec.rfkey = arr[i]["rfkey"].as<long>();
-
-		rfs.Add(rec);
-	}
-}
-void RFToRelay::handleloopsvc(RFController* ps, RelayController* pd) {
-	
-
-	RFState rfstate = ps->get_state();
-	if (this->last_tick == rfstate.timetick)
-		return;
-#ifdef	RF_TRIGGER_DEBUG
-	DBG_OUTPUT_PORT.println("RFToRelay detected new value");
-#endif 
-	this->last_tick = rfstate.timetick;
-	for (int i = 0;i < this->rfs.GetSize();i++) {
-		RFRecord& rec = this->rfs.GetAt(i);
-		if (rec.rfkey == rfstate.rftoken)
-			this->processrecord(rec, pd);
-	}
-
-
-
-}
-void RFToRelay::processrecord(RFRecord& rec, RelayController* pr) {
-	RelayState newState=pr->get_state();
-#ifdef	RF_TRIGGER_DEBUG
-	DBG_OUTPUT_PORT.print ("RFToRelay::processrecord with key");
-	DBG_OUTPUT_PORT.println(rec.rfkey);
-#endif 
-	RelayCMD cmd = Set;
-	if (rec.isswitch) {
-		cmd = Set;
-		newState.isOn = !newState.isOn;
-	}
-	else {
-		newState.isOn = rec.isOn;
-	}
-	pr->AddCommand(newState, cmd, srcTrigger);
 }

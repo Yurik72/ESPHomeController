@@ -6,14 +6,12 @@
 #include "Array.h"
 
 #define NEXT_DAY_SEC (1 * 24 * 60 * 60)
-#define SEC_TOLLERANCE 1200  //2 min
 //forward declaration
 class Controllers;
 class RGBStripController;
 class TimeController;
 class LDRController;
 class RelayController;
-class RFController;
 class Trigger{
 public:
 	Trigger() {};
@@ -53,6 +51,8 @@ public:
 	Triggers() {};
 	static Trigger* CreateByType(const char* nametype);
 	void setup();
+	
+
 
 	void loadconfig();
 
@@ -83,24 +83,17 @@ private :
 	TimeController* pTime;
 };
 ///time to rgb
-struct timerecOn {
+
+struct timerecRGB {
 	int time = 0;
-	bool isOn = false;
-	TimeType timetype = dailly;
-	time_t timeToTrigger = 0;
-	time_t lastTriggered = 0;
-};
-struct timerecRGB: public timerecOn {
-	//int time = 0;
 	
 	int brightness = 0;
 	int wxmode = 0;
-//	bool isOn = false;
+	bool isOn = false;
 	uint color;
-//	TimeType timetype = dailly;
-//	time_t timeToTrigger=0;
-//	time_t lastTriggered=0;
-	bool isLdr = false;
+	TimeType timetype = dailly;
+	time_t timeToTrigger=0;
+	time_t lastTriggered=0;
 };
 class TimeToRGBStripTrigger :public CBaseTimeTrigger<timerecRGB> {
 public:
@@ -115,21 +108,6 @@ private:
 	
 	
 	void dotrigger(timerecRGB & rec, Controllers* pctlss);
-};
-
-class TimeToRelayTrigger :public CBaseTimeTrigger<timerecOn> {
-public:
-	TimeToRelayTrigger();
-	virtual void loadconfig(JsonObject& json);
-protected:
-	RelayController* get_relayctl() { return pRelay; };
-	void set_relayctl(RelayController *pCtl) { pRelay = pCtl; };
-private:
-	RelayController *pRelay;
-	//void parsetime(JsonObject& json, timerecRGB & rec);
-
-
-	void dotrigger(timerecOn & rec, Controllers* pctlss);
 };
 class LDRToRGBStrip :public TriggerFromService< LDRController, RGBStripController>{
 public:
@@ -154,24 +132,5 @@ protected:
 private:
 	short valueOn;
 	short valueOff;
-};
-
-struct RFRecord {
-	long rfkey = -1;
-	bool isswitch = true;
-	bool isOn = true;
-};
-class RFToRelay :public TriggerFromService< RFController, RelayController> {
-public:
-	RFToRelay();
-
-	virtual void handleloopsvc(RFController* ps, RelayController* pd);
-	virtual void loadconfig(JsonObject& json);
-	void processrecord(RFRecord& rec, RelayController* pr);
-protected:
-
-private:
-	long last_tick;
-	CSimpleArray<RFRecord> rfs;
 };
 #endif

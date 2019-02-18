@@ -23,8 +23,7 @@ public :
 	int get_offs() { return gmtOffset_sec + daylightOffset_sec; };
 
 	virtual String  serializestate();
-	virtual bool  deserializestate(String jsonstate, CmdSource src = srcState);
-	virtual void getdefaultconfig(JsonObject& json);
+	virtual bool  deserializestate(String jsonstate);
 	virtual void setup();
 	void loadconfig(JsonObject& json);
 	virtual void run();
