@@ -1,3 +1,4 @@
+#include "config.h"
 #include "Logger.h"
 
 #ifdef LOG_STRING_LOGGER

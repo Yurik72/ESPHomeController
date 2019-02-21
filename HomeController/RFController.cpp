@@ -73,6 +73,8 @@ void RFController::run() {
 		newcmd.mode = OnReceive;
 		newcmd.state.rftoken = this->pSwitch->getReceivedValue();
 		newcmd.state.timetick = millis();
+		DBG_OUTPUT_PORT.print("RFController receive:");
+		DBG_OUTPUT_PORT.println(newcmd.state.rftoken);
 		//Serial.println("received");
 		//output(mySwitch.getReceivedValue(), mySwitch.getReceivedBitlength(), mySwitch.getReceivedDelay(), mySwitch.getReceivedRawdata(), mySwitch.getReceivedProtocol());
 		this->AddCommand(newcmd.state, newcmd.mode, srcSelf);

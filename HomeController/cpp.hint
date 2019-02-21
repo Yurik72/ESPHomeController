@@ -1,0 +1,4 @@
+// Файлы указаний помогают среде IDE Visual Studio интерпретировать идентификаторы Visual C++
+// (например, имена функций и макросов).
+// Дополнительные сведения: https://go.microsoft.com/fwlink/?linkid=865984
+#define REGISTER_CONTROLLER(cls) class cls##Factory : public ControllerFactory { public: cls##Factory() { Factories::registerController(#cls, this); } void test() { } virtual CBaseController *create() { return new cls(); } }; static cls##Factory global_##cls##Factory;

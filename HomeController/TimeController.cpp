@@ -14,12 +14,19 @@
 //const int   daylightOffset_sec = -3600;
 #if defined(ESP8266)
 //NTPClient timeClient(ntpUDP, ntpServer, gmtOffset_sec);
+#include <WiFiUdp.h>
 WiFiUDP ntpUDP;
 #endif
+
+
+REGISTER_CONTROLLER(TimeController)
+
 const size_t bufferSize = JSON_OBJECT_SIZE(20);
 
 TimeController::TimeController() {
-
+	this->ntpServer = "pool.ntp.org";
+	this->gmtOffset_sec = 0;
+	this->daylightOffset_sec = 0;
 }
 String  TimeController::serializestate() {
 
@@ -28,11 +35,12 @@ String  TimeController::serializestate() {
 	root["time"] = this->get_state().time;
 
 	String json;
+	json.reserve(128);
 	serializeJson(root, json);
 
 	return json;
 }
-bool  TimeController::deserializestate(String jsonstate) {
+bool  TimeController::deserializestate(String jsonstate, CmdSource src) {
 
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	DeserializationError error = deserializeJson(jsonBuffer, jsonstate);
@@ -44,7 +52,8 @@ bool  TimeController::deserializestate(String jsonstate) {
 	JsonObject root = jsonBuffer.as<JsonObject>();
 	TimeState newState;
 	newState.time = root["time"];
-	this->set_state(newState);
+	//this->set_state(newState);
+	this->AddCommand(newState, SET, src);
 	return true;
 
 }
@@ -53,6 +62,15 @@ void TimeController::loadconfig(JsonObject& json) {
 	gmtOffset_sec = json["timeoffs"];
 	daylightOffset_sec = json["dayloffs"];
 	ntpServer = json["server"].as<String>();
+}
+void TimeController::getdefaultconfig(JsonObject& json) {
+	json["timeoffs"]= gmtOffset_sec;
+	json["dayloffs"]= daylightOffset_sec;
+	json["timeoffs"]= gmtOffset_sec;
+	json["server"]= ntpServer.c_str();
+	json["service"] = "TimeController";
+	json["name"] = "Time";
+	TimeCtl::getdefaultconfig(json);
 }
 void  TimeController::setup() {
 #if defined TIMECONTROLLER_DEBUG
@@ -95,7 +113,9 @@ void TimeController::run() {
 		}
 
 #endif
-		this->commands.Add(newcmd);
+		//this->commands.Add(newcmd);
+		newcmd.mode = SET;
+		this->AddCommand(newcmd.state, newcmd.mode, srcSelf);
 
 #if defined TIMECONTROLLER_DEBUG
 		DBG_OUTPUT_PORT.print("Time ctl run ");
@@ -117,10 +137,10 @@ void TimeController::run() {
 		//DBG_OUTPUT_PORT.println(getFormattedTime(newState.time));
 		this->set_state(newState);
 	}
-	CBaseController::run();
+	TimeCtl::run();
 }
 void TimeController::set_state(TimeState state) {
 
-	CController::set_state(state);
+	TimeCtl::set_state(state);
 	
 }

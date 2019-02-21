@@ -1,16 +1,25 @@
-#include "config.h"
+
+#include <Arduino.h>
+#include <ArduinoJson.h>
 #include <FS.h>
+
 #if !defined(ESP8266)
 #include <SPIFFS.h>
 #endif
-#include <ArduinoJson.h>
 
-#include "RelayController.h"
-#include "TimeController.h"
-#include "Triggers.h"
-#include "RGBStripController.h"
-#include "LDRController.h"
+#include "config.h"
 #include "Controllers.h"
+#include "Triggers.h"
+#include "BaseController.h"
+//#include "RelayController.h"
+//#include "TimeController.h"
+
+//#include "RGBStripController.h"
+//#include "LDRController.h"
+//#include "BME280Controller.h"
+//#include "ButtonController.h"
+//#include "RFController.h"
+
 #include <WiFiClient.h>
 #if defined(ESP8266)
 #include <ESP8266WiFi.h>          
@@ -22,12 +31,24 @@
 AsyncMqttClient amqttClient;
 Ticker mqttReconnectTimer;
 #endif
-static Controllers* _instance;
+#if defined ASYNC_WEBSERVER
+#if defined(ESP8266)
+#include <ESPAsyncWebServer.h>
+#else
+#include <ESPAsyncWebServer.h>
+#endif 
+#endif
 
+static Controllers* _instance=NULL;
+
+//REGISTER_CONTROLLER(RFController)
+//REGISTER_CONTROLLER(LDRController)
 Controllers::Controllers():
 	triggers(*(new Triggers()))
 {
 	_instance = this;
+	//globlog += "CTOR";
+	
 	
 }
 CBaseController* Controllers::GetByName(const char* name) {
@@ -37,13 +58,26 @@ CBaseController* Controllers::GetByName(const char* name) {
 	}
 	return NULL;
 }
+Controllers* Controllers::getInstance() {
+	return _instance;
+}
 void Controllers::setup() {
 
+	DBG_OUTPUT_PORT.println("Controllers::setup");
+//	Factories::registerController("-", &global_LDRControllerFactory);
+	//DBG_OUTPUT_PORT.println(globlog);
 	this->loadconfig();
 	connectmqtt();
-	for (int i = 0; i < this->GetSize(); i++)
-		this->GetAt(i)->setup();
-
+	for (int i = 0; i < this->GetSize(); i++) {
+		CBaseController* ctl = this->GetAt(i);
+		ctl->setup();
+		if (ctl->ispersiststate()) {
+			DBG_OUTPUT_PORT.print(ctl->get_name());
+			DBG_OUTPUT_PORT.println(" : Restore persist state");
+			ctl->loadstate();
+		}
+		ctl->set_power_on();
+	}
 }
 void Controllers::loadconfig() {
 	String filename = "/services.json";
@@ -66,16 +100,17 @@ void Controllers::loadconfig() {
 					String servicename= arr[i]["service"].as<String>();
 					CBaseController* controller= Controllers::CreateByName(servicename.c_str());
 					if (controller == NULL) {
-						DBG_OUTPUT_PORT.print(String("Service not found:")+servicename);
+						DBG_OUTPUT_PORT.println(String("Service not found:")+servicename);
 					}
 					else {
+						controller->onstatechanged = &onstatechanged;
 						String name = arr[i]["name"].as<String>();
 						controller->set_name(name.c_str());
 						JsonObject json = arr[i];
 						controller->loadconfigbase(json);
 						this->Add(controller);
 
-						controller->onstatechanged = &onstatechanged;
+						
 
 						DBG_OUTPUT_PORT.print("Controllers added:");
 						DBG_OUTPUT_PORT.println(name);
@@ -94,6 +129,7 @@ void Controllers::loadconfig() {
 	
 	triggers.loadconfig();
 }
+#if !defined ASYNC_WEBSERVER
 #if defined(ESP8266)
 void Controllers::setuphandlers(ESP8266WebServer& server){
 	ESP8266WebServer* _server = &server;
@@ -101,18 +137,78 @@ void Controllers::setuphandlers(ESP8266WebServer& server){
 void Controllers::setuphandlers(WebServer& server){
 	WebServer* _server = &server;
 #endif
+	_server->on("/get_info", HTTP_GET, [=]() {
+
+		String info = "{\"version\":\"";
+		info += VERSION;
+		info += "\",\"async\":";
+		info += ASYNC;
+		info += ",\"hostname\":\"";
+		info += HOSTNAME;
+		info += "\"}";
+
+		_server->sendHeader("Access-Control-Allow-Origin", "*");
+		_server->sendHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+		_server->send(200, PSTR("application/json"), info.c_str());
+	});
+	_server.on("/get_availablecontrollers", HTTP_GET, [=]{
+		//DBG_OUTPUT_PORT.println("get_availablecontrollers");
+		_server->sendHeader("Access-Control-Allow-Origin", "*");
+		_server->sendHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+		_server->send(200, PSTR("application/json"), Factories::string_controllers().c_str());
+
+
+	});
+	_server.on("/get_availabletriggers", HTTP_GET, [=] {
+		//DBG_OUTPUT_PORT.println("get_availablecontrollers");
+		_server->sendHeader("Access-Control-Allow-Origin", "*");
+		_server->sendHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+		_server->send(200, PSTR("application/json"), Factories::string_triggers().c_str());
+
+
+	});
+	_server.on("/get_log", HTTP_GET, [=](AsyncWebServerRequest *request) {
+		_server->sendHeader("Access-Control-Allow-Origin", "*");
+		_server->sendHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+		_server->send(200, PSTR("application/json"), GET_CONSTCHARGLOG));
+
+	});
+	_server.on("/get_defaultconfig", HTTP_GET, [=] {
+		DBG_OUTPUT_PORT.println("get_defaultconfig request");
+		String cname;
+		if (_server->args() > 0)
+			cname = _server->arg((size_t)0);
+		DBG_OUTPUT_PORT.println(cname);
+		if (cname.length() == 0) {
+			_server->send(500, "text/plain", "BAD ARGS");
+			return;
+		}
+		CBaseController* pcontroller = Controllers::CreateByName(cname.c_str());
+		if (pcontroller == NULL) {
+			_server->send(500, "text/plain", "Non exists controller name");
+			return;
+		}
+		_server->sendHeader("Access-Control-Allow-Origin", "*");
+		_server->sendHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+		_server->send(200, PSTR("application/json"), pcontroller->getdefaultconfig().c_str());
+
+		delete pcontroller;
+	});
 	for (int i = 0;i < this->GetSize();i++) {
 		CBaseController*ctl = this->GetAt(i);
 		String path = "/";
 		path+=ctl->get_name();
 		String pathget = path+String("/get_state");
 		_server->on(pathget, HTTP_GET, [=]() {
-			DBG_OUTPUT_PORT.println("start processing");
+			
+			//DBG_OUTPUT_PORT.println("start processing");
 			//_server->send_P(200, PSTR("text/html"), "OK");
 			_server->sendHeader("Access-Control-Allow-Origin", "*");
 			_server->sendHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
-			_server->send_P(200, PSTR("text/html"), ctl->serializestate().c_str());
-			DBG_OUTPUT_PORT.println("Processed");
+			_server->send_P(200, PSTR("application/json"), ctl->serializestate().c_str());
+			//_server->send(200, PSTR("application/json"), "{ \"isOn\":false }");
+			
+			//DBG_OUTPUT_PORT.println("Processed");
 		});
 		String pathset = path + String("/set_state");
 		///to support CORS PREFLIGHT requests//  cross domain feathure
@@ -147,7 +243,136 @@ void Controllers::setuphandlers(WebServer& server){
 	}
 	//this->loadconfig();
 }
+#endif
+#if defined ASYNC_WEBSERVER
+void Controllers::setuphandlers(AsyncWebServer& server) {
+	AsyncWebServer* _server = &server;
+	server.on("/get_info", HTTP_GET, [](AsyncWebServerRequest *request) {
+
+		String info = "{\"version\":\"";
+		info += VERSION;
+		info += "\",\"async\":";
+		info += ASYNC;
+		info += ",\"hostname\":\"";
+		info += HOSTNAME;
+		info += "\",\"mem\":";
+		info += String(ESP.getFreeHeap());
+		info += "}";
+		AsyncWebServerResponse *response = request->beginResponse(200, "application/json", info.c_str());
+		//response->addHeader("Access-Control-Allow-Origin", "*");
+		//response->addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+
+		request->send(response);
+	});
+	server.on("/get_log", HTTP_GET, [](AsyncWebServerRequest *request) {
+
+		AsyncWebServerResponse *response = request->beginResponse(200, "text/plain", GET_CONSTCHARGLOG);
+	
+		request->send(response);
+	});
+	server.on("/get_defaultconfig", HTTP_GET, [](AsyncWebServerRequest *request) {
+		DBG_OUTPUT_PORT.println("get_defaultconfig request");
+		String cname;
+		if(request->args()>0)
+			cname = request->arg((size_t)0);
+		DBG_OUTPUT_PORT.println(cname);
+		if (cname.length() == 0) {
+			request->send(500, "text/plain", "BAD ARGS");
+			return;
+		}
+		CBaseController* pcontroller = Controllers::CreateByName(cname.c_str());
+		if (pcontroller == NULL) {
+			request->send(500, "text/plain", "Non exists controller name");
+			return;
+		}
+		AsyncWebServerResponse *response = request->beginResponse(200, "application/json", pcontroller->getdefaultconfig().c_str());
+		request->send(response);
+		delete pcontroller;
+	});
+	server.on("/get_availablecontrollers", HTTP_GET, [](AsyncWebServerRequest *request) {
+		DBG_OUTPUT_PORT.println("get_availablecontrollers");
+
+		AsyncWebServerResponse *response = request->beginResponse(200, "application/json", Factories::string_controllers().c_str());
+		request->send(response);
+		
+	});
+	server.on("/get_availabletriggers", HTTP_GET, [](AsyncWebServerRequest *request) {
+		DBG_OUTPUT_PORT.println("get_availablecontrollers");
+
+		AsyncWebServerResponse *response = request->beginResponse(200, "application/json", Factories::string_triggers().c_str());
+		request->send(response);
+
+	});
+	for (int i = 0;i < this->GetSize();i++) {
+		CBaseController*ctl = this->GetAt(i);
+		String path = "/";
+		path += ctl->get_name();
+		//DBG_OUTPUT_PORT.println("setup async handlers");
+		//DBG_OUTPUT_PORT.println((int)ctl);
+		String pathget = path + String("/get_state");
+		server.on(pathget.c_str(), HTTP_GET, [ctl](AsyncWebServerRequest *request) {
+
+			AsyncWebServerResponse *response = request->beginResponse(200, "application/json", ctl->serializestate().c_str());
+			
+			request->send(response);
+		});
+		String pathset = path + String("/set_state");
+		server.on(pathset.c_str(), HTTP_OPTIONS, [] (AsyncWebServerRequest *request){
+			DBG_OUTPUT_PORT.println("start processing preflight");
+			AsyncWebServerResponse *response = request->beginResponse(200, "text/html", "OK");
+			//response->addHeader("Access-Control-Allow-Origin", "*");
+			//response->addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+			response->addHeader("Access-Control-Allow-Headers", "origin, content-type, accept");
+			request->send(response);
+		});
+		server.on(pathset.c_str(), HTTP_POST, [](AsyncWebServerRequest *request) {
+			DBG_OUTPUT_PORT.println("sending header from POST");
+			AsyncWebServerResponse *response = request->beginResponse(200, "text/plain", "OK");
+			response->addHeader("Connection", "close");
+			request->send(response);
+		},[](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
+			
+		},[ctl](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+			DBG_OUTPUT_PORT.println("body load");
+			DBG_OUTPUT_PORT.printf("len %d, index %d, total %d ",len,index,total);
+			DBG_OUTPUT_PORT.println("");
+			uint8_t * bodydata = NULL;
+			if (index == 0) {//starts
+				bodydata=ctl->allocatebuffer(total);
+			}
+			else { ///continue
+				bodydata = ctl->bodybuffer;
+			}
+			memcpy(bodydata+ ctl->bodyindex, data, len);
+			ctl->bodyindex += len;
+			if (ctl->bodyindex >= total) { //all collected
+				String body = (char*)bodydata;
+				DBG_OUTPUT_PORT.println(body);
+				if (body.length() > 0) {
+					ctl->deserializestate(body);
+				}
+				ctl->cleanbuffer();
+				DBG_OUTPUT_PORT.println("Buffer cleaned");
+			}
+
+
+		}
+		);
+		this->GetAt(i)->setuphandlers(server);
+	}
+		
+}
+#endif
 CBaseController* Controllers::CreateByName(const char* name) { //to be rewrite by class factory
+	
+	//Factories::Trace();
+	//tst
+	
+	ControllerFactory* pFactory = Factories::get_ctlfactory(name);
+	if (pFactory)
+		return pFactory->create();
+	return NULL;
+	/*
 	if (strcmp(name, "RelayController") == 0) {
 		return new RelayController();
 	}
@@ -159,15 +384,25 @@ CBaseController* Controllers::CreateByName(const char* name) { //to be rewrite b
 	}
 	else if (strcmp(name, "LDRController") == 0) {
 		return new LDRController();
+	}
+	else if (strcmp(name, "RFController") == 0) {
+		return new RFController();
+	}
+	else if (strcmp(name, "BME280Controller") == 0) {
+		return new BME280Controller();
 	};
+
+
+
 	return NULL;
+	*/
 };
 void Controllers::handleloops() {
 	for (int i = 0; i < this->GetSize(); i++) {
 		CBaseController*ctl = this->GetAt(i);
 
 
-		if (ctl->shouldRun() && !ctl->get_iscore() && ctl->isenabled()) {
+		if (ctl->shouldRun() && (ctl->get_coremode() == NonCore  || ctl->get_coremode()==Both) && ctl->isenabled()) {
 
 			ctl->run();
 
@@ -182,6 +417,8 @@ void Controllers::handleloops() {
 
 void onstatechanged(CBaseController * ctl)
 {
+
+	
 #ifdef ENABLE_HOMEBRIDGE
 	String endkey;
 	String payload;
@@ -193,6 +430,20 @@ void onstatechanged(CBaseController * ctl)
 		outtopic += endkey;
 		amqttClient.publish(outtopic.c_str(), qossub, false, payload.c_str());
 	}
+
+	//int topiccount = ctl->onpublishmqttex(endkeys, endpayloads);
+	for (int i = 0;i < 5;i++) {   ///to do
+		if (!ctl->onpublishmqttex(endkey, payload,i))
+			break;
+
+		String outtopic = (String)HOSTNAME;
+		outtopic += "/out/";
+		outtopic += ctl->get_name();
+		outtopic += "/";
+		outtopic += endkey;
+		amqttClient.publish(outtopic.c_str(), qossub, false, payload.c_str());
+	}
+
 		 
 #endif
 }
@@ -217,9 +468,16 @@ void onMqttConnect(bool sessionPresent) {
 	DBG_OUTPUT_PORT.println(inTopic);
 	uint16_t packetIdSub1 = amqttClient.subscribe((char *)inTopic.c_str(), qossub);
 }
+void publishinitialstate() {
+	DBG_OUTPUT_PORT.println("MQTT: Publishing initial state");
+	if (!_instance)
+		return;
+	for (int i = 0;i < _instance->GetSize();i++)
+		onstatechanged(_instance->GetAt(i));
+}
 void onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {
 	if (WiFi.isConnected()) {
-		Serial.println("Connecting to MQTT...");
+		DBG_OUTPUT_PORT.println("Connecting to MQTT...");
 		mqttReconnectTimer.attach(2, realconnectToMqtt);
 	}
 }
@@ -258,6 +516,7 @@ void onMqttMessage(char* topic, char* payload_in, AsyncMqttClientMessageProperti
 	String spayload_in = (char*)payload;;
 	String schildtopic = pchildTopic;
 	pController->onmqqtmessage(pchildTopic, spayload_in);
+	free(payload);
 }
 void realconnectToMqtt() {
 	DBG_OUTPUT_PORT.println("Connecting to MQTT...");
