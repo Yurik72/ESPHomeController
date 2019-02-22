@@ -30,7 +30,6 @@
 *.exe
 *.out
 *.app
-*.vcxproj
 *.filters
 *.user
 WebSource/.gitignore

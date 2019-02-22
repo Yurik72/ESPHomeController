@@ -26,7 +26,7 @@ public:
 	virtual bool  deserializestate(String jsonstate, CmdSource src = srcState);
 	virtual void getdefaultconfig(JsonObject& json);
 	virtual void setup();
-	void loadconfig(JsonObject& json);
+	virtual void loadconfig(JsonObject& json);
 	virtual void run();
 	virtual void set_state(RelayState state);
 	virtual bool onpublishmqtt(String& endkey, String& payload);
