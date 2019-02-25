@@ -63,6 +63,7 @@ I hope I didn't miss any sources and mentioned every author. In case I forgot so
  - Second core of ESP32 can be used with proper service configuration. Now a few services can run on second core of ESP32;
  - Built-in web site implemented on React js, and browser content is very fast, compatible with native mobile application, Thanks to React developers;
 - Sketch can be compiled within VS 2017, by using  [Arduino IDE for Visual Studio](https://marketplace.visualstudio.com/items?itemName=VisualMicro.ArduinoIDEforVisualStudio)
+- Adapt WS2812FX library to perfectly works on ESP32, see details [here](https://github.com/Yurik72/ESPHomeController/wiki/WS2812-driver-to-remove-flickering)
 
 **WebSite**
 
