@@ -4,6 +4,7 @@
 #include "Utilities.h"
 #include "BaseController.h"
 #include "RGBStripController.h"
+
 #include <Ticker.h>
 
 #ifdef  ESP32
@@ -162,7 +163,7 @@ void  RGBStripController::setup() {
 #else
 	pStripWrapper = new  WS2812Wrapper();
 #endif
-	//pStripWrapper = new  FastLedWrapper();
+	
 	pStripWrapper->setup(pin, numleds);
 	pStripWrapper->init();
 
@@ -174,13 +175,9 @@ void  RGBStripController::setup() {
 	RGBStrip::setup();
 }
 void RGBStripController::runcore() {
-	//portDISABLE_INTERRUPTS();
-	//delay(5);
+
 	pStripWrapper->service();
-	//delay(10);
-	//portENABLE_INTERRUPTS();
-	//delay(1000);
-	//DBG_OUTPUT_PORT.println("RGBStripController::runcore()");
+
 }
 void RGBStripController::run() {
 	command cmd;

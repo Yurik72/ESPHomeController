@@ -3,9 +3,9 @@
 #ifndef ESP32
 # error Driver is supports only ESP32
 #endif
-//FASTLED_NAMESPACE_BEGIN
-#include "Adafruit_NeoPixel.h"
 
+#include "Adafruit_NeoPixel.h"
+#ifdef  ESP32
 
 #ifdef __cplusplus
 extern "C" {
@@ -514,6 +514,6 @@ public:
 	}
 
 };
+#endif
 
 
-//FASTLED_NAMESPACE_END
