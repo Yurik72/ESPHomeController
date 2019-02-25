@@ -6,20 +6,99 @@
 #include "RGBStripController.h"
 #include <Ticker.h>
 
+#ifdef  ESP32
+#include "WS2812Driver.h"
+
+LedInterruptDriver<NS(250), NS(625), NS(375)> ws2812driver;
+#endif //  ESP32
+
+
 REGISTER_CONTROLLER(RGBStripController)
 
 const size_t bufferSize = JSON_OBJECT_SIZE(40);
 static String rgbModes;
+WS2812Wrapper::WS2812Wrapper() {
+	pstrip = NULL;
+	this->useinternaldriver = false;
+}
+WS2812Wrapper::WS2812Wrapper(bool useinternaldriver):WS2812Wrapper(){
+	this->useinternaldriver = useinternaldriver;
+}
+
+void WS2812Wrapper::setup(int pin, int numleds) {
+	pstrip=new  WS2812FX(numleds, pin, NEO_GRB + NEO_KHZ800);
+#ifdef  ESP32	
+	if (useinternaldriver) {
+		
+		ws2812driver.init(pstrip);
+		pstrip->setCustomShow([] () {
+			ws2812driver.customShow();
+		
+		});
+	}
+#endif
+}
+void WS2812Wrapper::init() {
+	pstrip->init();
+}
+void WS2812Wrapper::deinit() {
+	delete pstrip;
+	pstrip = NULL;
+}
+void WS2812Wrapper::start() {
+	pstrip->start();
+}
+void WS2812Wrapper::stop() {
+	pstrip->stop();
+}
+void WS2812Wrapper::setBrightness(uint8_t br) {
+	pstrip->setBrightness(br);
+};
+void WS2812Wrapper::setMode(uint8_t mode) {
+	pstrip->setMode(mode);
+};
+void WS2812Wrapper::setColor(uint32_t color) {
+	pstrip->setColor(color);
+};
+void WS2812Wrapper::setColor(uint8_t r, uint8_t g, uint8_t b) {
+	pstrip->setColor(r, g, b);
+}
+
+void WS2812Wrapper::setSpeed(uint16_t speed) {
+	pstrip->setSpeed(speed);
+}
+void WS2812Wrapper::service() {
+	pstrip->service();
+}
+void WS2812Wrapper::trigger() {
+	pstrip->trigger();
+}
+int WS2812Wrapper::getModeCount() {
+	return pstrip->getModeCount();
+}
+const char* WS2812Wrapper::getModeName(int i) {
+	return (const char*)pstrip->getModeName(i);
+}
+bool WS2812Wrapper::isRunning() {
+	return pstrip->isRunning();
+}
+
+
+
+///// Controller
 RGBStripController::RGBStripController() {
-	this->pStrip = NULL;
+	this->pStripWrapper = NULL;
 	this->mqtt_hue = 0.0;
 	this->mqtt_saturation = 0.0;
 	this->pSmooth = new CSmoothVal();
 	this->isEnableSmooth = true;
+	//this->coreMode = Both;
+	//this->core = 1;
+	//this->priority = 100;
 }
 RGBStripController::~RGBStripController() {
-	if (pStrip)
-		delete pStrip;
+	if (pStripWrapper)
+		delete pStripWrapper;
 }
 String  RGBStripController::serializestate() {
 
@@ -78,19 +157,36 @@ void RGBStripController::getdefaultconfig(JsonObject& json) {
 	RGBStrip::getdefaultconfig(json);
 }
 void  RGBStripController::setup() {
-	pStrip =new  WS2812FX(numleds, pin, NEO_GRB + NEO_KHZ800);
-	pStrip->init();
+#ifdef  ESP32	
+	pStripWrapper =new  WS2812Wrapper(true);
+#else
+	pStripWrapper = new  WS2812Wrapper();
+#endif
+	//pStripWrapper = new  FastLedWrapper();
+	pStripWrapper->setup(pin, numleds);
+	pStripWrapper->init();
 
-	pStrip->setBrightness(30);
-	pStrip->setSpeed(1000);
-	pStrip->setColor(0x007BFF);
-	pStrip->setMode(FX_MODE_STATIC);
-	pStrip->start();
+	pStripWrapper->setBrightness(30);
+	pStripWrapper->setSpeed(1000);
+	pStripWrapper->setColor(0x007BFF);
+	pStripWrapper->setMode(FX_MODE_STATIC);
+	pStripWrapper->start();
+	RGBStrip::setup();
 }
-
+void RGBStripController::runcore() {
+	//portDISABLE_INTERRUPTS();
+	//delay(5);
+	pStripWrapper->service();
+	//delay(10);
+	//portENABLE_INTERRUPTS();
+	//delay(1000);
+	//DBG_OUTPUT_PORT.println("RGBStripController::runcore()");
+}
 void RGBStripController::run() {
 	command cmd;
-	pStrip->service();
+
+	pStripWrapper->service();
+	yield();
 	bool isSet = true;
 	if (this->isEnableSmooth && pSmooth->isActive())
 		return;   ///ignore 
@@ -144,19 +240,19 @@ void RGBStripController::set_state(RGBState state) {
 		if (state.isOn) {
 			//DBG_OUTPUT_PORT.println("Switching On");
 			//DBG_OUTPUT_PORT.println(state.brightness);
-			if (!pStrip->isRunning()) pStrip->start();
+			if (!pStripWrapper->isRunning()) pStripWrapper->start();
 			if (this->isEnableSmooth && !pSmooth->isActive()) {
 				DBG_OUTPUT_PORT.println("CMD On Smooth");
 				pSmooth->stop();
 				
 				pSmooth->start(0, state.brightness,
-					[self](int val) {self->pStrip->setBrightness(val);},   //self->setbrightness(val, srcSmooth);},
+					[self](int val) {self->pStripWrapper->setBrightness(val);},   //self->setbrightness(val, srcSmooth);},
 					[self, state]() {self->AddCommand(state, SetRGB, srcState);});
 				ignore_br = true;
 				//return;
 			}
 			else {
-				pStrip->setBrightness(state.brightness);
+				pStripWrapper->setBrightness(state.brightness);
 			}
 
 			
@@ -167,17 +263,17 @@ void RGBStripController::set_state(RGBState state) {
 			if (this->isEnableSmooth && !pSmooth->isActive()) {
 				pSmooth->stop();
 				pSmooth->start(oldState.brightness,0,
-					[self](int val) {self->pStrip->setBrightness(val);},//self->setbrightness(val, srcSmooth);},
+					[self](int val) {self->pStripWrapper->setBrightness(val);},//self->setbrightness(val, srcSmooth);},
 					[self, state]() {
-						if (self->pStrip->isRunning())
-							self->pStrip->stop();
+						if (self->pStripWrapper->isRunning())
+							self->pStripWrapper->stop();
 						self->AddCommand(state, SetRGB, srcState);
 					});
 				//return;
 				
 			}else{
-				pStrip->setBrightness(0);
-			    if (pStrip->isRunning())pStrip->stop();
+				pStripWrapper->setBrightness(0);
+			    if (pStripWrapper->isRunning())pStripWrapper->stop();
 		    }
 			
 		}
@@ -188,20 +284,20 @@ void RGBStripController::set_state(RGBState state) {
 	if (state.isOn) {
 		if (oldState.wxmode != state.wxmode) {
 			//DBG_OUTPUT_PORT.println("oldState.wxmode != state.wxmod");
-			if (pStrip->isRunning())pStrip->stop();
-			if (state.wxmode >= 0) pStrip->setMode(state.wxmode);
-			if (!pStrip->isRunning()) pStrip->start();
+			if (pStripWrapper->isRunning())pStripWrapper->stop();
+			if (state.wxmode >= 0) pStripWrapper->setMode(state.wxmode);
+			if (!pStripWrapper->isRunning()) pStripWrapper->start();
 		}
 		if (state.isLdr) {
 			if (oldState.brightness != state.brightness || oldState.ldrValue!= state.ldrValue)
-				pStrip->setBrightness(getLDRBrightness(state.brightness, state.ldrValue));
+				pStripWrapper->setBrightness(getLDRBrightness(state.brightness, state.ldrValue));
 		}
 		else {
 			if (oldState.brightness != state.brightness && !ignore_br)
-				pStrip->setBrightness(state.brightness);
+				pStripWrapper->setBrightness(state.brightness);
 		}
 		if (oldState.color != state.color)
-			pStrip->setColor(REDVALUE(state.color), GREENVALUE(state.color), BLUEVALUE(state.color));
+			pStripWrapper->setColor(REDVALUE(state.color), GREENVALUE(state.color), BLUEVALUE(state.color));
 
 		if ((oldState.color != state.color) || (oldState.brightness != state.brightness)) {
 			double intensity = 0.0;
@@ -213,7 +309,7 @@ void RGBStripController::set_state(RGBState state) {
 		}
 	}
 	
-	pStrip->trigger();
+	pStripWrapper->trigger();
 	//CController::set_state(state);
 	//CManualStateController<RGBStripController, RGBState, RGBCMD>::set_state(state);
 	RGBStrip::set_state(state);
@@ -294,13 +390,13 @@ void RGBStripController::onmqqtmessage(String topic, String payload) {
 String RGBStripController::string_modes(void) {
 	if (rgbModes.length() > 0)
 		return rgbModes;
-	const size_t bufferSize = JSON_ARRAY_SIZE(pStrip->getModeCount() + 1) + pStrip->getModeCount()*JSON_OBJECT_SIZE(2);
+	const size_t bufferSize = JSON_ARRAY_SIZE(pStripWrapper->getModeCount() + 1) + pStripWrapper->getModeCount()*JSON_OBJECT_SIZE(2);
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	JsonArray json = jsonBuffer.to<JsonArray>();
-	for (uint8_t i = 0; i < pStrip->getModeCount(); i++) {
+	for (uint8_t i = 0; i < pStripWrapper->getModeCount(); i++) {
 		JsonObject object = json.createNestedObject();
 		object["mode"] = i;
-		object["name"] = pStrip->getModeName(i);
+		object["name"] = pStripWrapper->getModeName(i);
 	}
 	JsonObject object = json.createNestedObject();
 

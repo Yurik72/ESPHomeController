@@ -107,6 +107,8 @@ CBaseController::CBaseController() {
 	this->bodybuffer = NULL;
 	this->bodyindex = 0;
 	this->interval = 1000;
+	this->priority = 1;
+
 #if defined(ESP8266)
 	this->pTicker = NULL;;
 #endif
@@ -203,8 +205,10 @@ void CBaseController::setuphandlers(WebServer& server) {
 #endif
 void CBaseController::setup() {
 #if !defined(ESP8266)
+	//DBG_OUTPUT_PORT.println("CBaseController::setup");
+	
 	if (this->get_coremode()== Core || this->get_coremode()==Both) {
-		unsigned char tname[50];
+		//unsigned char tname[50];
 		
 		xTaskCreatePinnedToCore(
 			runcoreloop,

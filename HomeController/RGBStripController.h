@@ -16,6 +16,52 @@
 
 class WS2812FX;
 class Ticker;
+class StripWrapper {
+public:
+	~StripWrapper() {
+		deinit();
+	}
+	virtual void setup(int pin,int numleds) = 0;
+	virtual void init(void)=0;
+	virtual void deinit(void) {};
+	virtual void start(void) {};
+	virtual void stop(void) {};
+	virtual void trigger(void) {};
+	virtual void setBrightness(uint8_t br) {};
+	virtual void setMode(uint8_t mode) {};
+	virtual void setColor(uint32_t color) {};
+	virtual void setColor(uint8_t r, uint8_t g, uint8_t b) {};
+	virtual void setSpeed(uint16_t speed) {};
+	virtual void service() {};
+	virtual int getModeCount() { return 0; }
+	virtual const char* getModeName(int i) { return NULL; };
+	virtual bool isRunning() { return false; }
+};
+
+class WS2812Wrapper :public StripWrapper {
+public:
+	WS2812Wrapper();
+	WS2812Wrapper(bool useinternaldriver);
+	virtual void init(void);
+	virtual void deinit(void);
+	virtual void setup(int pin, int numleds);
+	virtual void start(void);
+	virtual void stop(void);
+	virtual void setBrightness(uint8_t br) ;
+	virtual void setMode(uint8_t mode);
+	virtual void setColor(uint32_t color);
+	virtual void setColor(uint8_t r, uint8_t g, uint8_t b);
+	virtual void setSpeed(uint16_t speed);
+	virtual void service() ;
+	virtual int getModeCount();
+	virtual const char* getModeName(int i);
+	virtual bool isRunning();
+	virtual void trigger(void) ;
+private:
+	WS2812FX* pstrip;
+	bool useinternaldriver;
+};
+
 struct RGBState
 {
 	bool isOn;
@@ -52,6 +98,7 @@ public:
 	virtual void setup();
 	void loadconfig(JsonObject& json);
 	virtual void run();
+	virtual void runcore();
 	virtual void set_state(RGBState state);
 	virtual bool onpublishmqtt(String& endkey, String& payload);
 	int getLDRBrightness(int brigtness, int ldrval);
@@ -76,7 +123,7 @@ protected:
 
 private:
 	String string_modes(void);
-	WS2812FX* pStrip;
+	StripWrapper* pStripWrapper;
 	float mqtt_saturation;
 	float mqtt_hue;
 	CSmoothVal* pSmooth;
