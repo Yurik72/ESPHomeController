@@ -35,6 +35,6 @@ protected:
 	uint pin;
 	bool isinvert;
 };
-
+DEFINE_CONTROLLER_FACTORY(RelayController)
 
 #endif

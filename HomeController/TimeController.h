@@ -38,4 +38,5 @@ protected:
 	String ntpServer;
 	///uint pin;
 };
+DEFINE_CONTROLLER_FACTORY(TimeController)
 #endif

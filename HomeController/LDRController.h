@@ -30,6 +30,6 @@ public:
 protected:
 	uint pin;
 };
-
+DEFINE_CONTROLLER_FACTORY(LDRController)
 
 #endif

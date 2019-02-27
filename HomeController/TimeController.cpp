@@ -20,6 +20,7 @@ WiFiUDP ntpUDP;
 
 
 REGISTER_CONTROLLER(TimeController)
+REGISTER_CONTROLLER_FACTORY(TimeController)
 
 const size_t bufferSize = JSON_OBJECT_SIZE(20);
 

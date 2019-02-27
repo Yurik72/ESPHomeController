@@ -131,5 +131,5 @@ private:
 	bool isEnableSmooth;
 	
 };
-
+DEFINE_CONTROLLER_FACTORY(RGBStripController)
 #endif

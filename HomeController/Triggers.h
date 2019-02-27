@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include "Array.h"
+#include "BaseController.h"
 
 #define NEXT_DAY_SEC (1 * 24 * 60 * 60)
 #define SEC_TOLLERANCE 1200  //2 min
@@ -175,4 +176,14 @@ private:
 	CSimpleArray<RFRecord> rfs;
 	long delaywait;
 };
+
+
+
+//DEFINE_TRIGGER_FACTORY(TimeToRGBStripTrigger)
+
+DEFINE_TRIGGER_FACTORY(TimeToRelayTrigger)
+//DEFINE_TRIGGER_FACTORY(LDRToRelay)
+//DEFINE_TRIGGER_FACTORY(LDRToRGBStrip)
+//DEFINE_TRIGGER_FACTORY(RFToRelay)
+
 #endif

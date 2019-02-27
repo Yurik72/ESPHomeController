@@ -5,6 +5,8 @@
 #include "RFController.h"
 
 REGISTER_CONTROLLER(RFController)
+REGISTER_CONTROLLER_FACTORY(RFController)
+
 const size_t bufferSize = JSON_OBJECT_SIZE(5);
 
 

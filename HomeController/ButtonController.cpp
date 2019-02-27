@@ -4,10 +4,10 @@
 
 #include "ButtonController.h"
 
-#ifndef ESP8266   /// further solving factory
-REGISTER_CONTROLLER(ButtonController)
-#endif // !1
-
+//#ifndef ESP8266   /// further solving factory
+//REGISTER_CONTROLLER(ButtonController)
+//#endif // !1
+REGISTER_CONTROLLER_FACTORY(ButtonController)
 
 const size_t bufferSize = JSON_OBJECT_SIZE(5);
 

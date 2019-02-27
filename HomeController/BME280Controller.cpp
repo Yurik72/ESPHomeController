@@ -9,6 +9,8 @@
 #include <Adafruit_BME280.h>
 
 REGISTER_CONTROLLER(BME280Controller)
+REGISTER_CONTROLLER_FACTORY(BME280Controller)
+
 const size_t bufferSize = JSON_OBJECT_SIZE(20);
 
 BME280Controller::BME280Controller() {

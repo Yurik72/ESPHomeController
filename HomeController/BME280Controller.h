@@ -43,6 +43,6 @@ protected:
 	bool isinit;
 	Adafruit_BME280* pbme;
 };
-
+DEFINE_CONTROLLER_FACTORY(BME280Controller)
 
 #endif

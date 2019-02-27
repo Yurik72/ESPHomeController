@@ -14,7 +14,8 @@ LedInterruptDriver<NS(250), NS(625), NS(375)> ws2812driver;
 #endif //  ESP32
 
 
-REGISTER_CONTROLLER(RGBStripController)
+//REGISTER_CONTROLLER(RGBStripController)
+REGISTER_CONTROLLER_FACTORY(RGBStripController)
 
 const size_t bufferSize = JSON_OBJECT_SIZE(40);
 static String rgbModes;
@@ -243,7 +244,10 @@ void RGBStripController::set_state(RGBState state) {
 				pSmooth->stop();
 				
 				pSmooth->start(0, state.brightness,
-					[self](int val) {self->pStripWrapper->setBrightness(val);},   //self->setbrightness(val, srcSmooth);},
+					[self](int val) {
+						self->pStripWrapper->setBrightness(val);
+						self->pStripWrapper->trigger();
+					},   //self->setbrightness(val, srcSmooth);},
 					[self, state]() {self->AddCommand(state, SetRGB, srcState);});
 				ignore_br = true;
 				//return;
@@ -260,7 +264,10 @@ void RGBStripController::set_state(RGBState state) {
 			if (this->isEnableSmooth && !pSmooth->isActive()) {
 				pSmooth->stop();
 				pSmooth->start(oldState.brightness,0,
-					[self](int val) {self->pStripWrapper->setBrightness(val);},//self->setbrightness(val, srcSmooth);},
+					[self](int val) {
+						self->pStripWrapper->setBrightness(val);
+						self->pStripWrapper->trigger();
+					},//self->setbrightness(val, srcSmooth);},
 					[self, state]() {
 						if (self->pStripWrapper->isRunning())
 							self->pStripWrapper->stop();

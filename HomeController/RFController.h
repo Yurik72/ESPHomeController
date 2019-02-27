@@ -37,5 +37,5 @@ private:
 	RCSwitch* pSwitch;
 };
 
-
+DEFINE_CONTROLLER_FACTORY(RFController)
 #endif

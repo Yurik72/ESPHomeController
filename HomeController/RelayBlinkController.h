@@ -20,4 +20,5 @@ private:
 	long nextms;
 	int position;
 };
+DEFINE_CONTROLLER_FACTORY(RelayBlinkController)
 #endif

@@ -46,11 +46,12 @@ public:
 
 template<class T>
 struct CtlRecord {
-	CtlRecord(const char* cname, T* pc) {
+	CtlRecord(const __FlashStringHelper* cname, T* pc) {
 		this->name = cname;
 		this->pCtl = pc;
 	};
-	String name;
+	//String name;
+	const __FlashStringHelper* name;
 	T *pCtl;
 };
 typedef CtlRecord<ControllerFactory> ControllerRecord;
@@ -60,35 +61,69 @@ class Factories
 
 public:
 
-	static void registerController(const char* name, ControllerFactory *factory);
-	static void registerTrigger(const char* name, TriggerFactory *factory);
-	static ControllerFactory* get_ctlfactory(const  String& name);
-	static TriggerFactory* get_triggerfactory(const  String& name);
-	static String string_controllers(void);
-	static String string_triggers(void);
-	static void  Trace();
+	static  void registerController(const __FlashStringHelper* name, ControllerFactory *factory);
+	static  void registerTrigger(const __FlashStringHelper* name, TriggerFactory *factory);
+	static  ControllerFactory* get_ctlfactory(const  String& name);
+	static  TriggerFactory* get_triggerfactory(const  String& name);
+	static  String string_controllers(void);
+	static  String string_triggers(void);
+	static  void  Trace();
 
 	
 };
 
 //extern CSimpleArray<ControllerRecord*> ctlfactories;
-#define REGISTER_CONTROLLER(cls) \
+#define REGISTER_CONTROLLER(cls)
+#define REGISTER_CONTROLLER_OLD(cls) \
     class cls##Factory : public ControllerFactory { \
     public: \
-        cls##Factory() \
+         cls##Factory() \
         { \
            Factories::registerController(#cls, this); \
         };\
-		void test() {\
-		}; \
-        virtual CBaseController *create() { \
+         virtual  CBaseController *create() { \
             return new cls(); \
         }; \
     }; \
-   static cls##Factory global_##cls##Factory;
-	
+   static  cls##Factory global_##cls##Factory;
 
-#define REGISTER_TRIGGER(trg) \
+#ifdef ESP32
+#define FPSTR_PLATFORM(s) reinterpret_cast<const __FlashStringHelper *>(({static const char __c[] PROGMEM = (s); &__c[0];}))
+#else
+#define FPSTR_PLATFORM(s) FPSTR(s)
+#endif
+#define DEFINE_CONTROLLER_FACTORY(cls) \
+    class cls##Factory : public ControllerFactory { \
+    public: \
+         cls##Factory() \
+        { \
+           Factories::registerController(FPSTR_PLATFORM(#cls), this); \
+        };\
+         virtual  CBaseController *create() { \
+            return new cls(); \
+        }; \
+    }; \
+
+#define REGISTER_CONTROLLER_FACTORY(cls) \
+static  cls##Factory global_##cls##Factory;
+
+#define DEFINE_TRIGGER_FACTORY(trg) \
+    class trg##Factory : public TriggerFactory { \
+    public: \
+        trg##Factory() \
+        { \
+            Factories::registerTrigger(FPSTR_PLATFORM(#trg), this); \
+        }; \
+        virtual Trigger *create() { \
+            return new trg(); \
+        }; \
+    }; 
+
+#define REGISTER_TRIGGER_FACTORY(trg) \
+static trg##Factory global_##trg##Factory;
+
+#define REGISTER_TRIGGER(trg)
+#define REGISTER_TRIGGER_OLD(trg) \
     class trg##Factory : public TriggerFactory { \
     public: \
         trg##Factory() \

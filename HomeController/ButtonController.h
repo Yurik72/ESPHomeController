@@ -40,5 +40,5 @@ private:
 	uint64_t btnpresstime;
 	
 };
-
+DEFINE_CONTROLLER_FACTORY(ButtonController)
 #endif

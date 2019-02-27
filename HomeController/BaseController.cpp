@@ -14,7 +14,7 @@ static CSimpleArray<ControllerRecord*>* pctlfactories=NULL;
 static CSimpleArray<TriggerRecord*>* ptriggerfactories=NULL;
 
 
-void Factories::registerController(const char* name, ControllerFactory *factory)
+void Factories::registerController(const __FlashStringHelper* name, ControllerFactory *factory)
 {
 
 	if (!pctlfactories)
@@ -24,7 +24,7 @@ void Factories::registerController(const char* name, ControllerFactory *factory)
 	pctlfactories->Add(prec);
 
 };
-void Factories::registerTrigger(const char* name, TriggerFactory *factory)
+void Factories::registerTrigger(const __FlashStringHelper* name, TriggerFactory *factory)
 {
 	//DBG_OUTPUT_PORT.print("registerTrigger");
 	if (!ptriggerfactories)
@@ -36,9 +36,11 @@ ControllerFactory* Factories::get_ctlfactory(const  String& name) {
 	if (!pctlfactories)
 		return NULL;
 	for (int i = 0;i < pctlfactories->GetSize();i++)
-		if (pctlfactories->GetAt(i)->name == name)
-			return pctlfactories->GetAt(i)->pCtl;
+		//if (pctlfactories->GetAt(i)->name == name)
+	   if(strcmp_P(name.c_str(), (PGM_P)pctlfactories->GetAt(i)->name)==0)
+			   return pctlfactories->GetAt(i)->pCtl;
 	return NULL;
+	
 };
 void  Factories::Trace() {
 	
@@ -57,7 +59,8 @@ TriggerFactory* Factories::get_triggerfactory(const  String& name) {
 	}
 
 	for (int i = 0;i < ptriggerfactories->GetSize();i++)
-		if (ptriggerfactories->GetAt(i)->name == name)
+		//if (ptriggerfactories->GetAt(i)->name == name)
+		if (strcmp_P(name.c_str(), (PGM_P)ptriggerfactories->GetAt(i)->name) == 0)
 			return ptriggerfactories->GetAt(i)->pCtl;
 	return NULL;
 };
@@ -70,7 +73,7 @@ String Factories::string_controllers(void) {
 	for (int i = 0; i < pctlfactories->GetSize(); i++) {
 		JsonObject object = json.createNestedObject();
 		
-		object["name"] = pctlfactories->GetAt(i)->name;
+//		object["name"] = pctlfactories->GetAt(i)->name;
 	}
 //	JsonObject object = json.createNestedObject();
 
@@ -88,7 +91,7 @@ String Factories::string_triggers(void) {
 	for (uint8_t i = 0; i < ptriggerfactories->GetSize(); i++) {
 		JsonObject object = json.createNestedObject();
 
-		object["name"] = ptriggerfactories->GetAt(i)->name;
+//		object["name"] = ptriggerfactories->GetAt(i)->name;
 	}
 	JsonObject object = json.createNestedObject();
 
