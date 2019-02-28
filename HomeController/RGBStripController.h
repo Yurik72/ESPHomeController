@@ -65,7 +65,7 @@ private:
 
 struct RGBState
 {
-	bool isOn;
+	bool isOn=false;
 	int brightness = 0;
 	int wxmode = 0;
 	uint32_t color = 0;

@@ -243,12 +243,15 @@ void RGBStripController::set_state(RGBState state) {
 				DBG_OUTPUT_PORT.println("CMD On Smooth");
 				pSmooth->stop();
 				
-				pSmooth->start(0, state.brightness,
+				int brval = state.brightness;
+				if (state.isLdr)
+					brval = getLDRBrightness(state.brightness, state.ldrValue);
+				pSmooth->start(0, brval,
 					[self](int val) {
 						self->pStripWrapper->setBrightness(val);
 						self->pStripWrapper->trigger();
 					},   //self->setbrightness(val, srcSmooth);},
-					[self, state]() {self->AddCommand(state, SetRGB, srcState);});
+					[self, state]() {self->AddCommand(state, SetRGB, srcSmooth);});
 				ignore_br = true;
 				//return;
 			}
@@ -271,7 +274,7 @@ void RGBStripController::set_state(RGBState state) {
 					[self, state]() {
 						if (self->pStripWrapper->isRunning())
 							self->pStripWrapper->stop();
-						self->AddCommand(state, SetRGB, srcState);
+						self->AddCommand(state, SetRGB, srcSmooth);
 					});
 				//return;
 				
@@ -293,7 +296,7 @@ void RGBStripController::set_state(RGBState state) {
 			if (!pStripWrapper->isRunning()) pStripWrapper->start();
 		}
 		if (state.isLdr) {
-			if (oldState.brightness != state.brightness || oldState.ldrValue!= state.ldrValue)
+			if (oldState.brightness != state.brightness || oldState.ldrValue!= state.ldrValue && !ignore_br)
 				pStripWrapper->setBrightness(getLDRBrightness(state.brightness, state.ldrValue));
 		}
 		else {

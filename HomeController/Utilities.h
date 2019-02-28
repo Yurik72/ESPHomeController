@@ -32,7 +32,7 @@ class CSmoothVal {
 
 public:
 	CSmoothVal();
-   void start(int from, int to, funconchangeval func, funconend onendfunc=NULL, uint32_t duration = 1000, uint32_t count = 10);
+   void start(int from, int to, funconchangeval func, funconend onendfunc=NULL, uint32_t duration = 1000, uint32_t count = 20);
    void stop();
    static void callback(CSmoothVal* self);
    void oncallback();

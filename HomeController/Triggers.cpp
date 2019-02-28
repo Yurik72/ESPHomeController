@@ -15,11 +15,18 @@
 #include "RFController.h"
 #include "Controllers.h"
 
-REGISTER_TRIGGER(TimeToRGBStripTrigger)
-REGISTER_TRIGGER(TimeToRelayTrigger)
-REGISTER_TRIGGER(LDRToRelay)
-REGISTER_TRIGGER(LDRToRGBStrip)
-REGISTER_TRIGGER(RFToRelay)
+//REGISTER_TRIGGER(TimeToRGBStripTrigger)
+//REGISTER_TRIGGER(TimeToRelayTrigger)
+//REGISTER_TRIGGER(LDRToRelay)
+//REGISTER_TRIGGER(LDRToRGBStrip)
+//REGISTER_TRIGGER(RFToRelay)
+
+
+REGISTER_TRIGGER_FACTORY(TimeToRGBStripTrigger)
+REGISTER_TRIGGER_FACTORY(TimeToRelayTrigger)
+REGISTER_TRIGGER_FACTORY(LDRToRelay)
+REGISTER_TRIGGER_FACTORY(LDRToRGBStrip)
+REGISTER_TRIGGER_FACTORY(RFToRelay)
 
 void Triggers::setup() {
 	this->loadconfig();
@@ -68,6 +75,7 @@ void Triggers::loadconfig() {
 
 void Trigger::handleloop(CBaseController*pBase, Controllers* pctls) {
 	//DBG_OUTPUT_PORT.print("triggers handle loop");
+	//DBG_OUTPUT_PORT.println("Base Trigger handle loop");
 }
 
 void Trigger::loadconfig(JsonObject& json) {
@@ -120,9 +128,9 @@ TriggerFromService<SRC, DST>::TriggerFromService() {
 }
 template<class SRC, class DST>
 void TriggerFromService<SRC, DST>::handleloop(CBaseController* pBase, Controllers* pctls) {
-#ifdef	TRIGGER_DEBUG
-	DBG_OUTPUT_PORT.println("TriggerFromService handleloop");
-#endif
+//#ifdef	TRIGGER_DEBUG
+//	DBG_OUTPUT_PORT.println("TriggerFromService handleloop");
+//#endif
 	if (!this->get_dstctl()) {
 		CBaseController* pBaseDst = pctls->GetByName(this->dst.c_str());
 		if (pBaseDst == NULL) {
@@ -290,7 +298,7 @@ void TimeToRGBStripTrigger::loadconfig(JsonObject& json) {
 		this->parsetime(json,rec);
 		rec.isOn = arr[i]["isOn"].as<bool>();
 		rec.color= arr[i]["color"].as<int>();
-		rec.brightness = arr[i]["br"].as<int>();
+		rec.brightness = arr[i]["bg"].as<int>();
 		rec.wxmode = arr[i]["wxmode"].as<int>();
 		rec.isLdr = arr[i]["isLdr"].as<int>();
 		times.Add(rec);
@@ -349,9 +357,10 @@ void TimeToRelayTrigger::dotrigger(timerecOn & rec, Controllers* pctlss) {
 
 
 void TimeToRGBStripTrigger::dotrigger(timerecRGB & rec, Controllers* pctlss) {
-#ifdef	TRIGGER_DEBUG
+//#ifdef	TRIGGER_DEBUG
+	//DBG_OUTPUT_PORT.println("TimeToRGBStripTrigger::dotrigger");
+//#endif
 	DBG_OUTPUT_PORT.println("TimeToRGBStripTrigger::dotrigger");
-#endif
 	if (!this->get_stripctl()) {
 		CBaseController* pBase = pctlss->GetByName(this->dst.c_str());
 		if (pBase == NULL) {
@@ -368,14 +377,20 @@ void TimeToRGBStripTrigger::dotrigger(timerecRGB & rec, Controllers* pctlss) {
 #ifdef	TRIGGER_DEBUG
 		DBG_OUTPUT_PORT.println("Mode On");
 #endif
+		DBG_OUTPUT_PORT.println("Sending command On");
+		
 		newstate.isOn = true;
-		this->get_stripctl()->AddCommand(newstate, On, srcTrigger);
 		newstate.isLdr = rec.isLdr;
-		this->get_stripctl()->AddCommand(newstate, SetLdrVal, srcTrigger);
 		newstate.brightness = rec.brightness;
-		this->get_stripctl()->AddCommand(newstate, SetBrigthness, srcTrigger);
 		newstate.color = rec.color;
-		this->get_stripctl()->AddCommand(newstate, SetColor, srcTrigger);
+		
+		this->get_stripctl()->AddCommand(newstate, SetRGB, srcTrigger);
+		//newstate.isLdr = rec.isLdr;
+		//this->get_stripctl()->AddCommand(newstate, SetLdrVal, srcTrigger);
+		//newstate.brightness = rec.brightness;
+		//this->get_stripctl()->AddCommand(newstate, SetBrigthness, srcTrigger);
+		//newstate.color = rec.color;
+		//this->get_stripctl()->AddCommand(newstate, SetColor, srcTrigger);
 	}
 	else{
 #ifdef	TRIGGER_DEBUG

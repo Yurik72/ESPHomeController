@@ -324,6 +324,7 @@ public:
 		CController<T, P, M>::loadconfig(json);
 	}
 	virtual int AddCommand(P state, M mode, CmdSource src) {
+
 		if (src == srcState || src==srcPowerOn) { //save state
 			DBG_OUTPUT_PORT.print("Add command keep previous state -> ");
 			DBG_OUTPUT_PORT.println(this->get_name());

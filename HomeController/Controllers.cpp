@@ -408,8 +408,11 @@ void Controllers::handleloops() {
 
 			for (int j = 0;j < this->triggers.GetSize();j++) {
 				Trigger* tr = this->triggers.GetAt(j);
-				if (strcmp(ctl->get_name(), tr->get_src()) == 0)
-					tr->handleloop(ctl,this);
+
+				if (strcmp(ctl->get_name(), tr->get_src()) == 0) {
+
+					tr->handleloop(ctl, this);
+				}
 			}
 		}
 	}
