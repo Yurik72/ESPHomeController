@@ -162,6 +162,7 @@ enum CoreMode :uint{
 #if defined(ESP8266)
 class Ticker;
 #endif
+
 class CBaseController
 {
 public:
@@ -250,9 +251,13 @@ private:
 
 template<class T,typename P,typename M>
 class CController:public CBaseController
-{
-
+{ 
+	//typename T Ctl_state;
+	 typedef typename std::function<void(CBaseController* pC,P state)> func_onstatechange;
+	//typename func_onstatechange_type func_onstatechange;
+	//typename someType::ptr query;
 public:
+	CController() :handler_statechange(NULL){};
 	struct command
 	{
 		M mode;
@@ -288,6 +293,10 @@ public:
 			
 			onstatechanged(this);
 		}
+		if (handler_statechange != NULL) {
+			handler_statechange(this,state);
+		}
+
 		
 	}
 	const P& get_state() {
@@ -296,10 +305,11 @@ public:
 	virtual bool loadstate() {
 		return this->deserializestate(readfile(this->get_filename_state().c_str()), srcRestore);
 	}
+	void set_handler_statechange(func_onstatechange f) { handler_statechange = f; };
 protected:
 	CSimpleArray<command> commands;
 	P state;
-
+	func_onstatechange   handler_statechange;
 
 };
 
@@ -367,6 +377,7 @@ public:
 		
 		this->AddCommand(current, val, srcPowerOn);
 	};
+
 protected: 
 	P prevState;
 	int manualtime;

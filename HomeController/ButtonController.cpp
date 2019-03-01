@@ -9,12 +9,14 @@
 //#endif // !1
 REGISTER_CONTROLLER_FACTORY(ButtonController)
 
-const size_t bufferSize = JSON_OBJECT_SIZE(5);
+const size_t bufferSize = JSON_OBJECT_SIZE(10);
 
 ButtonController::ButtonController() {
-	this->pin = 0;
-	this->btnhistory = 0;
-	this->btnpresstime = 0;
+	memset(pin, 0, sizeof(uint8_t)*MAX_BUTTONS); 
+	memset(btnhistory, 0, sizeof(uint16_t)*MAX_BUTTONS);
+	memset(btnstate, 0, sizeof(enumstate)*MAX_BUTTONS);
+	
+	this->btncount = 0;
 	Ticker* pTicker;
 	this->coreMode = Both;
 }
@@ -51,19 +53,33 @@ bool  ButtonController::deserializestate(String jsonstate, CmdSource src) {
 
 }
 void ButtonController::loadconfig(JsonObject& json) {
-	pin = json["pin"];
+	uint8_t mpin = json["pin"];
+	JsonArray arr = json["pins"].as<JsonArray>();
+	if (pin != 0) {
+		this->btncount = 1;
+		this->pin[0] = mpin;
+	}
+	else {
+		this->btncount = constrain(arr.size(), 0, MAX_BUTTONS);
+		for (int i = 0; i < this->btncount; i++) {
+			this->pin[i] = arr[i];
+		}
+	}
 }
 
 void ButtonController::getdefaultconfig(JsonObject& json) {
 	json["pin"] = pin;
 	json["service"] = "ButtonController";
 	json["name"] = "Button";
+	
+
 	Button::getdefaultconfig(json);
 }
 
 void  ButtonController::setup() {
 	Button::setup();
-	pinMode(pin, INPUT);
+	for(uint8_t i=0;i<btncount;i++)
+		pinMode(pin[i], INPUT);
 	//digitalWrite(pin, LOW);
 }
 void ButtonController::run() {
@@ -75,26 +91,31 @@ void ButtonController::run() {
 	}
 }
 void ButtonController::runcore() {
-	this->update();
-	ButtonState st;
-	if (this->is_down() != this->get_state().isDown) {
-		st.isDown = !this->get_state().isDown;
-		this->AddCommand(st, SetBtn, srcSelf);
+	for (uint8_t i = 0;i < btncount;i++) {
+		this->update(i);
+		ButtonState st;
+		st.idx = i;
+		if (this->is_down(i) && btnstate[i]!= isdown){  //this->get_state().isDown) {
+			st.isDown = !this->get_state().isDown;
+		    btnstate[i] = isdown;
+			this->AddCommand(st, SetBtn, srcSelf);
+		}
+		if (this->is_pressed(i) && btnstate[i] != ispressed){//!= this->get_state(i).isPressed) {
+			st.isPressed = true;
+			btnstate[i] = ispressed;
+			this->AddCommand(st, SetBtn, srcSelf);
+		}
 	}
-	if (this->is_pressed() != this->get_state().isPressed) {
-		st.isPressed = !this->get_state().isPressed;
-		this->AddCommand(st, SetBtn, srcSelf);
-	}
 }
-void ButtonController::update() {
-	this->addhistory(digitalRead(pin)==HIGH);
+void ButtonController::update(uint8_t idx) {
+	this->addhistory(digitalRead(pin[idx])==HIGH,idx);
 }
-void ButtonController::addhistory(bool bit) {
-	this->btnhistory = (this->btnhistory << 1) | bit;
+void ButtonController::addhistory(bool bit, uint8_t idx) {
+	this->btnhistory[idx] = (this->btnhistory[idx] << 1) | bit;
 }
-bool  ButtonController::is_down() {
-	return ((this->btnhistory & ADJUST_MASK) == DOWN_MASK);
+bool  ButtonController::is_down(uint8_t idx) {
+	return ((this->btnhistory[idx] & ADJUST_MASK) == DOWN_MASK);
 }
-bool  ButtonController::is_pressed() {
-	return ((this->btnhistory & ADJUST_MASK) == PRESSED_MASK);
+bool  ButtonController::is_pressed(uint8_t idx) {
+	return ((this->btnhistory[idx] & ADJUST_MASK) == PRESSED_MASK);
 }

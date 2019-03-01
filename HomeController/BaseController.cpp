@@ -111,7 +111,7 @@ CBaseController::CBaseController() {
 	this->bodyindex = 0;
 	this->interval = 1000;
 	this->priority = 1;
-
+	
 #if defined(ESP8266)
 	this->pTicker = NULL;;
 #endif
@@ -269,6 +269,7 @@ void runcoreloop(void*param)
 	}
 }
 #endif
+
 
 /*
 template<class T, typename P, typename M>
