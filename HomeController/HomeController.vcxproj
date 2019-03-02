@@ -119,6 +119,7 @@
     <ClInclude Include="ESPAsyncUpdateServer.h" />
     <ClInclude Include="LDRController.h" />
     <ClInclude Include="Logger.h" />
+    <ClInclude Include="Menu.h" />
     <ClInclude Include="RCSwitch.h" />
     <ClInclude Include="RelayBlinkController.h" />
     <ClInclude Include="RelayController.h" />
@@ -143,6 +144,7 @@
     <ClCompile Include="ESPAsyncUpdateServer.cpp" />
     <ClCompile Include="LDRController.cpp" />
     <ClCompile Include="Logger.cpp" />
+    <ClCompile Include="Menu.cpp" />
     <ClCompile Include="RCSwitch.cpp" />
     <ClCompile Include="RelayBlinkController.cpp" />
     <ClCompile Include="RelayController.cpp" />
