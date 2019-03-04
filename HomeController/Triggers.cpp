@@ -85,6 +85,14 @@ void Trigger::loadconfig(JsonObject& json) {
 
 }
 Trigger* Triggers::CreateByType(const char* nametype) {
+	Trigger* pTrigger = Factories::CreateTrigger(nametype);
+	if (pTrigger == NULL) {
+		DBG_OUTPUT_PORT.println("TriggerFactory not defined");
+		pTrigger = Factories::CreateTrigger(String(nametype) + String("Trigger"));
+		if (pTrigger)
+			return pTrigger;
+	}
+	/*
 	TriggerFactory* pFactory = Factories::get_triggerfactory(nametype);
 	if (!pFactory) {
 		DBG_OUTPUT_PORT.println("TriggerFactory not defined");
@@ -98,6 +106,7 @@ Trigger* Triggers::CreateByType(const char* nametype) {
 	}
 	DBG_OUTPUT_PORT.print("OPS return default trigger");
 	DBG_OUTPUT_PORT.println(nametype);
+	*/
 	return new Trigger();
 	/*
 	Trigger* res = NULL;

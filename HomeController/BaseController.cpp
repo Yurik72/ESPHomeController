@@ -14,7 +14,7 @@ static CSimpleArray<ControllerRecord*>* pctlfactories=NULL;
 static CSimpleArray<TriggerRecord*>* ptriggerfactories=NULL;
 
 
-void Factories::registerController(const __FlashStringHelper* name, ControllerFactory *factory)
+void ICACHE_FLASH_ATTR Factories::registerController(const __FlashStringHelper* name, ControllerFactory *factory, func_create_ctl f)
 {
 
 	if (!pctlfactories)
@@ -24,7 +24,7 @@ void Factories::registerController(const __FlashStringHelper* name, ControllerFa
 	pctlfactories->Add(prec);
 
 };
-void Factories::registerTrigger(const __FlashStringHelper* name, TriggerFactory *factory)
+void ICACHE_FLASH_ATTR Factories::registerTrigger(const __FlashStringHelper* name, TriggerFactory *factory, func_create_trg f)
 {
 	//DBG_OUTPUT_PORT.print("registerTrigger");
 	if (!ptriggerfactories)
@@ -32,7 +32,7 @@ void Factories::registerTrigger(const __FlashStringHelper* name, TriggerFactory 
 	TriggerRecord* prec = new TriggerRecord(name, factory);
 	ptriggerfactories->Add(prec);
 };
-ControllerFactory* Factories::get_ctlfactory(const  String& name) {
+ControllerFactory* ICACHE_FLASH_ATTR Factories::get_ctlfactory(const  String& name) {
 	if (!pctlfactories)
 		return NULL;
 	for (int i = 0;i < pctlfactories->GetSize();i++)
@@ -42,6 +42,21 @@ ControllerFactory* Factories::get_ctlfactory(const  String& name) {
 	return NULL;
 	
 };
+CBaseController* ICACHE_FLASH_ATTR Factories::CreateController(const  String& name) {
+	if (!pctlfactories)
+		return NULL;
+	for (int i = 0;i < pctlfactories->GetSize();i++)
+		//if (pctlfactories->GetAt(i)->name == name)
+		if (strcmp_P(name.c_str(), (PGM_P)pctlfactories->GetAt(i)->name) == 0) {
+			ControllerRecord* pRec = pctlfactories->GetAt(i);
+			if (pRec->f) {
+				return pRec->f();
+			}
+			return pRec->pCtl->create();
+		}
+	return NULL;
+}
+
 void  Factories::Trace() {
 	
 	DBG_OUTPUT_PORT.print("Factory size: ");
@@ -52,7 +67,7 @@ void  Factories::Trace() {
 //		DBG_OUTPUT_PORT.println(Factories::ctlfactories.GetAt(i)->name);
 			
 };
-TriggerFactory* Factories::get_triggerfactory(const  String& name) {
+TriggerFactory* ICACHE_FLASH_ATTR Factories::get_triggerfactory(const  String& name) {
 	if (!ptriggerfactories) {
 		DBG_OUTPUT_PORT.println("Factories not created");
 		return NULL;
@@ -64,7 +79,23 @@ TriggerFactory* Factories::get_triggerfactory(const  String& name) {
 			return ptriggerfactories->GetAt(i)->pCtl;
 	return NULL;
 };
-String Factories::string_controllers(void) {
+ Trigger* ICACHE_FLASH_ATTR Factories::CreateTrigger(const  String& name) {
+	if (!ptriggerfactories) {
+	
+		return NULL;
+	}
+
+	for (int i = 0;i < ptriggerfactories->GetSize();i++)
+		//if (ptriggerfactories->GetAt(i)->name == name)
+		if (strcmp_P(name.c_str(), (PGM_P)ptriggerfactories->GetAt(i)->name) == 0) {
+			TriggerRecord* pRec = ptriggerfactories->GetAt(i);
+			if (pRec->f)
+				return pRec->f();
+			return ptriggerfactories->GetAt(i)->pCtl->create();
+		}
+	return NULL;
+}
+String ICACHE_FLASH_ATTR Factories::string_controllers(void) {
 	if (!pctlfactories)
 		return "";
 	const size_t bufferSize = JSON_ARRAY_SIZE(pctlfactories->GetSize() + 1) + pctlfactories->GetSize()*JSON_OBJECT_SIZE(2);
@@ -83,7 +114,7 @@ String Factories::string_controllers(void) {
 	
 	return json_str;
 }
-String Factories::string_triggers(void) {
+String ICACHE_FLASH_ATTR Factories::string_triggers(void) {
 
 	const size_t bufferSize = JSON_ARRAY_SIZE(ptriggerfactories->GetSize() + 1) + ptriggerfactories->GetSize()*JSON_OBJECT_SIZE(2);
 	DynamicJsonDocument jsonBuffer(bufferSize);

@@ -32,7 +32,7 @@ class CBaseController;
 class ControllerFactory
 {
 public:
-	virtual CBaseController* create() = 0;
+	  CBaseController* create() { return NULL; };
 
 };
 class Trigger;
@@ -40,31 +40,36 @@ class Trigger;
 class TriggerFactory
 {
 public:
-	virtual Trigger* create() = 0;
+	 Trigger* create() { return NULL; };
 
 };
-
-template<class T>
+typedef CBaseController*(*func_create_ctl)();
+typedef Trigger*(*func_create_trg)();
+template<class T,typename F>
 struct CtlRecord {
-	CtlRecord(const __FlashStringHelper* cname, T* pc) {
+	CtlRecord(const __FlashStringHelper* cname, T* pc, F f=NULL) {
 		this->name = cname;
 		this->pCtl = pc;
+		this->f = f;
 	};
 	//String name;
 	const __FlashStringHelper* name;
 	T *pCtl;
+	F f;
 };
-typedef CtlRecord<ControllerFactory> ControllerRecord;
-typedef CtlRecord<TriggerFactory> TriggerRecord;
+typedef CtlRecord<ControllerFactory, func_create_ctl> ControllerRecord;
+typedef CtlRecord<TriggerFactory, func_create_trg> TriggerRecord;
 class Factories
 {
 
 public:
 
-	static  void registerController(const __FlashStringHelper* name, ControllerFactory *factory);
-	static  void registerTrigger(const __FlashStringHelper* name, TriggerFactory *factory);
-	static  ControllerFactory* get_ctlfactory(const  String& name);
+	static  void registerController(const __FlashStringHelper* name, ControllerFactory *factory, func_create_ctl f=NULL);
+	static  void registerTrigger(const __FlashStringHelper* name, TriggerFactory *factory, func_create_trg f=NULL);
+	static  ControllerFactory*  get_ctlfactory(const  String& name);
 	static  TriggerFactory* get_triggerfactory(const  String& name);
+	static CBaseController* CreateController(const  String& name);
+	static Trigger* CreateTrigger(const  String& name);
 	static  String string_controllers(void);
 	static  String string_triggers(void);
 	static  void  Trace();
@@ -95,13 +100,13 @@ public:
 #define DEFINE_CONTROLLER_FACTORY(cls) \
     class cls##Factory : public ControllerFactory { \
     public: \
-         cls##Factory() \
+        cls##Factory() \
         { \
-           Factories::registerController(FPSTR_PLATFORM(#cls), this); \
+           Factories::registerController(FPSTR_PLATFORM(#cls), this,cls##Factory::raw_create); \
         };\
-         virtual  CBaseController *create() { \
-            return new cls(); \
-        }; \
+        static CBaseController* ICACHE_FLASH_ATTR raw_create(){ \
+			return new cls(); \
+		}; \
     }; \
 
 #define REGISTER_CONTROLLER_FACTORY(cls) \
@@ -112,11 +117,11 @@ static  cls##Factory global_##cls##Factory;
     public: \
         trg##Factory() \
         { \
-            Factories::registerTrigger(FPSTR_PLATFORM(#trg), this); \
+            Factories::registerTrigger(FPSTR_PLATFORM(#trg), this,trg##Factory::raw_create); \
         }; \
-        virtual Trigger *create() { \
-            return new trg(); \
-        }; \
+        static Trigger* ICACHE_FLASH_ATTR raw_create(){ \
+			return new trg(); \
+		}; \
     }; 
 
 #define REGISTER_TRIGGER_FACTORY(trg) \
@@ -336,8 +341,8 @@ public:
 	virtual int AddCommand(P state, M mode, CmdSource src) {
 
 		if (src == srcState || src==srcPowerOn) { //save state
-			DBG_OUTPUT_PORT.print("Add command keep previous state -> ");
-			DBG_OUTPUT_PORT.println(this->get_name());
+			//DBG_OUTPUT_PORT.print("Add command keep previous state -> ");
+			//DBG_OUTPUT_PORT.println(this->get_name());
 			P saved = this->get_state();
 			this->set_prevstate(saved);
 			if (this->manualtime != 0) {
@@ -357,8 +362,8 @@ public:
 		CController<T, P, M>::run();
 
 		if (this->isrestoreactivated && this->mswhenrestore <= millis()) { // need restore
-			DBG_OUTPUT_PORT.print(this->get_name());
-			DBG_OUTPUT_PORT.println(" : Restore after manual set");
+			//DBG_OUTPUT_PORT.print(this->get_name());
+			//DBG_OUTPUT_PORT.println(" : Restore after manual set");
 			this->restorestate();
 		}
 	}

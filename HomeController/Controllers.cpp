@@ -367,11 +367,13 @@ CBaseController* Controllers::CreateByName(const char* name) { //to be rewrite b
 	
 	//Factories::Trace();
 	//tst
-	
-	ControllerFactory* pFactory = Factories::get_ctlfactory(name);
-	if (pFactory)
-		return pFactory->create();
-	return NULL;
+	return Factories::CreateController(name);
+	//ControllerFactory* pFactory = Factories::get_ctlfactory(name);
+	//if (pFactory) {
+		
+	//	return pFactory->create();
+	//}
+	//return NULL;
 	/*
 	if (strcmp(name, "RelayController") == 0) {
 		return new RelayController();

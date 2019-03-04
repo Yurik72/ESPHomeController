@@ -12,7 +12,7 @@
 #include <Ticker.h>
 
 
-bool writeConfigFS(bool saveConfig) {
+bool ICACHE_FLASH_ATTR  writeConfigFS(bool saveConfig) {
 	if (saveConfig) {
 		//FS save
 		//updateFS = true;
@@ -43,7 +43,7 @@ bool writeConfigFS(bool saveConfig) {
 	}
 }
 // Read search_str to FS
-bool readConfigFS() {
+bool ICACHE_FLASH_ATTR readConfigFS() {
 	//read configuration from FS JSON
 
 	memset(mqtt_host, 0, sizeof(mqtt_host));
@@ -262,7 +262,7 @@ void ColorToHSI(uint32_t rgbcolor, uint32_t brightness,	double &Hue, double &Sat
 
 	return;
 }
-String readfile(const char* filename) {
+String ICACHE_FLASH_ATTR readfile(const char* filename) {
 	File file = SPIFFS.open(filename, "r");
 	String res;
 	if (file) {
@@ -273,7 +273,7 @@ String readfile(const char* filename) {
 	}
 	return res;
 }
-bool savefile(const char* filename, String data) {
+bool ICACHE_FLASH_ATTR savefile(const char* filename, String data) {
 	File file = SPIFFS.open(filename, "w");
 	if (file) {
 		file.println(data);  //save json data

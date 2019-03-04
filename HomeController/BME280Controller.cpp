@@ -9,7 +9,9 @@
 #include <Adafruit_BME280.h>
 
 //REGISTER_CONTROLLER(BME280Controller)
-//REGISTER_CONTROLLER_FACTORY(BME280Controller)
+REGISTER_CONTROLLER_FACTORY(BME280Controller)
+
+//BME280ControllerFactory* ff = new BME280ControllerFactory();
 
 const size_t bufferSize = JSON_OBJECT_SIZE(20);
 
@@ -76,8 +78,8 @@ void  BME280Controller::setup() {
 			this->isinit = true; }
 	}
 	else {
-		DBG_OUTPUT_PORT.println("Init Direct read");
-		DBG_OUTPUT_PORT.println("On address");
+		//DBG_OUTPUT_PORT.println("Init Direct read");
+		//DBG_OUTPUT_PORT.println("On address");
 		DBG_OUTPUT_PORT.println(this->i2caddr);
 			
 		Wire.begin();
