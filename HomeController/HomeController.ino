@@ -35,7 +35,7 @@
 // Instanciate HTTP(80) 
 // ***************************************************************************
 #if defined ASYNC_WEBSERVER
-#include <ESPAsyncWiFiManager.h>
+#include "ESPAsyncWiFiManager.h"
 #define USE_EADNS
 #else
 #include <WiFiManager.h>        //https://github.com/tzapu/WiFiManager
@@ -170,15 +170,19 @@ void setup()
 	}
 	
 	SETUP_FILEHANDLES  ///setup file browser
-
+#if defined(ASYNC_WEBSERVER)
+		setExternRebootFlag(&isReboot);
+#endif
 	// ***************************************************************************
 	// Setup: update server
 	// ***************************************************************************
 #if defined (HTTP_OTA) && !defined(ASYNC_WEBSERVER)
+		httpUpdater.setExternRebootFlag(&isReboot);
 		httpUpdater.setup(&server, "/update");  
 #endif
 
 #if defined (HTTP_OTA) && defined(ASYNC_WEBSERVER)
+	httpUpdater.setExternRebootFlag(&isReboot);
 	httpUpdater.setup(asserver, "/update");
 #endif
 
@@ -204,6 +208,11 @@ void setup()
 // Add the main program code into the continuous loop() function
 void loop()
 {
+	if (isReboot) {
+		delay(1000);
+		ESP.restart();
+		return;
+	}
 #if! defined ASYNC_WEBSERVER
 	server.handleClient();   ///handle income http request
 #endif
@@ -267,11 +276,14 @@ void startwifimanager() {
 	wifiManager.setConfigPortalTimeout(CONFIG_PORTAL_TIMEOUT);
 	//finally let's wait normal wifi connection
 	
-	if (!wifiManager.autoConnect(HOSTNAME)) {
+	if (!wifiManager.autoConnect(HOSTNAME,NULL,!isOffline)) {
 		DBG_OUTPUT_PORT.println("failed to connect and hit timeout");
 		//reset and try again, or maybe put it to deep sleep
-		ESP.restart();  
-		delay(1000);  
+		if (!isOffline) {
+			ESP.restart();
+			delay(1000);
+		}
+		DBG_OUTPUT_PORT.println("Entering offline mode");
 	}
 
 #if ! defined ASYNC_WEBSERVER

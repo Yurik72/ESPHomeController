@@ -175,17 +175,17 @@ String getESP32ChipID() {
 }
 #endif
 
-boolean AsyncWiFiManager::autoConnect() {
+boolean AsyncWiFiManager::autoConnect(bool bstartConfig) {
   String ssid = "ESP";
   #if defined(ESP8266)
   ssid += String(ESP.getChipId());
   #else
   ssid += getESP32ChipID();
   #endif
-  return autoConnect(ssid.c_str(), NULL);
+  return autoConnect(ssid.c_str(), NULL, bstartConfig);
 }
 
-boolean AsyncWiFiManager::autoConnect(char const *apName, char const *apPassword) {
+boolean AsyncWiFiManager::autoConnect(char const *apName, char const *apPassword, bool bstartConfig) {
   DEBUG_WM(F(""));
   DEBUG_WM(F("AutoConnect"));
 
@@ -202,7 +202,8 @@ boolean AsyncWiFiManager::autoConnect(char const *apName, char const *apPassword
     //connected
     return true;
   }
-
+  if (!bstartConfig)
+	  return false;
   return startConfigPortal(apName, apPassword);
 }
 

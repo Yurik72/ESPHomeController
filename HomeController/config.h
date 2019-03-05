@@ -48,6 +48,8 @@ extern char mqtt_port[6] ;
 extern char mqtt_user[32] ;
 extern char mqtt_pass[32] ;
 extern short qossub ; // AMQTT can sub qos 0 or 1 or 2
+extern bool isOffline;
+extern bool isReboot;
 #endif
 
 //extern  String globlog;

@@ -24,7 +24,7 @@ class ESP32HTTPUpdateServer
     }
 
     void setup(WebServer *server, const char * path, const char * username, const char * password);
-
+	void setExternRebootFlag(bool *pb);
   protected:
     void _setUpdaterError();
 

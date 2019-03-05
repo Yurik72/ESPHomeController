@@ -104,7 +104,7 @@ String ICACHE_FLASH_ATTR Factories::string_controllers(void) {
 	for (int i = 0; i < pctlfactories->GetSize(); i++) {
 		JsonObject object = json.createNestedObject();
 		
-//		object["name"] = pctlfactories->GetAt(i)->name;
+		object["name"] = pctlfactories->GetAt(i)->name;
 	}
 //	JsonObject object = json.createNestedObject();
 
@@ -122,7 +122,7 @@ String ICACHE_FLASH_ATTR Factories::string_triggers(void) {
 	for (uint8_t i = 0; i < ptriggerfactories->GetSize(); i++) {
 		JsonObject object = json.createNestedObject();
 
-//		object["name"] = ptriggerfactories->GetAt(i)->name;
+    	object["name"] = ptriggerfactories->GetAt(i)->name;
 	}
 	JsonObject object = json.createNestedObject();
 

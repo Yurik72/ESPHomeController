@@ -13,6 +13,7 @@
 #include <ESPAsyncWebServer.h>
 //#include "esp_wps.h"
 bool shouldReboot = false;
+bool* pExternReboot = NULL;
 ESPAsyncHTTPUpdateServer::ESPAsyncHTTPUpdateServer(bool serial_debug)
 {
 	_serial_output = serial_debug;
@@ -21,7 +22,9 @@ ESPAsyncHTTPUpdateServer::ESPAsyncHTTPUpdateServer(bool serial_debug)
 	_password = NULL;
 	_authenticated = false;
 }
-
+void ESPAsyncHTTPUpdateServer::setExternRebootFlag(bool *pb) {
+	pExternReboot = pb;
+}
 void ESPAsyncHTTPUpdateServer::setup(AsyncWebServer& server, const char * path, const char * username, const char * password)
 {
 	
@@ -36,8 +39,13 @@ void ESPAsyncHTTPUpdateServer::setup(AsyncWebServer& server, const char * path, 
 		AsyncWebServerResponse *response = request->beginResponse(200, "text/plain", shouldReboot ? "OK" : "FAIL");
 		response->addHeader("Connection", "close");
 		request->send(response);
-		if (shouldReboot)
-			ESP.restart();
+		if (shouldReboot) {
+			if (pExternReboot) {
+				*pExternReboot = true;
+			}
+			else
+				ESP.restart();
+		}
 	}, [](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
 		if (!index) {
 			Serial.printf("Update Start: %s\n", filename.c_str());

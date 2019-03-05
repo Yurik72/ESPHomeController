@@ -14,6 +14,7 @@
 #define SETUP_FILEHANDLES   server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html"); \
 						server.on("/browse", handleFileBrowser); \
 server.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request) { request->send(200, "text/plain", ""); }, handleFileUpload); \
+server.on("/reboot", handleReboot); \
 server.on("/jsonsave", handleJsonSave); \
  server.onNotFound(onNotFoundRequest); \
 server.serveStatic("/", SPIFFS, "/www/").setCacheControl("max-age=600");\
@@ -22,10 +23,23 @@ setupself();
 
 File fsUploadFile;
 int uploadpos = 0;
-
+static bool* pExReboot = NULL;
+const char* szPlaintext = "text/plain";
 void setupself() {
 	DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
 	DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+	
+}
+static void setExternRebootFlag(bool *pb) {
+	pExReboot = pb;
+}
+void handleReboot(AsyncWebServerRequest *request) {
+	if (pExReboot) {
+		*pExReboot = true;
+		request->send(200, szPlaintext, "OK");
+	}
+	else
+		request->send(200, szPlaintext, "NOK");
 }
 unsigned char h2int(char c)
 {
@@ -163,9 +177,9 @@ void handleFileDeleteByName(AsyncWebServerRequest *request,String path) {
 		filetodel = "/" + filetodel;
 
 	if (!SPIFFS.exists(filetodel))
-		return request->send(404, "text/plain", "FileNotFound");
+		return request->send(404, szPlaintext, "FileNotFound");
 	SPIFFS.remove(filetodel);
-	request->send(200, "text/plain", "");
+	request->send(200, szPlaintext, "");
 
 }
 void handleFileDelete(AsyncWebServerRequest *request) {
@@ -231,7 +245,7 @@ void handleJsonSave(AsyncWebServerRequest *request)
 {
 
 	if (request->args() == 0)
-		return request->send(500, "text/plain", "BAD JsonSave ARGS");
+		return request->send(500, szPlaintext, F("BAD JsonSave ARGS"));
 
 	String fname = "/" + request->arg((size_t)0);
 	fname = urldecode(fname);
@@ -245,7 +259,7 @@ void handleJsonSave(AsyncWebServerRequest *request)
 		file.close();
 	}
 	else  //cant create file
-		return request->send(500, "text/plain", "JSONSave FAILED");
-	request->send(200, "text/plain", "");
+		return request->send(500, szPlaintext, F("JSONSave FAILED"));
+	request->send(200, szPlaintext, "");
 
 }

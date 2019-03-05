@@ -113,8 +113,8 @@ public:
   void          criticalLoop();
   String        infoAsString();
 
-  boolean       autoConnect();
-  boolean       autoConnect(char const *apName, char const *apPassword = NULL);
+  boolean       autoConnect(bool bstartConfig  = true);
+  boolean       autoConnect(char const *apName, char const *apPassword = NULL,bool bstartConfig =true);
 
   //if you want to always start the config portal, without trying to connect first
   boolean       startConfigPortal(char const *apName, char const *apPassword = NULL);

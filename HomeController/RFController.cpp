@@ -53,8 +53,10 @@ bool  RFController::deserializestate(String jsonstate, CmdSource src) {
 
 }
 void RFController::loadconfig(JsonObject& json) {
+	RF::loadconfig(json);
 	pin = json["pin"];
 	pinsend = json["sendpin"];
+	load_persist();
 }
 void RFController::getdefaultconfig(JsonObject& json) {
 	json["pin"] = pin;
@@ -120,14 +122,59 @@ void RFController::savepersist(RFState psstate) {
 	}
 	if (!exist) {
 		RFData dt(psstate);
+		String uname = String(millis());
+		strncpy(dt.name, uname.c_str(), RFDATANAME_MAXLEN);
 		this->persistdata.Add(dt);
 		this->saveperisttofile();
 	}
 
 	
 }
+String RFController::getfilename_data() {
+	String filename = this->get_name();
+	filename += "_data.json";
+	return filename;
+}
+void RFController::load_persist() {
+	
+	String filedata = readfile(getfilename_data().c_str());
+	int capacity = JSON_ARRAY_SIZE(8) + 2 * JSON_OBJECT_SIZE(20) + 262;
+	DynamicJsonDocument jsonBuffer(capacity);
+	DeserializationError error = deserializeJson(jsonBuffer, filedata);
+	JsonArray arr = jsonBuffer.as<JsonArray>();
+	for (int i = 0; i < arr.size(); i++) {
+		RFData dt;
+		const char * szName=arr[i]["name"].as<char*>();
+		strncpy(dt.name, szName, RFDATANAME_MAXLEN);
+		dt.token= arr[i]["token"];;
+		dt.len = arr[i]["len"];;
+		dt.protocol = arr[i]["protocol"];;
+		dt.pulse = arr[i]["pulse"];;
+		this->persistdata.Add(dt);
+	}
+ }
+String RFController::string_rfdata() {
+	const size_t jsonsize = JSON_ARRAY_SIZE(this->persistdata.GetSize() + 1) + this->persistdata.GetSize()*JSON_OBJECT_SIZE(20);
+	DynamicJsonDocument jsonBuffer(jsonsize);
+	JsonArray json = jsonBuffer.to<JsonArray>();
+	for (uint8_t i = 0; i < this->persistdata.GetSize(); i++) {
+		JsonObject object = json.createNestedObject();
+		RFData dt = this->persistdata.GetAt(i);
+		object["name"] = dt.name;
+		object["token"] = dt.token;
+		object["len"] = dt.len;
+		object["protocol"] = dt.protocol;
+		object["pulse"] = dt.pulse;
+	}
+	String json_str;
+	json_str.reserve(2048);
+	serializeJson(json, json_str);
+
+	return json_str;
+}
 void RFController::saveperisttofile() {
 
+	savefile(getfilename_data().c_str(), this->string_rfdata());
 }
 
 void RFController::rfsend(RFState sendstate) {
@@ -140,4 +187,50 @@ void RFController::rfsend(RFState sendstate) {
 	this->pSwitch->send(sendstate.rftoken, sendstate.rfdatalen);
 	delay(100);
 	this->pSwitch->disableTransmit();
+}
+RFData* RFController::getdata_byname(String& name) {
+	for (int i = 0;i < this->persistdata.GetSize();i++)
+		if (name == this->persistdata.GetAt(i).name)
+			return &this->persistdata.GetAt(i);
+	return NULL;
+}
+void RFController::setuphandlers(AsyncWebServer& server) {
+
+
+	String path = "/";
+	path += this->get_name();
+	path += String("/get_data");
+	RFController* self = this;
+	server.on(path.c_str(), HTTP_GET, [self](AsyncWebServerRequest *request) {
+		// DBG_OUTPUT_PORT.println("get modes request");
+		DBG_OUTPUT_PORT.println(ESP.getFreeHeap());
+		AsyncWebServerResponse *response = request->beginResponse(200, "application/json",
+			self->string_rfdata().c_str());
+		
+		request->send(response);
+		DBG_OUTPUT_PORT.println(ESP.getFreeHeap());
+		
+	});
+	path = "/";
+	path += this->get_name();
+	path += String("/send");
+	server.on(path.c_str(), HTTP_GET, [self](AsyncWebServerRequest *request) {
+		DBG_OUTPUT_PORT.println("RF Controller send");
+		if (!request->hasArg("name"))
+			return request->send(500, "text/plain", "BAD ARGS");
+		String name = request->arg("name");
+		RFData* pData =self->getdata_byname(name);
+		if(!pData)
+			return request->send(500, "text/plain", "NOT EXIST");
+		command cmd;
+		pData->SetState(cmd.state);
+		self->AddCommand(cmd.state, Send, srcUserAction);
+		AsyncWebServerResponse *response = request->beginResponse(200, "text/plain", name);
+
+		request->send(response);
+		
+
+	});
+
+
 }

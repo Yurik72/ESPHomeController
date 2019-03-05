@@ -1,4 +1,5 @@
-#if !defined(ESP8266)
+#include "config.h"
+#if !defined(ESP8266) &&  !defined(ASYNC_WEBSERVER)
 #include <Arduino.h>
 #include <WiFiClient.h>
 #include <WiFiServer.h>
@@ -45,6 +46,7 @@ static const char serverIndex[] PROGMEM =
 "});"
 "});"
 "</script>";
+bool* pExternReboot = NULL;
 ESP32HTTPUpdateServer::ESP32HTTPUpdateServer(bool serial_debug)
 {
   _serial_output = serial_debug;
@@ -53,7 +55,9 @@ ESP32HTTPUpdateServer::ESP32HTTPUpdateServer(bool serial_debug)
   _password = NULL;
   _authenticated = false;
 }
-
+void ESP32HTTPUpdateServer::setExternRebootFlag(bool *pb) {
+	pExternReboot = pb;
+}
 void ESP32HTTPUpdateServer::setup(WebServer *server, const char * path, const char * username, const char * password)
 {
     _server = server;

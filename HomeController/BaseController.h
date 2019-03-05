@@ -151,6 +151,7 @@ enum CmdSource
 	srcRestore=4,
 	srcPowerOn=5,
 	srcSmooth=6,
+	srcUserAction=7
 };
 enum BaseCMD :uint {
 	BaseOn=1,

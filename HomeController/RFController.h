@@ -22,12 +22,18 @@ struct RFState
 
 struct RFData {
 public:
-	RFData() {};
-	RFData(RFState& state) {
+	RFData() { memset(this->name, 0, RFDATANAME_MAXLEN); };
+	RFData(RFState& state): RFData() {
 		this->token = state.rftoken;
 		this->protocol = state.rfprotocol;
 		this->len = state.rfdatalen;
 		this->pulse = state.rfdelay;
+	}
+	void SetState(RFState& state) {
+		 state.rftoken= this->token;
+		 state.rfprotocol = this->protocol;
+		 state.rfdatalen=this->len ;
+		 state.rfdelay =this->pulse ;
 	}
 	long token = 0;
 	int protocol = 1;
@@ -50,9 +56,15 @@ public:
 	void loadconfig(JsonObject& json);
 	virtual void getdefaultconfig(JsonObject& json);
 	virtual void run();
+	virtual void setuphandlers(AsyncWebServer& server);
+
 	void rfsend(RFState sendstate);
 	void savepersist(RFState psstate);
+	RFData* getdata_byname(String& name);
+	String string_rfdata();
 	void saveperisttofile();
+	void load_persist();
+	String getfilename_data();
 protected:
 	uint pin;
 	uint pinsend;
