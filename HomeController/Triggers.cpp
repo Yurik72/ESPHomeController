@@ -464,6 +464,7 @@ void LDRToRelay::loadconfig(JsonObject& json) {
 
 RFToRelay::RFToRelay() {
 	this->last_tick = 0;
+	this->last_token = 0;
 	this->delaywait = 300;
 }
 void RFToRelay::loadconfig(JsonObject& json) {
@@ -486,20 +487,22 @@ void RFToRelay::handleloopsvc(RFController* ps, RelayController* pd) {
 
 
 	RFState rfstate = ps->get_state();
-	if (this->last_tick == rfstate.timetick) {
+	if (this->last_tick == rfstate.timetick) { ///simple ignore, not new data
 
 		return;
 	}
-#ifdef	RF_TRIGGER_DEBUG
-	DBG_OUTPUT_PORT.println(F("RFToRelay detected new tick"));
-#endif 
-	if (this->delaywait && (this->last_tick + this->delaywait) < millis())
+
+	if (this->delaywait > 0 && this->last_token == rfstate.rftoken && (this->last_tick + this->delaywait) > millis()) {
+		//TO DO implement continues pressing
+		this->last_tick = rfstate.timetick;
 		return;    //ignoring duplicate
+	}
 #ifdef	RF_TRIGGER_DEBUG
-	DBG_OUTPUT_PORT.println(F("RFToRelay continue with new token"));
+	DBG_OUTPUT_PORT.println("RFToRelay continue with new token");
 #endif 
 	this->last_tick = rfstate.timetick;
-	return;
+	this->last_token = rfstate.rftoken;
+//	return;
 	for (int i = 0;i < this->rfs.GetSize();i++) {
 		RFRecord& rec = this->rfs.GetAt(i);
 		if (rec.token == rfstate.rftoken)

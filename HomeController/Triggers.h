@@ -174,6 +174,7 @@ protected:
 
 private:
 	long last_tick;
+	long last_token;
 	CSimpleArray<RFRecord> rfs;
 	long delaywait;
 };

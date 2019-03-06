@@ -30,7 +30,7 @@
 //#define TIMECONTROLLER_DEBUG  //debug timecontroller output enable
 //#define LDRCONTROLLER_DEBUG  //debug timecontroller output enable
 //#define BMECONTROLLER_DEBUG    //debug bme280controller output enable
-#define RF_TRIGGER_DEBUG         //debug rf trigger
+//#define RF_TRIGGER_DEBUG         //debug rf trigger
 //#define FACTORY_DEBUG
 //#define RFCONTROLLER_DEBUG
 const char name_localhost_host[] = "localhost";
