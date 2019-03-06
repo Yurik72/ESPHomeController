@@ -20,7 +20,7 @@ void ICACHE_FLASH_ATTR Factories::registerController(const __FlashStringHelper* 
 	if (!pctlfactories)
 		pctlfactories = new CSimpleArray<ControllerRecord*>();
 
-	ControllerRecord* prec = new ControllerRecord(name, factory);
+	ControllerRecord* prec = new ControllerRecord(name, factory,f);
 	pctlfactories->Add(prec);
 
 };
@@ -29,7 +29,7 @@ void ICACHE_FLASH_ATTR Factories::registerTrigger(const __FlashStringHelper* nam
 	//DBG_OUTPUT_PORT.print("registerTrigger");
 	if (!ptriggerfactories)
 		ptriggerfactories = new CSimpleArray<TriggerRecord*>();
-	TriggerRecord* prec = new TriggerRecord(name, factory);
+	TriggerRecord* prec = new TriggerRecord(name, factory,f);
 	ptriggerfactories->Add(prec);
 };
 ControllerFactory* ICACHE_FLASH_ATTR Factories::get_ctlfactory(const  String& name) {
@@ -43,21 +43,38 @@ ControllerFactory* ICACHE_FLASH_ATTR Factories::get_ctlfactory(const  String& na
 	
 };
 CBaseController* ICACHE_FLASH_ATTR Factories::CreateController(const  String& name) {
-	if (!pctlfactories)
+#ifdef FACTORY_DEBUG
+	DBG_OUTPUT_PORT.print("CreateController ->");
+	DBG_OUTPUT_PORT.println(name);
+#endif
+	if (!pctlfactories) {
+#ifdef FACTORY_DEBUG
+		DBG_OUTPUT_PORT.println("factories is not defined");
 		return NULL;
+#endif
+	}
 	for (int i = 0;i < pctlfactories->GetSize();i++)
 		//if (pctlfactories->GetAt(i)->name == name)
 		if (strcmp_P(name.c_str(), (PGM_P)pctlfactories->GetAt(i)->name) == 0) {
+#ifdef FACTORY_DEBUG
+			DBG_OUTPUT_PORT.println("Factory found");
+#endif
 			ControllerRecord* pRec = pctlfactories->GetAt(i);
 			if (pRec->f) {
+#ifdef FACTORY_DEBUG
+				DBG_OUTPUT_PORT.println("using functions");
+#endif
 				return pRec->f();
 			}
+#ifdef FACTORY_DEBUG
+			DBG_OUTPUT_PORT.println("using class factory method");
+#endif
 			return pRec->pCtl->create();
 		}
 	return NULL;
 }
-
-void  Factories::Trace() {
+/*
+void  ICACHE_FLASH_ATTR Factories::Trace() {
 	
 	DBG_OUTPUT_PORT.print("Factory size: ");
 	if (pctlfactories)
@@ -67,6 +84,7 @@ void  Factories::Trace() {
 //		DBG_OUTPUT_PORT.println(Factories::ctlfactories.GetAt(i)->name);
 			
 };
+*/
 TriggerFactory* ICACHE_FLASH_ATTR Factories::get_triggerfactory(const  String& name) {
 	if (!ptriggerfactories) {
 		DBG_OUTPUT_PORT.println("Factories not created");

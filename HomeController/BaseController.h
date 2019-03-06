@@ -72,7 +72,7 @@ public:
 	static Trigger* CreateTrigger(const  String& name);
 	static  String string_controllers(void);
 	static  String string_triggers(void);
-	static  void  Trace();
+	//static  void  Trace();
 
 	
 };

@@ -115,7 +115,7 @@ bool ICACHE_FLASH_ATTR readConfigFS() {
 
 	return false;
 }
-String getFormattedTime(time_t tt) {
+String ICACHE_FLASH_ATTR getFormattedTime(time_t tt) {
 
 	unsigned long hours = (tt % 86400L) / 3600;
 	String hoursStr = hours < 10 ? "0" + String(hours) : String(hours);
@@ -137,7 +137,7 @@ unsigned long GetMinutes(time_t tt) {
 time_t apply_hours_minutes_fromhhmm(time_t src, int hhmm, long offs) {
 	return apply_hours_minutes(src, hhmm / 100, hhmm % 100, offs);
 }
-time_t apply_hours_minutes(time_t src, int h, int m,long offs) {
+time_t ICACHE_FLASH_ATTR apply_hours_minutes(time_t src, int h, int m,long offs) {
 
 	struct tm *tminfo;
 	tminfo = localtime(&src);
@@ -148,7 +148,7 @@ time_t apply_hours_minutes(time_t src, int h, int m,long offs) {
 	
 	return mklocaltime(tminfo,offs);
 }
-time_t	mklocaltime(struct tm *_timeptr, long offs) {
+time_t	 mklocaltime(struct tm *_timeptr, long offs) {
 	return mktime(_timeptr) + offs;
 }
 uint32_t Color(uint8_t r, uint8_t g, uint8_t b) {
@@ -159,7 +159,7 @@ uint32_t Color(uint8_t r, uint8_t g, uint8_t b) {
 // hue must be a float value between 0 and 360
 // saturation must be a float value between 0 and 1
 // brightness must be a float value between 0 and 1
-uint32_t HSVColor(float h, float s, float v) {
+uint32_t  HSVColor(float h, float s, float v) {
 
 	h = constrain(h, 0, 360);
 	s = constrain(s, 0, 1);
