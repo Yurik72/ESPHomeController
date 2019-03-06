@@ -280,6 +280,7 @@ bool ICACHE_FLASH_ATTR savefile(const char* filename, String data) {
 		file.close();
 		return true;
 	}
+	DBG_OUTPUT_PORT.println("Failed to save file" );
 	return false;
 }
 

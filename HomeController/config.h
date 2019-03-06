@@ -32,6 +32,7 @@
 //#define BMECONTROLLER_DEBUG    //debug bme280controller output enable
 //#define RF_TRIGGER_DEBUG         //debug rf trigger
 //#define FACTORY_DEBUG
+//#define RFCONTROLLER_DEBUG
 const char name_localhost_host[] = "localhost";
 const char name_mqtt_host[] = "mqtt_host";
 const char name_mqtt_port[] = "mqtt_port";

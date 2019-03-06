@@ -25,6 +25,9 @@ String  RFController::serializestate() {
 	root["isReceive"] = this->get_state().isReceive;
 	root["isSend"] = this->get_state().isSend;
 	root["rftoken"] = this->get_state().rftoken;
+	root["rfprotocol"] = this->get_state().rfprotocol;
+	root["rfdatalen"] = this->get_state().rfdatalen;
+	root["rfdelay"] = this->get_state().rfdelay;
 	root["timetick"] = this->get_state().timetick;
 	String json;
 	json.reserve(64);
@@ -56,6 +59,9 @@ void RFController::loadconfig(JsonObject& json) {
 	RF::loadconfig(json);
 	pin = json["pin"];
 	pinsend = json["sendpin"];
+#ifdef	RFCONTROLLER_DEBUG
+	DBG_OUTPUT_PORT.println("RF loadconfig");
+#endif
 	load_persist();
 }
 void RFController::getdefaultconfig(JsonObject& json) {
@@ -75,7 +81,7 @@ void  RFController::setup() {
 }
 
 void RFController::run() {
-	bool savepersist = this->store_recdata;
+	bool savepersist = false;
 
 	if (this->pSwitch->available()) {
 		command newcmd;
@@ -92,7 +98,10 @@ void RFController::run() {
 		//output(mySwitch.getReceivedValue(), mySwitch.getReceivedBitlength(), mySwitch.getReceivedDelay(), mySwitch.getReceivedRawdata(), mySwitch.getReceivedProtocol());
 		this->AddCommand(newcmd.state, newcmd.mode, srcSelf);
 		this->pSwitch->resetAvailable();
-		savepersist &= true;
+		savepersist = this->store_recdata;
+#ifdef	RFCONTROLLER_DEBUG
+		DBG_OUTPUT_PORT.println("RF DataReceived");
+#endif
 	}
 	command cmd;
 	while (commands.Dequeue(&cmd)) {
@@ -113,6 +122,10 @@ void RFController::run() {
 
 }
 void RFController::savepersist(RFState psstate) {
+#ifdef	RFCONTROLLER_DEBUG
+	DBG_OUTPUT_PORT.println("RF savepersist");
+
+#endif
 	bool exist = false;
 	for (int i = 0;i < this->persistdata.GetSize();i++) {
 		if (this->persistdata.GetAt(i).token == psstate.rftoken) {
@@ -121,6 +134,9 @@ void RFController::savepersist(RFState psstate) {
 		}
 	}
 	if (!exist) {
+#ifdef	RFCONTROLLER_DEBUG
+		DBG_OUTPUT_PORT.println("RF savepersist to file");
+#endif
 		RFData dt(psstate);
 		String uname = String(millis());
 		strncpy(dt.name, uname.c_str(), RFDATANAME_MAXLEN);
@@ -131,16 +147,24 @@ void RFController::savepersist(RFState psstate) {
 	
 }
 String RFController::getfilename_data() {
-	String filename = this->get_name();
+	String filename ="/";
+	filename +=	this->get_name();
 	filename += "_data.json";
 	return filename;
 }
 void RFController::load_persist() {
-	
+#ifdef	RFCONTROLLER_DEBUG
+	DBG_OUTPUT_PORT.println("RF load_persist");
+#endif
 	String filedata = readfile(getfilename_data().c_str());
 	int capacity = JSON_ARRAY_SIZE(8) + 2 * JSON_OBJECT_SIZE(20) + 262;
 	DynamicJsonDocument jsonBuffer(capacity);
 	DeserializationError error = deserializeJson(jsonBuffer, filedata);
+	if (error) {
+		DBG_OUTPUT_PORT.print("RF load_persist error");
+		DBG_OUTPUT_PORT.println(error.c_str());
+		return ;
+	}
 	JsonArray arr = jsonBuffer.as<JsonArray>();
 	for (int i = 0; i < arr.size(); i++) {
 		RFData dt;
@@ -152,11 +176,21 @@ void RFController::load_persist() {
 		dt.pulse = arr[i]["pulse"];;
 		this->persistdata.Add(dt);
 	}
+#ifdef	RFCONTROLLER_DEBUG
+	DBG_OUTPUT_PORT.print("RF persist loaded count->");
+	DBG_OUTPUT_PORT.println(this->persistdata.GetSize());
+#endif
  }
 RFData RFController::deserializeRFData(String strdata) {
 	const size_t jsonsize = JSON_OBJECT_SIZE(40);
 	DynamicJsonDocument jsonBuffer(jsonsize);
 	DeserializationError error = deserializeJson(jsonBuffer, strdata);
+	if (error) {
+		DBG_OUTPUT_PORT.print("deserializeRFData error");
+		DBG_OUTPUT_PORT.println(error.c_str());
+		RFData empty;
+		return empty;
+	}
 	JsonObject json = jsonBuffer.as<JsonObject>();
 	return deserializeRFData(json);
 }
@@ -205,7 +239,11 @@ String RFController::string_rfdata() {
 	return json_str;
 }
 void RFController::saveperisttofile() {
-
+#ifdef	RFCONTROLLER_DEBUG
+	DBG_OUTPUT_PORT.println("RF saveperisttofile()");
+	DBG_OUTPUT_PORT.println(getfilename_data());
+	DBG_OUTPUT_PORT.println(this->string_rfdata());
+#endif
 	savefile(getfilename_data().c_str(), this->string_rfdata());
 }
 
