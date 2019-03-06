@@ -23,7 +23,7 @@ class Services extends React.Component {
         //to do further ask esp...
         this.servicelist = "RelayController,TimeController,RGBStripController,LDRController,BME280Controller".split(",");
         //const { compprops } = props;
-        this.state = {services:[]};
+        this.state = { services: [], servicelist: this.servicelist};
 
         this.handleChange = (idx) => event => {
             //alert(idx);
@@ -50,6 +50,10 @@ class Services extends React.Component {
     componentDidMount() {
         const { servicedata } = this.props;
         this.setState({ services: servicedata });
+        doFetch(getBaseuri() + "/get_availablecontrollers", (data) => {
+            var lst = data.reduce((acc, item) => { acc.push(item.name); return acc; }, []);
+            this.setState({ servicelist: lst });
+        });
     }
     doSave(e) {
         e.preventDefault();
@@ -173,7 +177,7 @@ class Services extends React.Component {
                                             defaultValue="" required style={{ display: 'block' }}>
                                             <option key={"t"} value="" disabled>Select below</option>
                                             {
-                                                this.servicelist.map((it, idx) => {
+                                                this.state.servicelist.map((it, idx) => {
                                                     return (
                                                         <option key={"t"+idx}  value={it} >{it}</option>
                                                         )

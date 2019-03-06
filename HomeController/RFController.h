@@ -65,6 +65,9 @@ public:
 	void saveperisttofile();
 	void load_persist();
 	String getfilename_data();
+	static RFData deserializeRFData(JsonObject& json);
+	static RFData deserializeRFData(String strdata);
+	static String serializeRFData(RFData data);
 protected:
 	uint pin;
 	uint pinsend;

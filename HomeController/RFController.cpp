@@ -153,8 +153,40 @@ void RFController::load_persist() {
 		this->persistdata.Add(dt);
 	}
  }
+RFData RFController::deserializeRFData(String strdata) {
+	const size_t jsonsize = JSON_OBJECT_SIZE(40);
+	DynamicJsonDocument jsonBuffer(jsonsize);
+	DeserializationError error = deserializeJson(jsonBuffer, strdata);
+	JsonObject json = jsonBuffer.as<JsonObject>();
+	return deserializeRFData(json);
+}
+RFData RFController::deserializeRFData(JsonObject& json) {
+	RFData dt;
+	const char * szName = json["name"].as<char*>();
+	strncpy(dt.name, szName, RFDATANAME_MAXLEN);
+	dt.token = json["token"];;
+	dt.len = json["len"];;
+	dt.protocol = json["protocol"];;
+	dt.pulse = json["pulse"];
+	return dt;
+}
+String RFController::serializeRFData(RFData data) {
+	const size_t jsonsize = JSON_OBJECT_SIZE(40);
+	DynamicJsonDocument jsonBuffer(jsonsize);
+	JsonObject root = jsonBuffer.to<JsonObject>();
+	root["token"] = data.token;
+	root["name"] = data.name;
+	root["len"] = data.len;
+	root["protocol"] = data.protocol;
+	root["pulse"] = data.pulse;
+	String json;
+	json.reserve(40);
+	serializeJson(root, json);
+
+	return json;
+}
 String RFController::string_rfdata() {
-	const size_t jsonsize = JSON_ARRAY_SIZE(this->persistdata.GetSize() + 1) + this->persistdata.GetSize()*JSON_OBJECT_SIZE(20);
+	const size_t jsonsize = JSON_ARRAY_SIZE(this->persistdata.GetSize() + 1) + this->persistdata.GetSize()*JSON_OBJECT_SIZE(40);
 	DynamicJsonDocument jsonBuffer(jsonsize);
 	JsonArray json = jsonBuffer.to<JsonArray>();
 	for (uint8_t i = 0; i < this->persistdata.GetSize(); i++) {
@@ -178,16 +210,25 @@ void RFController::saveperisttofile() {
 }
 
 void RFController::rfsend(RFState sendstate) {
+	RFState tosend = sendstate;
+	if (tosend.rfprotocol == 0)
+		tosend.rfprotocol = 1;
+	if (tosend.rfdelay == 0)
+		tosend.rfdelay = 232;
+	if (tosend.rfdatalen == 0)
+		tosend.rfdatalen = 24;
 	this->pSwitch->enableTransmit(this->pinsend);
 
-	this->pSwitch->setPulseLength(sendstate.rfdatalen);
+	this->pSwitch->setPulseLength(tosend.rfdelay);
 
 	// Optional set protocol (default is 1, will work for most outlets)
-	this->pSwitch->setProtocol(sendstate.rfprotocol);
-	this->pSwitch->send(sendstate.rftoken, sendstate.rfdatalen);
+
+	this->pSwitch->setProtocol(tosend.rfprotocol);
+	this->pSwitch->send(tosend.rftoken, tosend.rfdatalen);
 	delay(100);
 	this->pSwitch->disableTransmit();
 }
+
 RFData* RFController::getdata_byname(String& name) {
 	for (int i = 0;i < this->persistdata.GetSize();i++)
 		if (name == this->persistdata.GetAt(i).name)

@@ -35,7 +35,13 @@ class RFRecord extends React.Component {
             }
             else {
                 console.log("done");
-                this.onChangeVal({ rfkey: this.state.selector.shift().rftoken})
+                const rfdata = this.state.selector.shift();
+                this.onChangeVal({
+                    token: rfdata.rftoken,
+                    len: rfdata.rfdatalen,
+                    pulse: rfdata.rfdelay,
+                    protocol: rfdata.rfprotocol
+                })
               
             }
         };
@@ -84,12 +90,32 @@ class RFRecord extends React.Component {
                     }
                 </Row>
                 <Row>
-                    <Col num={4}>
+                    <Col num={2}>
                         <label htmlFor="rfkey" className="input-label" >RF KEY</label>
-                        <input name="rfkey" type="text" value={item.rfkey} name="color"
-                            onChange={ev => (this.onChangeVal({ rfkey: ev.target.value }))}
+                        <input name="rfkey" type="text" value={item.token} name="token"
+                            onChange={ev => (this.onChangeVal({ token: ev.target.value }))}
                         />
                     </Col>
+                    <Col num={2}>
+                        <label htmlFor="rfkey" className="input-label" >Protocol</label>
+                        <input name="rfkey" type="text" value={item.protocol} name="token"
+                            onChange={ev => (this.onChangeVal({ protocol: ev.target.value }))}
+                        />
+                    </Col>
+                    <Col num={2}>
+                        <label htmlFor="rfkey" className="input-label" >Length</label>
+                        <input name="rfkey" type="text" value={item.len} name="len"
+                            onChange={ev => (this.onChangeVal({ len: ev.target.value }))}
+                        />
+                    </Col>
+                    <Col num={2}>
+                        <label htmlFor="rfkey" className="input-label" >Pulse</label>
+                        <input name="rfkey" type="text" value={item.pulse} name="pulse"
+                            onChange={ev => (this.onChangeVal({ pulse: ev.target.value }))}
+                        />
+                    </Col>
+                </Row>
+                <Row>
                     <Col num={4}>
                         <Popup trigger={<Button className="left btn-small" label="Assign key" />}
                             onOpen={() => { this.activateAssignRFToken() }}

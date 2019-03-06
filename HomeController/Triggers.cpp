@@ -468,8 +468,10 @@ void RFToRelay::loadconfig(JsonObject& json) {
 		
 		rec.isOn = arr[i]["isOn"].as<bool>();
 		rec.isswitch = arr[i]["isswitch"].as<bool>();
-		rec.rfkey = arr[i]["rfkey"].as<long>();
-
+		rec.token = arr[i]["token"].as<long>();
+		rec.len = arr[i]["len"];;
+		rec.protocol = arr[i]["protocol"];
+		rec.pulse = arr[i]["pulse"];
 		rfs.Add(rec);
 	}
 }
@@ -487,7 +489,7 @@ void RFToRelay::handleloopsvc(RFController* ps, RelayController* pd) {
 	this->last_tick = rfstate.timetick;
 	for (int i = 0;i < this->rfs.GetSize();i++) {
 		RFRecord& rec = this->rfs.GetAt(i);
-		if (rec.rfkey == rfstate.rftoken)
+		if (rec.token == rfstate.rftoken)
 			this->processrecord(rec, pd);
 	}
 

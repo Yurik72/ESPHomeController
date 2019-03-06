@@ -2,7 +2,7 @@ import React from "react";
 import RGBTimeRecord from "./RGBTimeRecord"
 import Button from "./Button"
 import Popup from "reactjs-popup";
-import { getBaseuri } from "./utils"
+import { getBaseuri, doFetch } from "./utils"
 import ColorStatus from "./ColorStatus"
 import ItemSelector from "./ItemSelector"
 import Arrow from "./Arrow"
@@ -28,12 +28,10 @@ const InpText = (props) => {
 class Triggers extends React.Component {
     constructor(props) {
         super(props);
+        this.triggerlist = "TimeToRGBStrip,LDRToRGBStrip,TimeToRelay,RFToRelay".split(",");
 
-        //const { triggedata, servicedata } = props;
-        //console.log("Triggers constructor");
-        ///console.log(props);
-        //this.triggers = triggedata;
-        this.state = {};
+
+        this.state = { triggerlist: this.triggerlist, triggers: [], services:[]};
         const { triggedata, servicedata } = props;
         ///only test purpose !
         this.setState({ triggers: triggedata, services: servicedata });
@@ -55,6 +53,11 @@ class Triggers extends React.Component {
     componentDidMount() {
         const { servicedata, triggedata } = this.props;
         this.setState({ triggers: triggedata, services: servicedata });
+
+        doFetch(getBaseuri() + "/get_availabletriggers", (data) => {
+            var lst = data.reduce((acc, item) => { acc.push(item.name); return acc; }, []);
+            this.setState({ triggerlist: lst });
+        });
     }
     componentWillReceiveProps(nextProps) {
         console.log("Triggers componentWillReceiveProps");
@@ -372,11 +375,14 @@ class Triggers extends React.Component {
                                             onChange={(ev) => this.handleselectchange(ev, close)}
                                             defaultValue="" required style={{ display: 'block' }}>
                                             <option value="" disabled>select type service below</option>
-                                            <option value="TimeToRGBStrip" >TimeToRGBStrip</option>
-                                            <option value="LDRToRGBStrip" >LDRToRGBStrip</option>
-                                            <option value="TimeToRelay" >TimeToRelay</option>
-                                            
-                                        </select>
+                                            {this.state.triggerlist.map((item, idx) => {
+                                                return (
+                                                    <option value={item} >{item}</option>
+                                                    )
+
+                                            })}
+                                           
+                                         </select>
                                     </div>
 
                                 </div>

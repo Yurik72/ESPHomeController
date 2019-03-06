@@ -5,6 +5,7 @@
 #include <ArduinoJson.h>
 #include "Array.h"
 #include "BaseController.h"
+#include "RFController.h"
 
 #define NEXT_DAY_SEC (1 * 24 * 60 * 60)
 #define SEC_TOLLERANCE 1200  //2 min
@@ -157,8 +158,8 @@ private:
 	short valueOff;
 };
 
-struct RFRecord {
-	long rfkey = -1;
+struct RFRecord:public RFData {
+	
 	bool isswitch = true;
 	bool isOn = true;
 };
