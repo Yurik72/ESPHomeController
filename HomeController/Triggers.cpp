@@ -76,6 +76,7 @@ void Triggers::loadconfig() {
 void Trigger::handleloop(CBaseController*pBase, Controllers* pctls) {
 	//DBG_OUTPUT_PORT.print("triggers handle loop");
 	//DBG_OUTPUT_PORT.println("Base Trigger handle loop");
+	//delay(1000);
 }
 
 void Trigger::loadconfig(JsonObject& json) {
@@ -85,13 +86,19 @@ void Trigger::loadconfig(JsonObject& json) {
 
 }
 Trigger* Triggers::CreateByType(const char* nametype) {
+	DBG_OUTPUT_PORT.println(F("Triggers::CreateByType"));
+	DBG_OUTPUT_PORT.println(nametype);
 	Trigger* pTrigger = Factories::CreateTrigger(nametype);
 	if (pTrigger == NULL) {
-		DBG_OUTPUT_PORT.println("TriggerFactory not defined");
+		DBG_OUTPUT_PORT.println(F("Trigger not created, trying with Trigger at endd "));
 		pTrigger = Factories::CreateTrigger(String(nametype) + String("Trigger"));
 		if (pTrigger)
 			return pTrigger;
 	}
+	else {
+		return pTrigger;
+	}
+	DBG_OUTPUT_PORT.println(F("Creating base trigger,something wrong !!"));
 	/*
 	TriggerFactory* pFactory = Factories::get_triggerfactory(nametype);
 	if (!pFactory) {
@@ -467,7 +474,7 @@ void RFToRelay::loadconfig(JsonObject& json) {
 		JsonObject json = arr[i];
 		
 		rec.isOn = arr[i]["isOn"].as<bool>();
-		rec.isswitch = arr[i]["isswitch"].as<bool>();
+		rec.isswitch = arr[i]["isSwitch"].as<bool>();
 		rec.token = arr[i]["token"].as<long>();
 		rec.len = arr[i]["len"];;
 		rec.protocol = arr[i]["protocol"];
@@ -476,17 +483,23 @@ void RFToRelay::loadconfig(JsonObject& json) {
 	}
 }
 void RFToRelay::handleloopsvc(RFController* ps, RelayController* pd) {
-	
+
 
 	RFState rfstate = ps->get_state();
-	if (this->last_tick == rfstate.timetick)
+	if (this->last_tick == rfstate.timetick) {
+
 		return;
+	}
+#ifdef	RF_TRIGGER_DEBUG
+	DBG_OUTPUT_PORT.println(F("RFToRelay detected new tick"));
+#endif 
 	if (this->delaywait && (this->last_tick + this->delaywait) < millis())
 		return;    //ignoring duplicate
 #ifdef	RF_TRIGGER_DEBUG
-	DBG_OUTPUT_PORT.println("RFToRelay detected new value");
+	DBG_OUTPUT_PORT.println(F("RFToRelay continue with new token"));
 #endif 
 	this->last_tick = rfstate.timetick;
+	return;
 	for (int i = 0;i < this->rfs.GetSize();i++) {
 		RFRecord& rec = this->rfs.GetAt(i);
 		if (rec.token == rfstate.rftoken)
@@ -500,7 +513,7 @@ void RFToRelay::processrecord(RFRecord& rec, RelayController* pr) {
 	RelayState newState=pr->get_state();
 #ifdef	RF_TRIGGER_DEBUG
 	DBG_OUTPUT_PORT.print ("RFToRelay::processrecord with key");
-	DBG_OUTPUT_PORT.println(rec.rfkey);
+	DBG_OUTPUT_PORT.println(rec.token);
 #endif 
 	RelayCMD cmd = Set;
 	if (rec.isswitch) {

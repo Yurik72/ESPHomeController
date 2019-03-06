@@ -99,7 +99,7 @@ TriggerFactory* ICACHE_FLASH_ATTR Factories::get_triggerfactory(const  String& n
 };
  Trigger* ICACHE_FLASH_ATTR Factories::CreateTrigger(const  String& name) {
 	if (!ptriggerfactories) {
-	
+		DBG_OUTPUT_PORT.println(F("Trigger Factories not created"));
 		return NULL;
 	}
 
@@ -107,8 +107,10 @@ TriggerFactory* ICACHE_FLASH_ATTR Factories::get_triggerfactory(const  String& n
 		//if (ptriggerfactories->GetAt(i)->name == name)
 		if (strcmp_P(name.c_str(), (PGM_P)ptriggerfactories->GetAt(i)->name) == 0) {
 			TriggerRecord* pRec = ptriggerfactories->GetAt(i);
-			if (pRec->f)
+			if (pRec->f) {
+				DBG_OUTPUT_PORT.println(F("Trigger creation fron function pointer"));
 				return pRec->f();
+			}
 			return ptriggerfactories->GetAt(i)->pCtl->create();
 		}
 	return NULL;

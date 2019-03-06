@@ -91,6 +91,7 @@ void RFController::run() {
 		newcmd.state.rfdatalen = this->pSwitch->getReceivedBitlength();
 		newcmd.state.rfdelay = this->pSwitch->getReceivedDelay();
 		newcmd.state.timetick = millis();
+		newcmd.state.isReceive = true;
 		DBG_OUTPUT_PORT.print("RFController receive:");
 		DBG_OUTPUT_PORT.println(newcmd.state.rftoken);
 		
@@ -303,6 +304,7 @@ void RFController::setuphandlers(AsyncWebServer& server) {
 			return request->send(500, "text/plain", "NOT EXIST");
 		command cmd;
 		pData->SetState(cmd.state);
+		cmd.state.isSend = true;
 		self->AddCommand(cmd.state, Send, srcUserAction);
 		AsyncWebServerResponse *response = request->beginResponse(200, "text/plain", name);
 
