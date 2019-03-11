@@ -9,7 +9,7 @@
 #include <Adafruit_BME280.h>
 
 //REGISTER_CONTROLLER(BME280Controller)
-REGISTER_CONTROLLER_FACTORY(BME280Controller)
+//REGISTER_CONTROLLER_FACTORY(BME280Controller)
 
 //BME280ControllerFactory* ff = new BME280ControllerFactory();
 

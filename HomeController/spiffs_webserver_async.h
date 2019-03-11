@@ -15,6 +15,7 @@
 						server.on("/browse", handleFileBrowser); \
 server.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request) { request->send(200, "text/plain", ""); }, handleFileUpload); \
 server.on("/reboot", handleReboot); \
+server.on("/restartesp", handleReboot); \
 server.on("/jsonsave", handleJsonSave); \
  server.onNotFound(onNotFoundRequest); \
 server.serveStatic("/", SPIFFS, "/www/").setCacheControl("max-age=600");\
@@ -78,12 +79,12 @@ String urldecode(String input) // (based on https://code.google.com/p/avr-netino
 }
 void  onNotFoundRequest(AsyncWebServerRequest *request) {
 	//Handle Unknown Request
-	DBG_OUTPUT_PORT.println("On not found");
+	//DBG_OUTPUT_PORT.println("On not found");
 	DBG_OUTPUT_PORT.println(request->url());
 	String path = request->url();
 	
 	if (path.indexOf(".") == -1) { //some body asking non existing service. can happen as well with react routing
-		DBG_OUTPUT_PORT.println("redirecting to index");
+		//DBG_OUTPUT_PORT.println("redirecting to index");
 		request->send(SPIFFS, "/index.html", "text/html");
 		return;
 	}
@@ -169,7 +170,7 @@ void handleFileList(AsyncWebServerRequest *request) {
 
 	}
 void handleFileDeleteByName(AsyncWebServerRequest *request,String path) {
-	DBG_OUTPUT_PORT.println("handleFileDeleteByName: " + path);
+	//DBG_OUTPUT_PORT.println("handleFileDeleteByName: " + path);
 	if (path == "/")
 		return request->send(500, "text/plain", "BAD PATH");
 	String filetodel = path;
@@ -184,7 +185,7 @@ void handleFileDeleteByName(AsyncWebServerRequest *request,String path) {
 }
 void handleFileDelete(AsyncWebServerRequest *request) {
 	String path;
-	DBG_OUTPUT_PORT.println("handleFileDeleteByName start");
+	//DBG_OUTPUT_PORT.println("handleFileDeleteByName start");
 	if (request->args() == 0) return request->send(500, "text/plain", "BAD ARGS");
 	path = request->arg((size_t)0).c_str();
 	handleFileDeleteByName(request,path);
@@ -193,7 +194,7 @@ void handleFileDelete(AsyncWebServerRequest *request) {
 
 void handleFileUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
 	if (!index) {
-		DBG_OUTPUT_PORT.println("UploadStart ->: ");
+		//DBG_OUTPUT_PORT.println("UploadStart ->: ");
 
 		String filenameupl = filename;
 		uploadpos = 0;
@@ -217,7 +218,7 @@ void handleFileUpload(AsyncWebServerRequest *request, String filename, size_t in
 	if (final) {
 		if (fsUploadFile)
 			fsUploadFile.close();
-		DBG_OUTPUT_PORT.println("UploadEnd:");
+		//DBG_OUTPUT_PORT.println("UploadEnd:");
 	}
 }
 

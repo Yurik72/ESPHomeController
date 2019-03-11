@@ -7,7 +7,7 @@
 //#ifndef ESP8266   /// further solving factory
 //REGISTER_CONTROLLER(ButtonController)
 //#endif // !1
-REGISTER_CONTROLLER_FACTORY(ButtonController)
+//REGISTER_CONTROLLER_FACTORY(ButtonController)
 
 const size_t bufferSize = JSON_OBJECT_SIZE(10);
 
@@ -53,7 +53,7 @@ bool  ButtonController::deserializestate(String jsonstate, CmdSource src) {
 
 }
 void ButtonController::loadconfig(JsonObject& json) {
-	uint8_t mpin = json["pin"];
+	uint8_t mpin = json[FPSTR(szPinText)];
 	JsonArray arr = json["pins"].as<JsonArray>();
 	if (pin != 0) {
 		this->btncount = 1;
@@ -68,7 +68,7 @@ void ButtonController::loadconfig(JsonObject& json) {
 }
 
 void ButtonController::getdefaultconfig(JsonObject& json) {
-	json["pin"] = pin;
+	json[FPSTR(szPinText)] = pin;
 	json["service"] = "ButtonController";
 	json["name"] = "Button";
 	

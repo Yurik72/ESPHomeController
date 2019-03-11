@@ -35,14 +35,9 @@ public:
 	  CBaseController* create() { return NULL; };
 
 };
+
 class Trigger;
 
-class TriggerFactory
-{
-public:
-	 Trigger* create() { return NULL; };
-
-};
 typedef CBaseController*(*func_create_ctl)();
 typedef Trigger*(*func_create_trg)();
 template<class T,typename F>
@@ -58,18 +53,18 @@ struct CtlRecord {
 	F f;
 };
 typedef CtlRecord<ControllerFactory, func_create_ctl> ControllerRecord;
-typedef CtlRecord<TriggerFactory, func_create_trg> TriggerRecord;
+typedef CtlRecord<void, func_create_trg> TriggerRecord;
 class Factories
 {
 
 public:
 
-	static  void registerController(const __FlashStringHelper* name, ControllerFactory *factory, func_create_ctl f=NULL);
-	static  void registerTrigger(const __FlashStringHelper* name, TriggerFactory *factory, func_create_trg f=NULL);
-	static  ControllerFactory*  get_ctlfactory(const  String& name);
-	static  TriggerFactory* get_triggerfactory(const  String& name);
-	static CBaseController* CreateController(const  String& name);
-	static Trigger* CreateTrigger(const  String& name);
+	static  void ICACHE_FLASH_ATTR registerController(const __FlashStringHelper* name, ControllerFactory *factory, func_create_ctl f=NULL);
+	static  void ICACHE_FLASH_ATTR registerTrigger(const __FlashStringHelper* name, func_create_trg f=NULL);
+	static  ControllerFactory*  ICACHE_FLASH_ATTR get_ctlfactory(const  String& name);
+	/*static  TriggerFactory* ICACHE_FLASH_ATTR get_triggerfactory(const  String& name);*/
+	static CBaseController* ICACHE_FLASH_ATTR CreateController(const  String& name);
+	static Trigger* ICACHE_FLASH_ATTR CreateTrigger(const  String& name);
 	static  String string_controllers(void);
 	static  String string_triggers(void);
 	//static  void  Trace();
@@ -79,6 +74,7 @@ public:
 
 //extern CSimpleArray<ControllerRecord*> ctlfactories;
 #define REGISTER_CONTROLLER(cls)
+
 #define REGISTER_CONTROLLER_OLD(cls) \
     class cls##Factory : public ControllerFactory { \
     public: \
@@ -98,11 +94,11 @@ public:
 #define FPSTR_PLATFORM(s) FPSTR(s)
 #endif
 #define DEFINE_CONTROLLER_FACTORY(cls) \
-    class cls##Factory : public ControllerFactory { \
+    class cls##Factory /*: public ControllerFactory*/ { \
     public: \
         cls##Factory() \
         { \
-           Factories::registerController(FPSTR_PLATFORM(#cls), this,cls##Factory::raw_create); \
+           Factories::registerController(FPSTR_PLATFORM(#cls), NULL,cls##Factory::raw_create); \
         };\
         static CBaseController* ICACHE_FLASH_ATTR raw_create(){ \
 			return new cls(); \
@@ -111,20 +107,30 @@ public:
 
 #define REGISTER_CONTROLLER_FACTORY(cls) \
 static  cls##Factory global_##cls##Factory;
+template<class T>
+class TrgFactory {
+public:
+	static Trigger*  raw_create() {
+		{
+			
+			return NULL;//new T();
+		};
+	}
+};
 
 #define DEFINE_TRIGGER_FACTORY(trg) \
-    class trg##Factory : public TriggerFactory { \
-    public: \
+static Trigger* trg##Create();\
+class trg##Factory : public TrgFactory<trg>{ \
+public: \
         trg##Factory() \
         { \
-            Factories::registerTrigger(FPSTR_PLATFORM(#trg), this,trg##Factory::raw_create); \
+		  Factories::registerTrigger(FPSTR_PLATFORM(#trg),trg##Create); \
         }; \
-        static Trigger* ICACHE_FLASH_ATTR raw_create(){ \
-			return new trg(); \
-		}; \
-    }; 
+};
+
 
 #define REGISTER_TRIGGER_FACTORY(trg) \
+Trigger * ICACHE_FLASH_ATTR trg##Create() {return  new trg(); };\
 static trg##Factory global_##trg##Factory;
 
 #define REGISTER_TRIGGER(trg)
@@ -276,7 +282,7 @@ public:
 		commands.Add(cmd);
 		if (this->ispersiststate() && (src == srcState || src == srcMQTT)) {
 			command savecmd = {(M) BaseSaveState, state };
-			DBG_OUTPUT_PORT.println("AddCommand->SaveState");
+			//DBG_OUTPUT_PORT.println("AddCommand->SaveState");
 			commands.Add(savecmd);
 		}
 		return commands.GetSize();
@@ -347,13 +353,13 @@ public:
 			P saved = this->get_state();
 			this->set_prevstate(saved);
 			if (this->manualtime != 0) {
-				DBG_OUTPUT_PORT.println(this->get_name());
-				DBG_OUTPUT_PORT.print("Activate manual time");
+				//DBG_OUTPUT_PORT.println(this->get_name());
+				//DBG_OUTPUT_PORT.print("Activate manual time");
 				
 				this->mswhenrestore = millis() + this->manualtime * 1000;//wil be handled in next(if manualtime =0 , never)
-				DBG_OUTPUT_PORT.println(this->mswhenrestore);
-				DBG_OUTPUT_PORT.println("Current");
-				DBG_OUTPUT_PORT.println(millis());
+				//DBG_OUTPUT_PORT.println(this->mswhenrestore);
+				//DBG_OUTPUT_PORT.println("Current");
+				//DBG_OUTPUT_PORT.println(millis());
 				this->isrestoreactivated = true;
 			}
 		}
@@ -377,8 +383,8 @@ public:
 	virtual void set_power_on() {
 		CController<T, P, M>::set_power_on();
 		P current= this->get_state();
-		DBG_OUTPUT_PORT.print("set_power_on ->");
-		DBG_OUTPUT_PORT.println(this->get_name());
+		//DBG_OUTPUT_PORT.print("set_power_on ->");
+		//DBG_OUTPUT_PORT.println(this->get_name());
 		M val = (M)(int)BaseOn;
 		
 		this->AddCommand(current, val, srcPowerOn);

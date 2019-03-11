@@ -157,7 +157,7 @@ String getContentType(String filename) {
 }
 
 bool handleFileRead(String path) {
-	DBG_OUTPUT_PORT.println("handleFileRead: " + path);
+	//DBG_OUTPUT_PORT.println("handleFileRead: " + path);
 	if (path.endsWith("/")) path += "index.html";
 	if(path.indexOf(".")==-1) path += "index.html"; //some body asking non existing service. can happen as well with react routing
 	String contentType = getContentType(path);
@@ -237,7 +237,7 @@ bool handleFileDownload(const char* szName=NULL)
   return false;
 }
 void handleFileDeleteByName(String path) {
-  DBG_OUTPUT_PORT.println("handleFileDeleteByName: " + path);
+ // DBG_OUTPUT_PORT.println("handleFileDeleteByName: " + path);
   if (path == "/")
     return server.send(500, "text/plain", "BAD PATH");
   String filetodel= path;
@@ -252,7 +252,7 @@ void handleFileDeleteByName(String path) {
 }
 void handleFileDelete() {
   String path;
-  DBG_OUTPUT_PORT.println("handleFileDeleteByName start");
+  //DBG_OUTPUT_PORT.println("handleFileDeleteByName start");
  if (server.args() == 0) return server.send(500, "text/plain", "BAD ARGS");
  path = server.arg(0);
  handleFileDeleteByName(path);
@@ -263,7 +263,7 @@ void handleFileCreate() {
 	if (server.args() == 0)
 		return server.send(500, "text/plain", "BAD ARGS");
 	String path = server.arg(0);
-	DBG_OUTPUT_PORT.println("handleFileCreate: " + path);
+	//DBG_OUTPUT_PORT.println("handleFileCreate: " + path);
 	if (path == "/")
 		return server.send(500, "text/plain", "BAD PATH");
 	if (SPIFFS.exists(path))

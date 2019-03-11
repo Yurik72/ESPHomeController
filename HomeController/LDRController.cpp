@@ -50,7 +50,7 @@ void LDRController::loadconfig(JsonObject& json) {
 	pin = json["pin"];
 }
 void LDRController::getdefaultconfig(JsonObject& json) {
-	json["pin"] = pin;
+	json[FPSTR(szPinText)] = pin;
 	json["service"] = "LDRController";
 	json["name"] = "LDR";
 	LDR::getdefaultconfig(json);

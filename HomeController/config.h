@@ -18,7 +18,15 @@
 #define GET_STRINGLOG ESPLogger.LOG()
 #define GET_CONSTCHARGLOG ESPLogger.LOG().c_str()
 #endif
+#if defined(ESP8266)
+#define MAX_LDRVAL 1024
+#else
+#define MAX_LDRVAL 4095
 
+#endif
+
+
+static const char szPinText[] PROGMEM = "pin";
 
 #define CONFIG_PORTAL_TIMEOUT 600/// secs , to wait configuration has been done by user
 #define ASYNC_WEBSERVER    // !Important , this is switching between WebServer and AsyncWebserver.

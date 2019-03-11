@@ -4,7 +4,7 @@
 #include "RCSwitch.h"
 #include "RFController.h"
 
-REGISTER_CONTROLLER(RFController)
+//REGISTER_CONTROLLER(RFController)
 REGISTER_CONTROLLER_FACTORY(RFController)
 
 const size_t bufferSize = JSON_OBJECT_SIZE(5);
@@ -57,7 +57,7 @@ bool  RFController::deserializestate(String jsonstate, CmdSource src) {
 }
 void RFController::loadconfig(JsonObject& json) {
 	RF::loadconfig(json);
-	pin = json["pin"];
+	pin = json[FPSTR(szPinText)];
 	pinsend = json["sendpin"];
 #ifdef	RFCONTROLLER_DEBUG
 	DBG_OUTPUT_PORT.println("RF loadconfig");
@@ -65,7 +65,7 @@ void RFController::loadconfig(JsonObject& json) {
 	load_persist();
 }
 void RFController::getdefaultconfig(JsonObject& json) {
-	json["pin"] = pin;
+	json[FPSTR(szPinText)] = pin;
 	json["pinsend"] = pinsend;
 	json["service"] = "RFController";
 	json["name"] = "RF";

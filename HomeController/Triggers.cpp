@@ -36,11 +36,11 @@ void Triggers::setup() {
 
 }
 void Triggers::loadconfig() {
-	String filename = "/triggers.json";
+	String filename = F("/triggers.json");
 	int capacity = JSON_ARRAY_SIZE(5) + 2 * JSON_OBJECT_SIZE(40) + 262;
 	if (SPIFFS.exists(filename)) {
 		//file exists, reading and loading
-		DBG_OUTPUT_PORT.println("Read triggers configuration: ");
+		//DBG_OUTPUT_PORT.println("Read triggers configuration: ");
 		File configFile = SPIFFS.open(filename, "r");
 		if (configFile) {
 			DynamicJsonDocument jsonBuffer(capacity);
@@ -86,11 +86,13 @@ void Trigger::loadconfig(JsonObject& json) {
 
 }
 Trigger* Triggers::CreateByType(const char* nametype) {
-	DBG_OUTPUT_PORT.println(F("Triggers::CreateByType"));
-	DBG_OUTPUT_PORT.println(nametype);
+//	DBG_OUTPUT_PORT.println(F("Triggers::CreateByType"));
+//	DBG_OUTPUT_PORT.println(nametype);
+
+
 	Trigger* pTrigger = Factories::CreateTrigger(nametype);
 	if (pTrigger == NULL) {
-		DBG_OUTPUT_PORT.println(F("Trigger not created, trying with Trigger at endd "));
+		//DBG_OUTPUT_PORT.println(F("Trigger not created, trying with Trigger at endd "));
 		pTrigger = Factories::CreateTrigger(String(nametype) + String("Trigger"));
 		if (pTrigger)
 			return pTrigger;
@@ -98,23 +100,12 @@ Trigger* Triggers::CreateByType(const char* nametype) {
 	else {
 		return pTrigger;
 	}
-	DBG_OUTPUT_PORT.println(F("Creating base trigger,something wrong !!"));
-	/*
-	TriggerFactory* pFactory = Factories::get_triggerfactory(nametype);
-	if (!pFactory) {
-		DBG_OUTPUT_PORT.println("TriggerFactory not defined");
-		pFactory = Factories::get_triggerfactory(String(nametype)+String("Trigger"));
-	}
-	if (pFactory) {
-		Trigger* pTrigger = pFactory->create();
 
-		pTrigger->type = nametype;
-		return pTrigger;
-	}
-	DBG_OUTPUT_PORT.print("OPS return default trigger");
-	DBG_OUTPUT_PORT.println(nametype);
-	*/
+	DBG_OUTPUT_PORT.println(F("Creating trigger,something wrong !!"));
 	return new Trigger();
+	
+
+
 	/*
 	Trigger* res = NULL;
 	if (strcmp(nametype, "TimeToRGBStrip") == 0) {
@@ -150,7 +141,7 @@ void TriggerFromService<SRC, DST>::handleloop(CBaseController* pBase, Controller
 	if (!this->get_dstctl()) {
 		CBaseController* pBaseDst = pctls->GetByName(this->dst.c_str());
 		if (pBaseDst == NULL) {
-			DBG_OUTPUT_PORT.println("Destination service not found");
+			//DBG_OUTPUT_PORT.println("Destination service not found");
 			return;
 		}
 
@@ -344,7 +335,7 @@ void TimeToRelayTrigger::dotrigger(timerecOn & rec, Controllers* pctlss) {
 	if (!this->get_relayctl()) {
 		CBaseController* pBase = pctlss->GetByName(this->dst.c_str());
 		if (pBase == NULL) {
-			DBG_OUTPUT_PORT.println("Destination service not found");
+			//DBG_OUTPUT_PORT.println("Destination service not found");
 			return;
 	}
 
@@ -380,7 +371,7 @@ void TimeToRGBStripTrigger::dotrigger(timerecRGB & rec, Controllers* pctlss) {
 	if (!this->get_stripctl()) {
 		CBaseController* pBase = pctlss->GetByName(this->dst.c_str());
 		if (pBase == NULL) {
-			DBG_OUTPUT_PORT.println("Destination service not found");
+			//DBG_OUTPUT_PORT.println("Destination service not found");
 			return;
 		}
 
@@ -393,7 +384,7 @@ void TimeToRGBStripTrigger::dotrigger(timerecRGB & rec, Controllers* pctlss) {
 #ifdef	TRIGGER_DEBUG
 		DBG_OUTPUT_PORT.println("Mode On");
 #endif
-		DBG_OUTPUT_PORT.println("Sending command On");
+		//DBG_OUTPUT_PORT.println("Sending command On");
 		
 		newstate.isOn = true;
 		newstate.isLdr = rec.isLdr;

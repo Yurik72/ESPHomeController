@@ -150,12 +150,14 @@ void RGBStripController::loadconfig(JsonObject& json) {
 	RGBStrip::loadconfig(json);
 	pin = json["pin"];
 	numleds = json["numleds"];
+	isEnableSmooth = json["issmooth"];
 }
 void RGBStripController::getdefaultconfig(JsonObject& json) {
-	json["pin"]= pin;
+	json[FPSTR(szPinText)]= pin;
 	json["numleds"]= numleds;
 	json["service"] = "RGBStripController";
 	json["name"] = "RGBStrip";
+	json["issmooth"] = false;
 	RGBStrip::getdefaultconfig(json);
 }
 void  RGBStripController::setup() {

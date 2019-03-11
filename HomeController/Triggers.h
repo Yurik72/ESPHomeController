@@ -16,7 +16,9 @@ class TimeController;
 class LDRController;
 class RelayController;
 class RFController;
-class Trigger{
+
+
+class Trigger {
 public:
 	Trigger() {};
 	friend class Triggers;

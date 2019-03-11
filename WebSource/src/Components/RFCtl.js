@@ -68,8 +68,8 @@ class RFCtl extends React.Component {
                             return (
                                 <Row>
                                     <Col num={2}>
-                                        <label htmlFor="rfkey" className="input-label" >RF KEY</label>
-                                        <input name="rfkey" type="text" value={item.name} name="token"
+                                        <label htmlFor="rfkey" className="input-label" >name</label>
+                                        <input name="rfkey" type="text" value={item.name} name="name"
                                         />
                                     </Col>
                                     <Col num={2}>
@@ -93,7 +93,7 @@ class RFCtl extends React.Component {
                                         />
                                     </Col>
                                     <Col num={2}>
-                                        <Button label="Add" onClick={this.doSend(item)}
+                                        <Button label="Send" onClick={()=>this.doSend(item)}
                                         />
                                             
                                     </Col>

@@ -6,6 +6,7 @@ import { BrowserRouter as Router, Route, Link } from 'react-router-dom';
 import Popup from "reactjs-popup";
 import BurgerIcon from "./Components/BurgerIcon";
 import Relay from "./Components/Relay";
+import RelayDim from "./Components/RelayDim";
 import Services from "./Components/Services";
 import LDR from "./Components/LDR"
 import LogView from "./Components/LogView"
@@ -52,7 +53,7 @@ class App extends Component {
             doFetch(getBaseuri() + "/triggers.json", (data) => { console.log(data); this.setState({ triggers: data }); });
         }
         else { 
-            var obj = JSON.parse('[{"service":"RelayController","name":"Relay","enabled":true,"interval":100,"pin":5},{"service":"TimeController","name":"Time","enabled":true,"interval":1000,"timeoffs":7200,"dayloffs":3600,"server":"pool.ntp.org"},{"service":"RGBStripController","name":"RGBStrip","enabled":true,"interval":1,"pin":23,"numleds":8},{"service":"LDRController","name":"LDR","enabled":true,"interval":1000,"pin":0},{"service":"RFController","name":"RF","enabled":true,"interval":2,"pin":27,"pinsend":4}]');
+            var obj = JSON.parse('[{"service":"RelayController","name":"Relay","enabled":true,"interval":100,"pin":5},{"service":"TimeController","name":"Time","enabled":true,"interval":1000,"timeoffs":7200,"dayloffs":3600,"server":"pool.ntp.org"},{"service":"RGBStripController","name":"RGBStrip","enabled":true,"interval":1,"pin":23,"numleds":8},{"service":"LDRController","name":"LDR","enabled":true,"interval":1000,"pin":0},{"service":"RFController","name":"RF","enabled":true,"interval":2,"pin":27,"pinsend":4},{"service":"RelayDimController","name":"RelayDim","enabled":true,"interval":50,"pin":4}]');
             var obj1 = JSON.parse('[{"type":"TimeToRGBStrip","source":"Time","destination":"Relay","value":[{"isOn":true,"isLdr":true,"time":0,"bg":1,"wxmode":-1}]},{"type":"RFToRelay","source":"RF","destination":"Relay","value":[{"isOn":true,"isswitch":true,"rfkey":13532516}]}]');
            this.setState({ services: obj });
            this.setState({ triggers: obj1 });
@@ -91,6 +92,8 @@ class App extends Component {
                 return (props => <BME280Ctl {...props} compprops={svc} />);
             case "RFController":
                 return (props => <RFCtl {...props} compprops={svc} />);
+            case "RelayDimController":
+                return (props => <RelayDim  {...props} compprops={svc} />);
             default:
                 return (props =><div></div>);
                 break;

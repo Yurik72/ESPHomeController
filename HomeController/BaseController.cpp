@@ -10,8 +10,9 @@
 #endif
 
 //CSimpleArray<ControllerRecord*> Factories::ctlfactories;
-static CSimpleArray<ControllerRecord*>* pctlfactories=NULL;
+static CSimpleArray<ControllerRecord*>*   pctlfactories=NULL;
 static CSimpleArray<TriggerRecord*>* ptriggerfactories=NULL;
+
 
 
 void ICACHE_FLASH_ATTR Factories::registerController(const __FlashStringHelper* name, ControllerFactory *factory, func_create_ctl f)
@@ -24,12 +25,12 @@ void ICACHE_FLASH_ATTR Factories::registerController(const __FlashStringHelper* 
 	pctlfactories->Add(prec);
 
 };
-void ICACHE_FLASH_ATTR Factories::registerTrigger(const __FlashStringHelper* name, TriggerFactory *factory, func_create_trg f)
+void ICACHE_FLASH_ATTR Factories::registerTrigger(const __FlashStringHelper* name,  func_create_trg f)
 {
 	//DBG_OUTPUT_PORT.print("registerTrigger");
 	if (!ptriggerfactories)
 		ptriggerfactories = new CSimpleArray<TriggerRecord*>();
-	TriggerRecord* prec = new TriggerRecord(name, factory,f);
+	TriggerRecord* prec = new TriggerRecord(name, NULL,f);
 	ptriggerfactories->Add(prec);
 };
 ControllerFactory* ICACHE_FLASH_ATTR Factories::get_ctlfactory(const  String& name) {
@@ -69,7 +70,7 @@ CBaseController* ICACHE_FLASH_ATTR Factories::CreateController(const  String& na
 #ifdef FACTORY_DEBUG
 			DBG_OUTPUT_PORT.println("using class factory method");
 #endif
-			return pRec->pCtl->create();
+			return  pRec->pCtl->create();
 		}
 	return NULL;
 }
@@ -85,6 +86,7 @@ void  ICACHE_FLASH_ATTR Factories::Trace() {
 			
 };
 */
+/*
 TriggerFactory* ICACHE_FLASH_ATTR Factories::get_triggerfactory(const  String& name) {
 	if (!ptriggerfactories) {
 		DBG_OUTPUT_PORT.println("Factories not created");
@@ -97,6 +99,7 @@ TriggerFactory* ICACHE_FLASH_ATTR Factories::get_triggerfactory(const  String& n
 			return ptriggerfactories->GetAt(i)->pCtl;
 	return NULL;
 };
+*/
  Trigger* ICACHE_FLASH_ATTR Factories::CreateTrigger(const  String& name) {
 	if (!ptriggerfactories) {
 		DBG_OUTPUT_PORT.println(F("Trigger Factories not created"));
@@ -111,7 +114,7 @@ TriggerFactory* ICACHE_FLASH_ATTR Factories::get_triggerfactory(const  String& n
 				DBG_OUTPUT_PORT.println(F("Trigger creation fron function pointer"));
 				return pRec->f();
 			}
-			return ptriggerfactories->GetAt(i)->pCtl->create();
+			//return ptriggerfactories->GetAt(i)->pCtl->create();
 		}
 	return NULL;
 }

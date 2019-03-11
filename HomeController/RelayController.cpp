@@ -4,7 +4,7 @@
 #include "BaseController.h"
 #include "RelayController.h"
 
-REGISTER_CONTROLLER(RelayController)
+//REGISTER_CONTROLLER(RelayController)
 REGISTER_CONTROLLER_FACTORY(RelayController)
 
 const size_t bufferSize = JSON_OBJECT_SIZE(20);
@@ -30,7 +30,7 @@ bool  RelayController::deserializestate(String jsonstate, CmdSource src) {
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	DeserializationError error = deserializeJson(jsonBuffer, jsonstate);
 	if (error) {
-		DBG_OUTPUT_PORT.print("parseObject() failed: ");
+		DBG_OUTPUT_PORT.print(F("parseObject() failed: "));
 		DBG_OUTPUT_PORT.println(error.c_str());
 		return false;
 	}
@@ -44,11 +44,11 @@ bool  RelayController::deserializestate(String jsonstate, CmdSource src) {
 }
 void RelayController::loadconfig(JsonObject& json) {
 	Relay::loadconfig(json);
-	pin= json["pin"];
+	pin= json[FPSTR(szPinText)];
 	isinvert= json["isinvert"];
 }
 void RelayController::getdefaultconfig(JsonObject& json) {
-	json["pin"]= pin;
+	json[FPSTR(szPinText)]= pin;
 	json["isinvert"]= isinvert;
 	json["service"] = "RelayController";
 	json["name"] = "Relay";

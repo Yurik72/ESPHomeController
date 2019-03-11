@@ -6,7 +6,7 @@
 
 
 //REGISTER_CONTROLLER(LDRController)
-//REGISTER_CONTROLLER_FACTORY(ServoHVController)
+REGISTER_CONTROLLER_FACTORY(ServoHVController)
 
 //Factories::registerController(FPSTR_PLATFORM("ServoHVController"), NULL, NULL);
 
@@ -49,10 +49,10 @@ bool  ServoHVController::deserializestate(String jsonstate, CmdSource src) {
 
 }
 void ServoHVController::loadconfig(JsonObject& json) {
-	pin = json["pin"];
+	pin = json[FPSTR(szPinText)];
 }
 void ServoHVController::getdefaultconfig(JsonObject& json) {
-	json["pin"] = pin;
+	json[FPSTR(szPinText)] = pin;
 	json["service"] = "LDRController";
 	json["name"] = "LDR";
 	Servo::getdefaultconfig(json);

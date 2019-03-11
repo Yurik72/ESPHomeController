@@ -271,7 +271,7 @@ void Controllers::setuphandlers(AsyncWebServer& server) {
 		request->send(response);
 	});
 	server.on("/get_defaultconfig", HTTP_GET, [](AsyncWebServerRequest *request) {
-		DBG_OUTPUT_PORT.println("get_defaultconfig request");
+		//DBG_OUTPUT_PORT.println("get_defaultconfig request");
 		String cname;
 		if(request->args()>0)
 			cname = request->arg((size_t)0);
@@ -290,14 +290,14 @@ void Controllers::setuphandlers(AsyncWebServer& server) {
 		delete pcontroller;
 	});
 	server.on("/get_availablecontrollers", HTTP_GET, [](AsyncWebServerRequest *request) {
-		DBG_OUTPUT_PORT.println("get_availablecontrollers");
+		//DBG_OUTPUT_PORT.println("get_availablecontrollers");
 
 		AsyncWebServerResponse *response = request->beginResponse(200, "application/json", Factories::string_controllers().c_str());
 		request->send(response);
 		
 	});
 	server.on("/get_availabletriggers", HTTP_GET, [](AsyncWebServerRequest *request) {
-		DBG_OUTPUT_PORT.println("get_availablecontrollers");
+		//DBG_OUTPUT_PORT.println("get_availablecontrollers");
 
 		AsyncWebServerResponse *response = request->beginResponse(200, "application/json", Factories::string_triggers().c_str());
 		request->send(response);
@@ -318,7 +318,7 @@ void Controllers::setuphandlers(AsyncWebServer& server) {
 		});
 		String pathset = path + String("/set_state");
 		server.on(pathset.c_str(), HTTP_OPTIONS, [] (AsyncWebServerRequest *request){
-			DBG_OUTPUT_PORT.println("start processing preflight");
+			//DBG_OUTPUT_PORT.println("start processing preflight");
 			AsyncWebServerResponse *response = request->beginResponse(200, "text/html", "OK");
 			//response->addHeader("Access-Control-Allow-Origin", "*");
 			//response->addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");

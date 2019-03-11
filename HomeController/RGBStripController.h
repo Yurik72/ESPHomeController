@@ -6,12 +6,7 @@
 #include <ArduinoJson.h>
 #include "BaseController.h"
 #include <WS2812FX.h>
-#if defined(ESP8266)
-#define MAX_LDRVAL 1024
-#else
-#define MAX_LDRVAL 4095
 
-#endif
 
 
 

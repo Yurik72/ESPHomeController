@@ -3,9 +3,11 @@
 #ifndef ESP32
 # error Driver is supports only ESP32
 #endif
+#ifdef  ESP32
 
 #include "Adafruit_NeoPixel.h"
-#ifdef  ESP32
+#include <WS2812FX.h>
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -63,11 +65,14 @@ __attribute__((always_inline)) inline static uint32_t __clock_cycles() {
 #ifndef DRIVER_RMT_MAX_CONTROLLERS
 #define DRIVER_RMT_MAX_CONTROLLERS 32
 #endif
-#define DRIVER_RMT_MAX_CHANNELS 1
+
+//  allow use firts 4 channel for 2812 and other for dimming servo etc
+#define HARDWARE_RMT_MAX_CHANNELS 8
+#define DRIVER_RMT_MAX_CHANNELS 4
 // -- Number of RMT channels to use (up to 8)
 //    Redefine this value to 1 to force serial output
 #ifndef DRIVER_RMT_MAX_CHANNELS
-#define FASTLED_RMT_MAX_CHANNELS 8
+#define DRIVER_RMT_MAX_CHANNELS 4
 #endif
 
 // -- Array of all controllers
@@ -95,6 +100,14 @@ class LedInterruptDriverBase {
 
 static LedInterruptDriverBase * glob_channels[DRIVER_RMT_MAX_CHANNELS];
 static LedInterruptDriverBase * glob_drivers[DRIVER_RMT_MAX_CONTROLLERS];
+
+static int glob_nextavailable_channel= DRIVER_RMT_MAX_CHANNELS;
+
+
+static int get_next_available_channel() {
+	return glob_nextavailable_channel++;
+};
+
 
 
 template <int T1, int T2, int T3>
