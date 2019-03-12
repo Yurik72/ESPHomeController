@@ -333,3 +333,17 @@ void CSmoothVal::stop() {
 	this->isactive = false;
 	this->isactive = false;
 }
+
+#ifdef  ESP32
+int first_espchannel=0;
+int current_espchannel=0;
+
+void set_first_channel(int val) {
+
+	first_espchannel = val;
+	current_espchannel = val;
+}
+int get_next_espchannel() {
+	return current_espchannel++;
+}
+#endif

@@ -103,7 +103,9 @@ static LedInterruptDriverBase * glob_drivers[DRIVER_RMT_MAX_CONTROLLERS];
 
 static int glob_nextavailable_channel= DRIVER_RMT_MAX_CHANNELS;
 
-
+static int get_driver_max_channel() {
+	return DRIVER_RMT_MAX_CHANNELS;
+}
 static int get_next_available_channel() {
 	return glob_nextavailable_channel++;
 };

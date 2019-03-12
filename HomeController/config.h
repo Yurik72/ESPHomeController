@@ -26,7 +26,7 @@
 #endif
 
 
-static const char szPinText[] PROGMEM = "pin";
+
 
 #define CONFIG_PORTAL_TIMEOUT 600/// secs , to wait configuration has been done by user
 #define ASYNC_WEBSERVER    // !Important , this is switching between WebServer and AsyncWebserver.
@@ -39,6 +39,8 @@ static const char szPinText[] PROGMEM = "pin";
 //#define LDRCONTROLLER_DEBUG  //debug timecontroller output enable
 //#define BMECONTROLLER_DEBUG    //debug bme280controller output enable
 //#define RF_TRIGGER_DEBUG         //debug rf trigger
+#define RELAYDIM_DEBUG    //debug relay dim
+#define SERVO_DEBUG    //debug relay dim
 //#define FACTORY_DEBUG
 //#define RFCONTROLLER_DEBUG
 const char name_localhost_host[] = "localhost";
@@ -60,6 +62,8 @@ extern char mqtt_pass[32] ;
 extern short qossub ; // AMQTT can sub qos 0 or 1 or 2
 extern bool isOffline;
 extern bool isReboot;
+
+
 #endif
 
 //extern  String globlog;
@@ -70,6 +74,14 @@ extern bool isReboot;
 #else
 #define ASYNC "\"false\""
 #endif
+
+
+
+static const char szPinText[] PROGMEM = "pin";
+static const char szbrightnessText[] PROGMEM = "brightness";
+static const char szisOnText[] PROGMEM = "isOn";
+
 #endif
+
 
 ///Loggger and debugger

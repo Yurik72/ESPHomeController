@@ -107,15 +107,11 @@ public:
 
 #define REGISTER_CONTROLLER_FACTORY(cls) \
 static  cls##Factory global_##cls##Factory;
+
 template<class T>
 class TrgFactory {
 public:
-	static Trigger*  raw_create() {
-		{
-			
-			return NULL;//new T();
-		};
-	}
+
 };
 
 #define DEFINE_TRIGGER_FACTORY(trg) \
@@ -134,6 +130,7 @@ Trigger * ICACHE_FLASH_ATTR trg##Create() {return  new trg(); };\
 static trg##Factory global_##trg##Factory;
 
 #define REGISTER_TRIGGER(trg)
+
 #define REGISTER_TRIGGER_OLD(trg) \
     class trg##Factory : public TriggerFactory { \
     public: \

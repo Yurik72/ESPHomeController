@@ -9,7 +9,7 @@
 
 #ifdef ESP32
 #include "esp32-hal-ledc.h"
-#include "WS2812Driver.h"
+//#include "WS2812Driver.h"
 #endif
 
 //REGISTER_CONTROLLER(RelayDimController)
@@ -22,15 +22,20 @@ RelayDimController::RelayDimController() {
 	this->pin = 0;
 	this->pSmooth = new CSmoothVal();
 #ifdef ESP32
-	this->channel= get_next_available_channel ();
+	//.this->channel= get_next_available_channel ();
+	this->channel=get_next_espchannel();
 #endif
+}
+RelayDimController::~RelayDimController() {
+	if (this->pSmooth)
+		delete this->pSmooth;
 }
 String  RelayDimController::serializestate() {
 
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	JsonObject root = jsonBuffer.to<JsonObject>();
-	root["isOn"] = this->get_state().isOn;
-	root["brightness"] = this->get_state().brightness;
+	root[FPSTR(szisOnText)] = this->get_state().isOn;
+	root[FPSTR(szbrightnessText)] = this->get_state().brightness;
 	root["isLdr"] = this->get_state().isLdr;
 	root["ldrValue"] = this->get_state().ldrValue;
 
@@ -45,14 +50,14 @@ bool  RelayDimController::deserializestate(String jsonstate, CmdSource src) {
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	DeserializationError error = deserializeJson(jsonBuffer, jsonstate);
 	if (error) {
-		DBG_OUTPUT_PORT.print("parseObject() failed: ");
+		DBG_OUTPUT_PORT.print(F("deserialize failed: "));
 		DBG_OUTPUT_PORT.println(error.c_str());
 		return false;
 	}
 	JsonObject root = jsonBuffer.as<JsonObject>();
 	RelayDimState newState;
-	newState.isOn = root["isOn"];
-	newState.brightness = root["brightness"];
+	newState.isOn = root[FPSTR(szisOnText)];
+	newState.brightness = root[FPSTR(szbrightnessText)];
 	newState.isLdr = root["isLdr"];
 	newState.ldrValue = root["ldrValue"];
 	this->AddCommand(newState, DimSet, src);
@@ -75,6 +80,11 @@ void RelayDimController::getdefaultconfig(JsonObject& json) {
 	RelayDim::getdefaultconfig(json);
 }
 void  RelayDimController::setup() {
+#ifdef RELAYDIM_DEBUG
+	DBG_OUTPUT_PORT.println(F("RelayDimController::setup()"));
+	DBG_OUTPUT_PORT.print(F("Channel:"));
+	DBG_OUTPUT_PORT.println(this->channel);
+#endif
 #ifdef ESP8266
 	pinMode(pin, OUTPUT);
 	digitalWrite(pin, this->isinvert ? HIGH : LOW);

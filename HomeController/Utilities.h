@@ -48,4 +48,10 @@ private:
 	funconend onendfunc;
 	bool isactive;
 };
+#ifdef  ESP32
+extern  int first_espchannel;
+extern  int current_espchannel;
+void set_first_channel(int val);
+int get_next_espchannel();
+#endif
 #endif

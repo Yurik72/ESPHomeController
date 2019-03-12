@@ -17,7 +17,7 @@ String  RelayController::serializestate() {
 	
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	JsonObject root = jsonBuffer.to<JsonObject>();
-	root["isOn"] = this->get_state().isOn;
+	root[FPSTR(szisOnText)] = this->get_state().isOn;
 
 	String json;
 	json.reserve(128);
@@ -36,7 +36,7 @@ bool  RelayController::deserializestate(String jsonstate, CmdSource src) {
 	}
 	JsonObject root = jsonBuffer.as<JsonObject>();
 	RelayState newState;
-	newState.isOn= root["isOn"];
+	newState.isOn= root[FPSTR(szisOnText)];
 	this->AddCommand(newState, Set, src);
 	//this->set_state(newState);
 	return true;

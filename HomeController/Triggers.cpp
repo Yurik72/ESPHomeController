@@ -196,7 +196,7 @@ void CBaseTimeTrigger<TM>::parsetime(JsonObject& json, TM & rec) {
 }
 template<typename TM>
 void CBaseTimeTrigger<TM>::processrecord(time_t currentTime, TM& rec, Controllers* pctlss) {
-
+	
 #ifdef	TRIGGER_DEBUG
 	DBG_OUTPUT_PORT.print("Trigger process record ");
 	DBG_OUTPUT_PORT.println(getFormattedTime(currentTime));
@@ -303,7 +303,7 @@ void TimeToRGBStripTrigger::loadconfig(JsonObject& json) {
 		timerecRGB & rec = *(new timerecRGB());
 		JsonObject json = arr[i];
 		this->parsetime(json,rec);
-		rec.isOn = arr[i]["isOn"].as<bool>();
+		rec.isOn = arr[i][FPSTR(szisOnText)].as<bool>();
 		rec.color= arr[i]["color"].as<int>();
 		rec.brightness = arr[i]["bg"].as<int>();
 		rec.wxmode = arr[i]["wxmode"].as<int>();
@@ -322,7 +322,7 @@ void TimeToRelayTrigger::loadconfig(JsonObject& json) {
 		timerecRGB & rec = *(new timerecRGB());
 		JsonObject json = arr[i];
 		this->parsetime(json, rec);
-		rec.isOn = arr[i]["isOn"].as<bool>();
+		rec.isOn = arr[i][FPSTR(szisOnText)].as<bool>();
 
 
 		times.Add(rec);
@@ -465,7 +465,7 @@ void RFToRelay::loadconfig(JsonObject& json) {
 		RFRecord & rec = *(new RFRecord());
 		JsonObject json = arr[i];
 		
-		rec.isOn = arr[i]["isOn"].as<bool>();
+		rec.isOn = arr[i][FPSTR(szisOnText)].as<bool>();
 		rec.isswitch = arr[i]["isSwitch"].as<bool>();
 		rec.token = arr[i]["token"].as<long>();
 		rec.len = arr[i]["len"];;

@@ -38,6 +38,7 @@ class WS2812Wrapper :public StripWrapper {
 public:
 	WS2812Wrapper();
 	WS2812Wrapper(bool useinternaldriver);
+	~WS2812Wrapper();
 	virtual void init(void);
 	virtual void deinit(void);
 	virtual void setup(int pin, int numleds);
@@ -127,4 +128,6 @@ private:
 	
 };
 DEFINE_CONTROLLER_FACTORY(RGBStripController)
+
+
 #endif

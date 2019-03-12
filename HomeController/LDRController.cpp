@@ -19,7 +19,7 @@ String  LDRController::serializestate() {
 
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	JsonObject root = jsonBuffer.to<JsonObject>();
-	root["isOn"] = this->get_state().isOn;
+	root[FPSTR(szisOnText)] = this->get_state().isOn;
 	root["ldrValue"] = this->get_state().ldrValue;
 	String json;
 	json.reserve(128);
@@ -38,10 +38,10 @@ bool  LDRController::deserializestate(String jsonstate, CmdSource src) {
 	}
 	JsonObject root = jsonBuffer.as<JsonObject>();
 	LDRState newState;
-	newState.isOn = root["isOn"];
+	newState.isOn = root[FPSTR(szisOnText)];
 	newState.ldrValue = root["ldrValue"];
 	
-	this->AddCommand(newState, Measure, src);
+	this->AddCommand(newState, Measure, srcSelf);
 	//this->set_state(newState);
 	return true;
 

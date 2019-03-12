@@ -14,6 +14,15 @@ LedInterruptDriver<NS(250), NS(625), NS(375)> ws2812driver;
 #endif //  ESP32
 
 
+#ifdef  ESP32
+struct channelregister {
+public:
+	channelregister() {
+		set_first_channel(get_driver_max_channel());
+	}
+};
+static channelregister globchannelregister;
+#endif //  ESP32
 //REGISTER_CONTROLLER(RGBStripController)
 REGISTER_CONTROLLER_FACTORY(RGBStripController)
 
@@ -26,7 +35,10 @@ WS2812Wrapper::WS2812Wrapper() {
 WS2812Wrapper::WS2812Wrapper(bool useinternaldriver):WS2812Wrapper(){
 	this->useinternaldriver = useinternaldriver;
 }
-
+WS2812Wrapper::~WS2812Wrapper() {
+	if (pstrip)
+		delete pstrip;
+}
 void WS2812Wrapper::setup(int pin, int numleds) {
 	pstrip=new  WS2812FX(numleds, pin, NEO_GRB + NEO_KHZ800);
 #ifdef  ESP32	
@@ -101,13 +113,15 @@ RGBStripController::RGBStripController() {
 RGBStripController::~RGBStripController() {
 	if (pStripWrapper)
 		delete pStripWrapper;
+	if (this->pSmooth)
+		delete this->pSmooth;
 }
 String  RGBStripController::serializestate() {
 
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	JsonObject root = jsonBuffer.to<JsonObject>();
-	root["isOn"] = this->get_state().isOn;
-	root["brightness"] = this->get_state().brightness;
+	root[FPSTR(szisOnText)] = this->get_state().isOn;
+	root[FPSTR(szbrightnessText)] = this->get_state().brightness;
 	root["color"] = this->get_state().color;
 	root["wxmode"] = this->get_state().wxmode;
 	root["wxspeed"] = this->get_state().wxspeed;
@@ -134,8 +148,8 @@ bool  RGBStripController::deserializestate(String jsonstate, CmdSource src) {
 	}
 	JsonObject root = jsonBuffer.as<JsonObject>();
 	RGBState newState;
-	newState.isOn = root["isOn"];
-	newState.brightness = root["brightness"];
+	newState.isOn = root[FPSTR(szisOnText)];
+	newState.brightness = root[FPSTR(szbrightnessText)];
 	newState.color = root["color"];
 	newState.wxmode = root["wxmode"];
 	newState.wxspeed = root["wxspeed"];

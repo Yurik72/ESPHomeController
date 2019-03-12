@@ -33,6 +33,7 @@ class RelayDimController : public RelayDim
 {
 public:
 	RelayDimController();
+	~RelayDimController();
 	virtual String  serializestate();
 	virtual bool  deserializestate(String jsonstate, CmdSource src = srcState);
 	virtual void getdefaultconfig(JsonObject& json);
