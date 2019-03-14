@@ -46,7 +46,7 @@ class App extends Component {
         console.log("App ctor");
     }
     componentDidMount() {
-        var debug = true;
+        var debug = false;
         console.log("App componentDidMount");
         if (!debug) {
             doFetch(getBaseuri() + "/get_info", (data) => { this.setHeaderdata(data) });
