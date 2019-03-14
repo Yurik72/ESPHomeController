@@ -52,7 +52,7 @@ class RFRecord extends React.Component {
             let sel = [...this.state.selector];
             if (sel.length > 0) {  // to be sure that new is arrived
                 let last = sel[sel.length - 1];
-                if (data.timetick != last.timetick && data.rftoken != last.rftoken) {
+                if (data.timetick !== last.timetick && data.rftoken !== last.rftoken) {
                     sel.push(data);
                 }
             } else {
@@ -92,25 +92,25 @@ class RFRecord extends React.Component {
                 <Row>
                     <Col num={2}>
                         <label htmlFor="rfkey" className="input-label" >RF KEY</label>
-                        <input name="rfkey" type="text" value={item.token} name="token"
+                        <input name="rfkey" type="text" value={item.token} 
                             onChange={ev => (this.onChangeVal({ token: ev.target.value }))}
                         />
                     </Col>
                     <Col num={2}>
-                        <label htmlFor="rfkey" className="input-label" >Protocol</label>
-                        <input name="rfkey" type="text" value={item.protocol} name="token"
+                        <label htmlFor="rfprotocol" className="input-label" >Protocol</label>
+                        <input name="rfprotocol" type="text" value={item.protocol} 
                             onChange={ev => (this.onChangeVal({ protocol: ev.target.value }))}
                         />
                     </Col>
                     <Col num={2}>
-                        <label htmlFor="rfkey" className="input-label" >Length</label>
-                        <input name="rfkey" type="text" value={item.len} name="len"
+                        <label htmlFor="rflen" className="input-label" >Length</label>
+                        <input name="rflen" type="text" value={item.len} 
                             onChange={ev => (this.onChangeVal({ len: ev.target.value }))}
                         />
                     </Col>
                     <Col num={2}>
-                        <label htmlFor="rfkey" className="input-label" >Pulse</label>
-                        <input name="rfkey" type="text" value={item.pulse} name="pulse"
+                        <label htmlFor="rfpulse" className="input-label" >Pulse</label>
+                        <input name="rfpulse" type="text" value={item.pulse}
                             onChange={ev => (this.onChangeVal({ pulse: ev.target.value }))}
                         />
                     </Col>

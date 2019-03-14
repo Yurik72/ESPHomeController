@@ -43,8 +43,9 @@ class Services extends React.Component {
         this.addservice = this.addservice.bind(this);
         this.cloneservices = this.cloneservices.bind(this);
         this.sendSave = this.sendSave.bind(this);
-
-        
+        this.onServicesExpanded = this.onServicesExpanded.bind(this);
+        this.getDefaultConfig = this.getDefaultConfig.bind(this);
+      
         this.state.expstate = {};
     }
     componentDidMount() {
@@ -101,28 +102,43 @@ class Services extends React.Component {
         this.setState({services: services});
     }
     handleselectchange(ev, close) {
-        console.log("handle select");
-        console.log(ev.target.value);
-        doFetch(getBaseuri() + "/get_defaultconfig?name=" + ev.target.value, (data) => {
-            console.log(data);
+        //console.log("handle select");
+        //console.log(ev.target.value);
+        //doFetch(getBaseuri() + "/get_defaultconfig?name=" + ev.target.value, (data) => {
+        //    this.addservice(data);
+        //});
+        this.getDefaultConfig(ev.target.value, (data) => {
             this.addservice(data);
-            // this.cstate.setBkColor("#" + this.intToHex(this.RGBState.color));
         });
         close();
     }
+    getDefaultConfig(name, callback) {
+        doFetch(getBaseuri() + "/get_defaultconfig?name=" + name, (data) => {
+            if (callback)
+                callback(data);
+        });
+    }
+    onServicesExpanded(svc,idx) {
+        if (!svc) return;
+        this.getDefaultConfig(svc.service, (data) => {
+            let services = [...this.state.services]; //all new copy
+            let item = { ...svc,...data }; //edited item
+            services[idx] = item;
+            this.setState({ services });
+        });
+    }
     renderAllProps(item, sidx) {
         //console.debug(getBaseuri());
+      
         return (
             <>
-
-            
-               
                 {
                    
                     Object.keys(item).map((key, idx) => {
-                       
+                        let rowkey = "row" + key + sidx + idx;
+                      
                         return (
-                            <Row className="valign-wrapper" style={{marginBottom:"0px"}}>
+                            <Row key={rowkey} className="valign-wrapper" style={{marginBottom:"0px"}}>
                                 <Col num={2} className="left">
                                     <label for={sidx + key} className="input-label">{key}</label>
                                 </Col>
@@ -146,13 +162,13 @@ class Services extends React.Component {
            };
           
     render() {
-
+        
         return ( 
 
             <div>
                 <h3 >Services</h3>
 
-                <Row>
+                <Row >
                     <Col num={2}>
                         <Button label="Save" className="blue"
                             onClick={this.doSave}
@@ -194,12 +210,14 @@ class Services extends React.Component {
                     </Col>
                 </Row>
                 {
+                    
                     this.state.services.map((item, sidx) => {
                         var skey = "s" + sidx;
                         var expstate = this.state.expstate;
                         var isshow = expstate[skey];
-                        return(
-                            <>
+                      
+                        return (
+                            <div key={skey}>
                                 <Card  hidecontent={!isshow} title={() => {
                                     return (
 
@@ -213,7 +231,13 @@ class Services extends React.Component {
                                             </Col>
 
                                             <Col num={1} className="btn-collapse">
-                                                <Button className="btn-collapse" nostyle={true} onClick={() => { expstate[skey] = !isshow; this.setState({ expstate }) }}
+                                                <Button className="btn-collapse" nostyle={true}
+                                                    onClick={() => {
+                                                        expstate[skey] = !isshow;
+                                                        this.setState({ expstate });
+                                                        if (!isshow)
+                                                            this.onServicesExpanded(item, sidx);
+                                                    }}
                                                     label={isshow ? "Hide" : "Show"}>
                                                     <Arrow dir={isshow ? "up" : "down"} />
                                                 </Button>
@@ -226,7 +250,7 @@ class Services extends React.Component {
                                     {this.renderAllProps(item, sidx)}
                                 </Card>
   
-                        </>
+                        </div>
                     )}
                     )
                 }

@@ -4,21 +4,19 @@ import { getBaseuri, doFetch } from "./utils"
 import RangeCtl from "./RangeCtl";
 import { Card, Row, Col } from "./Card"
 
-class RelayDim extends React.Component {
+class ServoHV extends React.Component {
     constructor(props) {
         super(props);
         console.log(props);
         const { compprops } = props;
-        this.state = { isOn: false,isLdr:false, brightness:0 };
+        this.state = { isOn: false, posH:0,posV:0 };
         this.toggleCheckbox = st => {
-            //console.log("relaydim");
-            //console.log(st);
-           // let newstate = { ...this.state, ...st };
-            this.setState(st,()=> this.SendStateUpdate());
+
+            this.setState(st, () => this.SendStateUpdate());
 
         };
         this.API = getBaseuri() + "/" + compprops.name;
-        this.onBrigthnessChanged = this.onBrigthnessChanged.bind(this);
+        this.onPosChanged = this.onPosChanged.bind(this);
         this.internal_setState = this.internal_setState.bind(this);
 
     }
@@ -31,20 +29,23 @@ class RelayDim extends React.Component {
 
 
         console.log(newstate);
-        this.setState(newstate, () => { 
-                if (delay) {
-                    clearTimeout(this.timer_id);
-                    var self = this;
-                    this.timer_id = setTimeout(() => { self.SendStateUpdate() }, delay);
-                }
-                else {
-                    this.SendStateUpdate();
-                }
+        this.setState(newstate, () => {
+            if (delay) {
+                clearTimeout(this.timer_id);
+                var self = this;
+                this.timer_id = setTimeout(() => { self.SendStateUpdate() }, delay);
+            }
+            else {
+                this.SendStateUpdate();
+            }
         });
     }
-    onBrigthnessChanged(ctl) {
-
-        this.internal_setState({ brightness: ctl.state.rangevalue }, 300)
+    onPosChanged(ctl) {
+    
+        if (ctl.props.name ==="posH")
+            this.internal_setState({ posH: ctl.state.rangevalue }, 300)
+        else
+            this.internal_setState({ posV: ctl.state.rangevalue }, 300)
 
     }
     SendStateUpdate() {
@@ -69,31 +70,37 @@ class RelayDim extends React.Component {
         return (
             <Card title={() => { return (<h3>{compprops.name} </h3>); }}>
                 <Row>
-                    <Col num={6}>
+                    <Col num={12}>
                         <Checkbox
                             isChecked={this.state.isOn}
                             label={compprops.name}
+                            maxval={180}
                             handleCheckboxChange={(ch) => this.toggleCheckbox({ isOn: ch.state.isChecked })}
                             key={compprops.name}
                         />
                     </Col>
-                    <Col num={6}>
-                        <Checkbox
-                            isChecked={this.state.isLdr}
-                            label={"Is LDR"}
-                            handleCheckboxChange={(ch) => this.toggleCheckbox({ isLdr: ch.state.isChecked })}
-                            key="ldr"
+
+                </Row>
+                <Row>
+                    <Col num={12}>
+                        <RangeCtl
+                           
+                            label="Position H"
+                            name="posH"
+                            maxval={180}
+                            rangevalue={this.state.posH}
+                            handleRangeChange={this.onPosChanged}
                         />
                     </Col>
                 </Row>
                 <Row>
                     <Col num={12}>
                         <RangeCtl
-                            ref={el => this.brigctl = el}
-                            label="Brigthness"
-
-                            rangevalue={this.state.brightness}
-                            handleRangeChange={this.onBrigthnessChanged}
+                           
+                            label="Position V"
+                            name="posV"
+                            rangevalue={this.state.posV}
+                            handleRangeChange={this.onPosChanged}
                         />
                     </Col>
                 </Row>
@@ -104,4 +111,4 @@ class RelayDim extends React.Component {
     }
 }
 
-export default RelayDim;
+export default ServoHV;

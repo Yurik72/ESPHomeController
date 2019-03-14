@@ -24,8 +24,9 @@ class RangeCtl extends React.Component {
        
     }
     render() {
-        const { label, rangevalue } = this.props;
-        
+        const { label, rangevalue,minval,maxval } = this.props;
+        let min = minval?minval:0;
+        let max = maxval ?maxval:255;
         return (
 
             <>
@@ -34,7 +35,7 @@ class RangeCtl extends React.Component {
                     <input type="range"
                         id={"rng_" + label}
                         name={"rng_" + label}
-                        min="0" max="255"
+                        min={min} max={max}
                         value={rangevalue}
                         onChange={this.handleChange} 
                          /></p>

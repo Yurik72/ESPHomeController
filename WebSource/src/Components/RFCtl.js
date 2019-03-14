@@ -43,22 +43,22 @@ class RFCtl extends React.Component {
                 <Row>
                     <Col num={2}>
                         <label htmlFor="rfkey" className="input-label" >RF KEY</label>
-                        <input name="rfkey" type="text" value={this.state.state.rftoken} name="token"
+                        <input name="rfkey" type="text" value={this.state.state.rftoken} 
                         />
                     </Col>
                     <Col num={2}>
-                        <label htmlFor="rfkey" className="input-label" >Protocol</label>
-                        <input name="rfkey" type="text" value={this.state.state.rfprotocol} name="token"
+                        <label htmlFor="rfprotocol" className="input-label" >Protocol</label>
+                        <input name="rfprotocol" type="text" value={this.state.state.rfprotocol} 
                         />
                     </Col>
                     <Col num={2}>
-                        <label htmlFor="rfkey" className="input-label" >Length</label>
-                        <input name="rfkey" type="text" value={this.state.state.rfdatalen} name="len"
+                        <label htmlFor="rflen" className="input-label" >Length</label>
+                        <input name="rflen" type="text" value={this.state.state.rfdatalen}
                         />
                     </Col>
                     <Col num={2}>
-                        <label htmlFor="rfkey" className="input-label" >Pulse</label>
-                        <input name="rfkey" type="text" value={this.state.state.rfdelay} name="pulse"
+                        <label htmlFor="rfpulse" className="input-label" >Pulse</label>
+                        <input name="rfpulse" type="text" value={this.state.state.rfdelay} 
                         />
                     </Col>
                 </Row>
