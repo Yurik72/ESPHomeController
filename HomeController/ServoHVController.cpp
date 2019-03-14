@@ -12,7 +12,7 @@
 #endif
 
 
-#define TIMER_WIDTH 8  
+
 //REGISTER_CONTROLLER(LDRController)
 REGISTER_CONTROLLER_FACTORY(ServoHVController)
 
@@ -30,6 +30,10 @@ ServoHVController::ServoHVController() {
 	this->channelH = 0;
 	this->delayOnms = 0;
 	this->nextOff = 0;
+	this->minH=20;
+	this->maxH=160;
+	this->minV=20;
+	this->maxV=160;
 }
 String  ServoHVController::serializestate() {
 
@@ -49,7 +53,8 @@ bool  ServoHVController::deserializestate(String jsonstate, CmdSource src) {
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	DeserializationError error = deserializeJson(jsonBuffer, jsonstate);
 	if (error) {
-		DBG_OUTPUT_PORT.print("parseObject() failed: ");
+		DBG_OUTPUT_PORT.print(FPSTR(szParseJsonFailText));
+		DBG_OUTPUT_PORT.println(this->get_name());
 		DBG_OUTPUT_PORT.println(error.c_str());
 		return false;
 	}
@@ -68,6 +73,11 @@ void ServoHVController::loadconfig(JsonObject& json) {
 	pinV = json["pinV"];
 	pinH = json["pinH"];
 	delayOnms = json["delayOnms"];
+	minH=  json["minH"];
+	maxH = json["maxH"];
+	minV = json["minV"];
+	maxH = json["maxH"];
+
 }
 void ServoHVController::getdefaultconfig(JsonObject& json) {
 	json[FPSTR(szPinText)] = pin;
@@ -75,7 +85,12 @@ void ServoHVController::getdefaultconfig(JsonObject& json) {
 	json["name"] = "Servo";
 	json["pinV"] = pinV;
 	json["pinH"] = pinH;
+	json["minH"]=minH;
+	json["maxH"]=maxH;
+	json["minV"]=minV;
+	json["maxV"]=maxV;
 	json["delayOnms"] = delayOnms;
+
 	Servo::getdefaultconfig(json);
 }
 void  ServoHVController::setup() {
@@ -87,7 +102,7 @@ void  ServoHVController::setup() {
 		
 		//this->channelV = get_next_available_channel();
 		this->channelV = get_next_espchannel();
-		ledcSetup(this->channelV, 50, TIMER_WIDTH); // channel , 50 Hz, 8-bit width
+		ledcSetup(this->channelV, SERVO_FREQ, SERVO_BITS); // channel , 50 Hz, 
 		ledcAttachPin(this->pinV, this->channelV);   // GPIO  assigned to channel 
 #endif
 		pinMode(this->pinV, OUTPUT);
@@ -98,7 +113,7 @@ void  ServoHVController::setup() {
 	
 		//this->channelH = get_next_available_channel();
 		this->channelH = get_next_espchannel();
-		ledcSetup(this->channelH, 50, TIMER_WIDTH); // channel , 50 Hz, 8-bit width
+		ledcSetup(this->channelH, SERVO_FREQ, SERVO_BITS); // channel , 50 Hz, 
 		ledcAttachPin(this->pinH, this->channelH);   // GPIO  assigned to channel 
 		pinMode(this->pinH, OUTPUT);
 #endif
@@ -155,13 +170,21 @@ void ServoHVController::set_state(ServoHVState state) {
 	}
 	if (state.isOn) {
 		if (oldState.posH != state.posH) {
+			state.posH = constrain(state.posH, this->minH, this->maxH);
 #ifdef ESP32
-			ledcWrite(this->channelH, state.posH);       // sweep servo H
+			
+			ledcWrite(this->channelH, CALC_SERVO_PULSE(state.posH));       // sweep servo H
+#else
+			analogWrite(this->pinV, CALC_SERVO_PULSE(state.posV));  //TO DO , will not work on esp8266
 #endif
 		}
 		if (oldState.posV != state.posV) {
+			state.posV = constrain(state.posV, this->minV, this->maxV);
 #ifdef ESP32
-			ledcWrite(this->channelV, state.posV);       // sweep servo H
+			ledcWrite(this->channelV, CALC_SERVO_PULSE(state.posV));       // sweep servo H
+#else
+			analogWrite(this->pinV, CALC_SERVO_PULSE(state.posV));  //TO DO , will not work on esp8266
+
 #endif
 		}
 	}

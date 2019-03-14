@@ -25,7 +25,7 @@ String  BME280Controller::serializestate() {
 
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	JsonObject root = jsonBuffer.to<JsonObject>();
-	root["isOn"] = this->get_state().isOn;
+	root[FPSTR(szisOnText)] = this->get_state().isOn;
 	root["temp"] = this->get_state().temp;
 	root["hum"] = this->get_state().hum;
 	root["pres"] = this->get_state().pres;
@@ -40,13 +40,14 @@ bool  BME280Controller::deserializestate(String jsonstate, CmdSource src) {
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	DeserializationError error = deserializeJson(jsonBuffer, jsonstate);
 	if (error) {
-		DBG_OUTPUT_PORT.print("parseObject() failed: ");
+		DBG_OUTPUT_PORT.print(FPSTR(szParseJsonFailText));
+		DBG_OUTPUT_PORT.println(this->get_name());
 		DBG_OUTPUT_PORT.println(error.c_str());
 		return false;
 	}
 	JsonObject root = jsonBuffer.as<JsonObject>();
 	BMEState newState;
-	newState.isOn = root["isOn"];
+	newState.isOn = root[FPSTR(szisOnText)];
 	newState.temp = root["temp"];
 	newState.hum = root["hum"];
 	newState.pres = root["pres"];
@@ -129,7 +130,7 @@ void BME280Controller::run() {
 
 
 bool BME280Controller::onpublishmqtt(String& endkey, String& payload) {
-	endkey = "Status";
+	endkey = szStatusText;
 	payload = String(this->get_state().isOn ? 1 : 0);
 	return true;
 }

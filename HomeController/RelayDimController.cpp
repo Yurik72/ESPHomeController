@@ -82,8 +82,10 @@ void RelayDimController::getdefaultconfig(JsonObject& json) {
 void  RelayDimController::setup() {
 #ifdef RELAYDIM_DEBUG
 	DBG_OUTPUT_PORT.println(F("RelayDimController::setup()"));
+#ifdef ESP32
 	DBG_OUTPUT_PORT.print(F("Channel:"));
 	DBG_OUTPUT_PORT.println(this->channel);
+#endif
 #endif
 #ifdef ESP8266
 	pinMode(pin, OUTPUT);
@@ -205,14 +207,14 @@ void RelayDimController::set_state(RelayDimState state) {
 }
 
 bool RelayDimController::onpublishmqtt(String& endkey, String& payload) {
-	endkey = "Status";
+	endkey = szStatusText;
 	payload = String(this->get_state().isOn ? 1 : 0);
 	return true;
 }
 bool RelayDimController::onpublishmqttex(String& endkey, String& payload, int topicnr) {
 	switch (topicnr) {
 	case 0:
-		endkey = "Status";
+		endkey = szStatusText;
 		payload = String(this->get_state().isOn ? 1 : 0);
 		return true;
 	case 1:
@@ -226,11 +228,13 @@ bool RelayDimController::onpublishmqttex(String& endkey, String& payload, int to
 
 }
 void RelayDimController::onmqqtmessage(String topic, String payload) {
+#ifdef MQTT_DEBUG
 	DBG_OUTPUT_PORT.println(F("RelayDimController MQT"));
 	DBG_OUTPUT_PORT.print(F("topic :"));
 	DBG_OUTPUT_PORT.println(topic);
 	DBG_OUTPUT_PORT.print(F("payload :"));
 	DBG_OUTPUT_PORT.println(payload);
+#endif
 	command setcmd;
 	if (topic == F("Set")) {
 		command setcmd;

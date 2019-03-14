@@ -142,7 +142,8 @@ bool  RGBStripController::deserializestate(String jsonstate, CmdSource src) {
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	DeserializationError error = deserializeJson(jsonBuffer, jsonstate);
 	if (error) {
-		DBG_OUTPUT_PORT.print("parseObject() failed: ");
+		DBG_OUTPUT_PORT.print(FPSTR(szParseJsonFailText));
+		DBG_OUTPUT_PORT.println(this->get_name());
 		DBG_OUTPUT_PORT.println(error.c_str());
 		return false;
 	}
@@ -344,14 +345,14 @@ int RGBStripController::getLDRBrightness(int brigtness,int ldrval) {
 	return ((double)(MAX_LDRVAL - ldrval) / MAX_LDRVAL)*brigtness;
 }
 bool RGBStripController::onpublishmqtt(String& endkey, String& payload) {
-	endkey = "Status";
+	endkey = szStatusText;
 	payload = String(this->get_state().isOn ? 1 : 0);
 	return true;
 }
 bool RGBStripController::onpublishmqttex(String& endkey, String& payload, int topicnr){
 	switch (topicnr) {
 		case 0:
-			endkey = "Status";
+			endkey = szStatusText;
 			payload = String(this->get_state().isOn ? 1 : 0);
 			return true;
 		case 1:
@@ -396,17 +397,21 @@ void RGBStripController::onmqqtmessage(String topic, String payload) {
 		this->mqtt_hue= payload.toFloat();
 		setcmd.state.color = HSVColor(this->mqtt_hue, this->mqtt_saturation, setcmd.state.brightness);
 		setcmd.mode = SetColor;
+#ifdef MQTT_DEBUG
 		DBG_OUTPUT_PORT.print("Mqtt: Hue,hue = color = ");
 		DBG_OUTPUT_PORT.println(this->mqtt_hue);
 		DBG_OUTPUT_PORT.println(setcmd.state.color);
+#endif
 	}
 	else if (topic.endsWith("Saturation")) {
 		this->mqtt_saturation = payload.toFloat();
 		setcmd.state.color = HSVColor(this->mqtt_hue, this->mqtt_saturation, setcmd.state.brightness);
 		setcmd.mode = SetColor;
+#ifdef MQTT_DEBUG
 		DBG_OUTPUT_PORT.print("Mqtt: Saturation,sat- color = ");
 		DBG_OUTPUT_PORT.println(this->mqtt_saturation);
 		DBG_OUTPUT_PORT.println(setcmd.state.color);
+#endif
 	}
 	this->AddCommand(setcmd.state, setcmd.mode, srcMQTT);
 }

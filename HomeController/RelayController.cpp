@@ -30,7 +30,8 @@ bool  RelayController::deserializestate(String jsonstate, CmdSource src) {
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	DeserializationError error = deserializeJson(jsonBuffer, jsonstate);
 	if (error) {
-		DBG_OUTPUT_PORT.print(F("parseObject() failed: "));
+		DBG_OUTPUT_PORT.print(FPSTR(szParseJsonFailText));
+		DBG_OUTPUT_PORT.println(this->get_name());
 		DBG_OUTPUT_PORT.println(error.c_str());
 		return false;
 	}
@@ -99,16 +100,18 @@ void RelayController::set_state(RelayState state) {
 }
 
 bool RelayController::onpublishmqtt(String& endkey, String& payload) {
-	endkey = "Status";
+	endkey = szStatusText;
 	payload = String(this->get_state().isOn ? 1 : 0);
 	return true;
 }
 void RelayController::onmqqtmessage(String topic, String payload) {
+#ifdef MQTT_DEBUG
 	DBG_OUTPUT_PORT.println("RelayController MQT");
 	DBG_OUTPUT_PORT.print("topic :");
 	DBG_OUTPUT_PORT.println(topic);
 	DBG_OUTPUT_PORT.print("payload :");
 	DBG_OUTPUT_PORT.println(payload);
+#endif
 	command setcmd;
 	if (topic == "Set") {
 		command setcmd;

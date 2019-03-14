@@ -4,11 +4,17 @@
 #include <ArduinoJson.h>
 #include "BaseController.h"
 
-
-
-#define CALC_VAL(val,invert) constrain(((!invert)?val:(0xFF-val)),0,0xFF)
 #define PWM_FREQ 50 //PWM requency 
 #define PWM_BIT 8  // PWM bits
+#define DIM_MIN_VAL 0
+#define DIM_MAX_VAL 0xFF
+#define DIM_MIN_PULSE_WIDTH       500     // the shortest pulse sent to a servo  
+#define DIM_MAX_PULSE_WIDTH      2500     // the longest pulse sent to a servo 
+#define DIM_MAX_FROM_BITS(bits)  0x1<<bits 
+
+
+#define CALC_VAL(val,invert) map(constrain(((!invert)?val:(DIM_MAX_VAL-val)),0,DIM_MAX_VAL),DIM_MIN_VAL,DIM_MAX_VAL,DIM_MIN_PULSE_WIDTH,DIM_MAX_FROM_BITS(PWM_BIT))
+
 struct RelayDimState
 {
 	bool isOn = false;

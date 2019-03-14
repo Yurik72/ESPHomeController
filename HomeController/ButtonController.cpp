@@ -38,7 +38,8 @@ bool  ButtonController::deserializestate(String jsonstate, CmdSource src) {
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	DeserializationError error = deserializeJson(jsonBuffer, jsonstate);
 	if (error) {
-		DBG_OUTPUT_PORT.print("parseObject() failed: ");
+		DBG_OUTPUT_PORT.print(FPSTR(szParseJsonFailText));
+		DBG_OUTPUT_PORT.println(this->get_name());
 		DBG_OUTPUT_PORT.println(error.c_str());
 		return false;
 	}
