@@ -74,7 +74,7 @@ class ServoHV extends React.Component {
                         <Checkbox
                             isChecked={this.state.isOn}
                             label={compprops.name}
-                            maxval={180}
+                            
                             handleCheckboxChange={(ch) => this.toggleCheckbox({ isOn: ch.state.isChecked })}
                             key={compprops.name}
                         />
@@ -99,6 +99,7 @@ class ServoHV extends React.Component {
                            
                             label="Position V"
                             name="posV"
+                            maxval={180}
                             rangevalue={this.state.posV}
                             handleRangeChange={this.onPosChanged}
                         />

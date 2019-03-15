@@ -148,6 +148,7 @@ void ServoHVController::run() {
 	}
 	if(this->get_state().isOn && this->nextOff < millis() ) { ///  time to off
 		command cmdoff;
+		cmdoff.state = this->get_state();
 		cmdoff.state.isOn = false;
 		this->AddCommand(cmdoff.state, ServoOff, srcSelf);
 	}

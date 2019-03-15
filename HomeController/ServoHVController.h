@@ -13,8 +13,8 @@
 *1000us would equal an angle of 0, 1500us would equal 90 degrees, and 2000us would equal 180
 * degrees.We vary pulse width(recall that the pulse period is already set to 20ms) as follows :
 */
-#define MIN_PULSE_WIDTH       500     // the shortest pulse sent to a servo  
-#define MAX_PULSE_WIDTH      2500     // the longest pulse sent to a servo 
+#define MIN_PULSE_WIDTH       1500     // the shortest pulse sent to a servo  
+#define MAX_PULSE_WIDTH      8500     // the longest pulse sent to a servo 
 #define DEFAULT_PULSE_WIDTH  1500     // default pulse width when servo is attached
 #define MIN_SERVO_VAL 0
 #define MAX_SERVO_VAL 180
@@ -25,8 +25,8 @@
 struct ServoHVState
 {
 	bool isOn = true;
-	int posH = 0;
-	int posV = 0;
+	int posH = 90;
+	int posV = 90;
 };
 enum ServoHVCMD :uint { ServoSet,ServoSetH,ServoSetV,ServoOff, ServoSaveState = 4096 };
 

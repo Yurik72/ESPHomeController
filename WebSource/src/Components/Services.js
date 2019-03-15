@@ -32,7 +32,7 @@ class Services extends React.Component {
             let item = { ...services[idx] }; //edited item
 
             item[event.target.name] = event.target.value;
-            alert(JSON.stringify(item));
+            //alert(JSON.stringify(item));
             services[idx] = item;
 
             this.setState({ services });
@@ -122,7 +122,7 @@ class Services extends React.Component {
         if (!svc) return;
         this.getDefaultConfig(svc.service, (data) => {
             let services = [...this.state.services]; //all new copy
-            let item = { ...svc,...data }; //edited item
+            let item = { ...data,...svc }; //edited item
             services[idx] = item;
             this.setState({ services });
         });

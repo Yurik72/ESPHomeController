@@ -5,7 +5,7 @@
 #include "BaseController.h"
 
 #define PWM_FREQ 50 //PWM requency 
-#define PWM_BIT 8  // PWM bits
+#define PWM_BIT 16  // PWM bits
 #define DIM_MIN_VAL 0
 #define DIM_MAX_VAL 0xFF
 #define DIM_MIN_PULSE_WIDTH       500     // the shortest pulse sent to a servo  
