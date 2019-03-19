@@ -45,7 +45,7 @@ String  ServoHVController::serializestate() {
 	String json;
 	json.reserve(128);
 	serializeJson(root, json);
-
+	
 	return json;
 }
 bool  ServoHVController::deserializestate(String jsonstate, CmdSource src) {
@@ -166,6 +166,7 @@ void ServoHVController::set_state(ServoHVState state) {
 		else {
 			if (pin > 0)
 				digitalWrite(pin, LOW);
+			
 		}
 		 
 	}

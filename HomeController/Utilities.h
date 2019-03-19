@@ -1,8 +1,16 @@
 #ifndef utilities_h
 #define utilities_h
 #include  <Arduino.h>
-
+#include "config.h"
 #include <functional>
+
+#if defined ASYNC_WEBSERVER
+#include "ESPAsyncWiFiManager.h"
+#define USE_EADNS
+#else
+#include <WiFiManager.h>        
+#endif
+
 //color converters
 #define REDVALUE(x) ((x >> 16) & 0xFF)
 #define GREENVALUE(x)  ((x >> 8) & 0xFF)
@@ -54,4 +62,13 @@ extern  int current_espchannel;
 void set_first_channel(int val);
 int get_next_espchannel();
 #endif
+
+#ifndef ASYNC_WEBSERVER
+void configModeCallback(WiFiManager *myWiFiManager);
+#else
+void configModeCallback(AsyncWiFiManager *myWiFiManager);
+#endif 
+
+
+
 #endif

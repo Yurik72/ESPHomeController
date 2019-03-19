@@ -158,6 +158,7 @@ bool  RGBStripController::deserializestate(String jsonstate, CmdSource src) {
 	newState.ldrValue = root["ldrValue"];
 	//this->set_state(newState);
 	this->AddCommand(newState, SetRGB, src);
+	
 	return true;
 
 }

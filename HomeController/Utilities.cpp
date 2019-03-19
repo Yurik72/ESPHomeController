@@ -45,12 +45,12 @@ bool ICACHE_FLASH_ATTR  writeConfigFS(bool saveConfig) {
 // Read search_str to FS
 bool ICACHE_FLASH_ATTR readConfigFS() {
 	//read configuration from FS JSON
-
+#ifdef	ENABLE_HOMEBRIDGE
 	memset(mqtt_host, 0, sizeof(mqtt_host));
 	memset(mqtt_port, 0, sizeof(mqtt_port));
 	memset(mqtt_user, 0, sizeof(mqtt_user));
 	memset(mqtt_pass, 0, sizeof(mqtt_pass));
-
+#endif
 	if (SPIFFS.exists("/config.json")) {
 		//file exists, reading and loading
 		DBG_OUTPUT_PORT.print("Reading config file... ");
@@ -347,3 +347,16 @@ int get_next_espchannel() {
 	return current_espchannel++;
 }
 #endif
+
+#ifndef ASYNC_WEBSERVER
+void configModeCallback(WiFiManager *myWiFiManager) {
+#else
+void configModeCallback(AsyncWiFiManager *myWiFiManager) {
+#endif 
+	DBG_OUTPUT_PORT.println("Entered config mode");
+	DBG_OUTPUT_PORT.println(WiFi.softAPIP());
+	//if you used auto generated SSID, print it
+	DBG_OUTPUT_PORT.println(myWiFiManager->getConfigPortalSSID());
+	//entered config mode, make led toggle faster
+
+}

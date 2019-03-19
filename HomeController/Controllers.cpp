@@ -151,7 +151,7 @@ void Controllers::setuphandlers(WebServer& server){
 		_server->sendHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
 		_server->send(200, PSTR("application/json"), info.c_str());
 	});
-	_server.on("/get_availablecontrollers", HTTP_GET, [=]{
+	_server->on("/get_availablecontrollers", HTTP_GET, [=]{
 		//DBG_OUTPUT_PORT.println("get_availablecontrollers");
 		_server->sendHeader("Access-Control-Allow-Origin", "*");
 		_server->sendHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
@@ -159,7 +159,7 @@ void Controllers::setuphandlers(WebServer& server){
 
 
 	});
-	_server.on("/get_availabletriggers", HTTP_GET, [=] {
+	_server->on("/get_availabletriggers", HTTP_GET, [=] {
 		//DBG_OUTPUT_PORT.println("get_availablecontrollers");
 		_server->sendHeader("Access-Control-Allow-Origin", "*");
 		_server->sendHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
@@ -167,13 +167,13 @@ void Controllers::setuphandlers(WebServer& server){
 
 
 	});
-	_server.on("/get_log", HTTP_GET, [=](AsyncWebServerRequest *request) {
+	_server->on("/get_log", HTTP_GET, [=] {
 		_server->sendHeader("Access-Control-Allow-Origin", "*");
 		_server->sendHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
-		_server->send(200, PSTR("application/json"), GET_CONSTCHARGLOG));
+		_server->send(200, PSTR("application/json"), GET_CONSTCHARGLOG);
 
 	});
-	_server.on("/get_defaultconfig", HTTP_GET, [=] {
+	_server->on("/get_defaultconfig", HTTP_GET, [=] {
 		DBG_OUTPUT_PORT.println("get_defaultconfig request");
 		String cname;
 		if (_server->args() > 0)

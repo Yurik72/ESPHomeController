@@ -56,7 +56,17 @@ public:
 	void loadconfig(JsonObject& json);
 	virtual void getdefaultconfig(JsonObject& json);
 	virtual void run();
+#if !defined ASYNC_WEBSERVER
+#if defined(ESP8266)
+	virtual void setuphandlers(ESP8266WebServer& server);
+#else
+	virtual void setuphandlers(WebServer& server);
+
+#endif
+#endif
+#if defined ASYNC_WEBSERVER
 	virtual void setuphandlers(AsyncWebServer& server);
+#endif
 
 	void rfsend(RFState sendstate);
 	void savepersist(RFState psstate);

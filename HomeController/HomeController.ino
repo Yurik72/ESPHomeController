@@ -7,7 +7,7 @@
 */
 
 
-
+#include <Arduino.h>
 #include "config.h"
 
 #if defined(ESP8266)
@@ -51,24 +51,7 @@
 
 #include "Utilities.h"
 
-#if defined(HTTP_OTA) && !defined(ASYNC_WEBSERVER)
-#if defined(ESP8266)
-#include <ESP8266HTTPUpdateServer.h>
- ESP8266HTTPUpdateServer httpUpdater;
-#else
-#include "ESP32HTTPUpdateServer.h"
- ESP32HTTPUpdateServer httpUpdater;
-#endif
-#endif
 
-
-#if defined(HTTP_OTA) && defined(ASYNC_WEBSERVER)
-#include "ESPAsyncUpdateServer.h"
-#endif
-
-#if defined(HTTP_OTA) && defined(ASYNC_WEBSERVER)
- ESPAsyncHTTPUpdateServer httpUpdater;
-#endif
 
 #if defined ASYNC_WEBSERVER
 #if defined(ESP8266)
@@ -94,6 +77,27 @@ WebServer server(80);
  AsyncWebServer asserver(80);
 #endif
 
+
+#ifndef ASYNC_WEBSERVER
+#if defined(HTTP_OTA) 
+#if defined(ESP8266)
+#include <ESP8266HTTPUpdateServer.h>
+ ESP8266HTTPUpdateServer httpUpdater;
+#else
+#include "ESP32HTTPUpdateServer.h"
+ ESP32HTTPUpdateServer httpUpdater;
+#endif
+#endif
+#endif
+
+#if defined(HTTP_OTA) && defined(ASYNC_WEBSERVER)
+#include "ESPAsyncUpdateServer.h"
+#endif
+
+#if defined(HTTP_OTA) && defined(ASYNC_WEBSERVER)
+ ESPAsyncHTTPUpdateServer httpUpdater;
+#endif
+
 #if !defined ASYNC_WEBSERVER
 #include "spiffs_webserver.h"
 #else
@@ -110,31 +114,14 @@ WebServer server(80);
  Controllers controllers;
 
 
+
  /// used by WiFi manager
  void saveConfigCallback() {
 	 shouldSaveConfig = true;
  }
-
-#if !defined ASYNC_WEBSERVER
- void configModeCallback(WiFiManager *myWiFiManager) {
-	 DBG_OUTPUT_PORT.println("Entered config mode");
-	 DBG_OUTPUT_PORT.println(WiFi.softAPIP());
-	 //if you used auto generated SSID, print it
-	 DBG_OUTPUT_PORT.println(myWiFiManager->getConfigPortalSSID());
-	 //entered config mode, make led toggle faster
-
- }
-#else
-
- void configModeCallback(AsyncWiFiManager *myWiFiManager) {
-	 DBG_OUTPUT_PORT.println("Entered config mode");
-	// DBG_OUTPUT_PORT.println(WiFi.softAPIP());
-
-	 DBG_OUTPUT_PORT.println(myWiFiManager->getConfigPortalSSID());
- }
-#endif
- void startwifimanager();
+//void startwifimanager();
  bool wifidirectconnect();
+ void startwifimanager();
 // The setup() function runs once each time the micro-controller starts
 void setup()
 {
@@ -225,6 +212,8 @@ bool wifidirectconnect() {
 	return false;
 }
 void startwifimanager() {
+
+
 #if defined ASYNC_WEBSERVER
 	DBG_OUTPUT_PORT.println("Setupr DNS ");
 	DNSServer dns;
@@ -275,8 +264,11 @@ void startwifimanager() {
 	wifiManager.setSaveConfigCallback(saveConfigCallback);
 	wifiManager.setConfigPortalTimeout(CONFIG_PORTAL_TIMEOUT);
 	//finally let's wait normal wifi connection
-	
+#if defined ASYNC_WEBSERVER
 	if (!wifiManager.autoConnect(HOSTNAME,NULL,!isOffline)) {
+#else
+	if (!wifiManager.autoConnect(HOSTNAME, NULL)) {
+#endif
 		DBG_OUTPUT_PORT.println("failed to connect and hit timeout");
 		//reset and try again, or maybe put it to deep sleep
 		if (!isOffline) {
@@ -285,7 +277,7 @@ void startwifimanager() {
 		}
 		DBG_OUTPUT_PORT.println("Entering offline mode");
 	}
-
+	
 #if ! defined ASYNC_WEBSERVER
 	if (shouldSaveConfig) {
 		char localHost[32];

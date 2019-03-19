@@ -18,6 +18,7 @@
 #define GET_STRINGLOG ESPLogger.LOG()
 #define GET_CONSTCHARGLOG ESPLogger.LOG().c_str()
 #endif
+
 #if defined(ESP8266)
 #define MAX_LDRVAL 1024
 #else
@@ -30,7 +31,7 @@
 
 #define CONFIG_PORTAL_TIMEOUT 600/// secs , to wait configuration has been done by user
 #define ASYNC_WEBSERVER    // !Important , this is switching between WebServer and AsyncWebserver.
-						   //For instance given web site implementen on ReactJS produces simultaneous  requet
+						   //For instance given web site implementen on ReactJS produces simultaneous  request
 						   //and normal WebServer is not able to do this
 						   //Hovewer website will continu to send request in case of error, but this is perfomance
 						   // As well browser can send simultaneous requests to resources css,js,....
@@ -61,12 +62,12 @@ extern char mqtt_port[6] ;
 extern char mqtt_user[32] ;
 extern char mqtt_pass[32] ;
 extern short qossub ; // AMQTT can sub qos 0 or 1 or 2
-extern bool isOffline;
-extern bool isReboot;
+
 
 
 #endif
-
+extern bool isOffline;
+extern bool isReboot;
 //extern  String globlog;
 
 #define VERSION "0.9"

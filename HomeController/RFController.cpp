@@ -16,6 +16,7 @@ RFController::RFController() {
 	this->pinsend = 0;
 	this->pSwitch = NULL;
 	this->store_recdata = true;
+	
 }
 
 String  RFController::serializestate() {
@@ -275,6 +276,18 @@ RFData* RFController::getdata_byname(String& name) {
 			return &this->persistdata.GetAt(i);
 	return NULL;
 }
+#if !defined ASYNC_WEBSERVER
+#if defined(ESP8266)
+void RFController::setuphandlers(ESP8266WebServer& server) {
+	ESP8266WebServer* _server = &server;
+#else
+void RFController::setuphandlers(WebServer& server) {
+	WebServer* _server = &server;
+#endif
+}
+#endif
+
+#if defined ASYNC_WEBSERVER
 void RFController::setuphandlers(AsyncWebServer& server) {
 
 
@@ -316,3 +329,4 @@ void RFController::setuphandlers(AsyncWebServer& server) {
 
 
 }
+#endif

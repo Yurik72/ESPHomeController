@@ -1,4 +1,5 @@
-
+#include "config.h"
+#if defined(ASYNC_WEBSERVER)
 #include <Arduino.h>
 #include <WiFiClient.h>
 #include <WiFiServer.h>
@@ -79,3 +80,4 @@ void ESPAsyncHTTPUpdateServer::setup(AsyncWebServer& server, const char * path, 
 void ESPAsyncHTTPUpdateServer::_setUpdaterError() {
 
 }
+#endif

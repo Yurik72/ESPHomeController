@@ -1,3 +1,5 @@
+#include "config.h"
+#ifdef ASYNC_WEBSERVER
 /**************************************************************
    AsyncWiFiManager is a library for the ESP8266/Arduino platform
    (https://github.com/esp8266/Arduino) to enable easy
@@ -1111,3 +1113,4 @@ String AsyncWiFiManager::toStringIp(IPAddress ip) {
   res += String(((ip >> 8 * 3)) & 0xFF);
   return res;
 }
+#endif

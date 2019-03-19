@@ -72,6 +72,7 @@ public:
 	
 };
 
+/*
 //extern CSimpleArray<ControllerRecord*> ctlfactories;
 #define REGISTER_CONTROLLER(cls)
 
@@ -87,6 +88,8 @@ public:
         }; \
     }; \
    static  cls##Factory global_##cls##Factory;
+
+*/
 
 #ifdef ESP32
 #define FPSTR_PLATFORM(s) reinterpret_cast<const __FlashStringHelper *>(({static const char __c[] PROGMEM = (s); &__c[0];}))
@@ -129,6 +132,8 @@ public: \
 Trigger * ICACHE_FLASH_ATTR trg##Create() {return  new trg(); };\
 static trg##Factory global_##trg##Factory;
 
+
+/*
 #define REGISTER_TRIGGER(trg)
 
 #define REGISTER_TRIGGER_OLD(trg) \
@@ -143,6 +148,7 @@ static trg##Factory global_##trg##Factory;
         }; \
     }; \
     static trg##Factory global_##trg##Factory;
+*/
 ///////////////////////////////////////////////
 
 enum CmdSource
