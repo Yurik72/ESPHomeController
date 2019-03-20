@@ -68,3 +68,9 @@ function internaldoFetch(apiurl, callback, iter,leave) {
            // timeout += 100;
         });
 }
+export function constrain (aNumber, aMin, aMax) {
+    return aNumber > aMax ? aMax : aNumber < aMin ? aMin : aNumber;
+};
+export function map(value, istart, istop, ostart, ostop) {
+    return ostart + (ostop - ostart) * ((value - istart) / (istop - istart));
+};
