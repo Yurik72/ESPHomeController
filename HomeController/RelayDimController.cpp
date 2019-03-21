@@ -13,8 +13,9 @@
 #endif
 
 //REGISTER_CONTROLLER(RelayDimController)
+#ifdef ESP32
 REGISTER_CONTROLLER_FACTORY(RelayDimController)
-
+#endif
 const size_t bufferSize = JSON_OBJECT_SIZE(20);
 
 RelayDimController::RelayDimController() {

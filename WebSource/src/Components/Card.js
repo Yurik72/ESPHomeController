@@ -32,9 +32,11 @@ const Row = (props) => {
     );
 }
 const Col = (props) => {
-    const getclass = (num) => { return num ? "s" + num+" " : " "; };
+    const getclass = (num) => { return num ? "s" + num + " " : " "; };
+    const basestyle = {};
+    const { style } = props;
     return (
-        <div className={"col " + getclass(props.num) + (props.className ? props.className:"")}>
+        <div className={"col " + getclass(props.num) + (props.className ? props.className : "")} style={{ ...basestyle, ...style }}>
             {props.children}
         </div>
     );

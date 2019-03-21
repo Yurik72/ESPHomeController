@@ -14,8 +14,9 @@
 
 
 //REGISTER_CONTROLLER(LDRController)
+#ifndef ESP8266 
 REGISTER_CONTROLLER_FACTORY(ServoHVController)
-
+#endif
 //Factories::registerController(FPSTR_PLATFORM("ServoHVController"), NULL, NULL);
 
 const size_t bufferSize = JSON_OBJECT_SIZE(20);
@@ -77,7 +78,8 @@ void ServoHVController::loadconfig(JsonObject& json) {
 	maxH = json["maxH"];
 	minV = json["minV"];
 	maxH = json["maxH"];
-
+	
+	
 }
 void ServoHVController::getdefaultconfig(JsonObject& json) {
 	json[FPSTR(szPinText)] = pin;

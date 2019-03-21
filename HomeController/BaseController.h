@@ -1,10 +1,11 @@
 
 #ifndef BaseController_h
 #define BaseController_h
-
 #include "config.h"
 #include <Arduino.h>
 #include <ArduinoJson.h>
+
+
 #if !defined ASYNC_WEBSERVER
 #if defined(ESP8266)
 #include <ESP8266WebServer.h>
@@ -42,14 +43,14 @@ typedef CBaseController*(*func_create_ctl)();
 typedef Trigger*(*func_create_trg)();
 template<class T,typename F>
 struct CtlRecord {
-	CtlRecord(const __FlashStringHelper* cname, T* pc, F f=NULL) {
+	CtlRecord(const __FlashStringHelper* cname,  F f=NULL) {
 		this->name = cname;
-		this->pCtl = pc;
+		//this->pCtl = pc;
 		this->f = f;
 	};
 	//String name;
 	const __FlashStringHelper* name;
-	T *pCtl;
+	//T *pCtl;
 	F f;
 };
 typedef CtlRecord<ControllerFactory, func_create_ctl> ControllerRecord;
@@ -59,7 +60,7 @@ class Factories
 
 public:
 
-	static  void ICACHE_FLASH_ATTR registerController(const __FlashStringHelper* name, ControllerFactory *factory, func_create_ctl f=NULL);
+	static  void ICACHE_FLASH_ATTR registerController(const __FlashStringHelper* name,  func_create_ctl f=NULL);
 	static  void ICACHE_FLASH_ATTR registerTrigger(const __FlashStringHelper* name, func_create_trg f=NULL);
 	static  ControllerFactory*  ICACHE_FLASH_ATTR get_ctlfactory(const  String& name);
 	/*static  TriggerFactory* ICACHE_FLASH_ATTR get_triggerfactory(const  String& name);*/
@@ -96,20 +97,26 @@ public:
 #else
 #define FPSTR_PLATFORM(s) FPSTR(s)
 #endif
+template<class T>
+class CtlFactory {
+public:
+
+};
+
+
 #define DEFINE_CONTROLLER_FACTORY(cls) \
-    class cls##Factory /*: public ControllerFactory*/ { \
+static CBaseController* ICACHE_FLASH_ATTR cls##Create();\
+    class cls##Factory  { \
     public: \
         cls##Factory() \
         { \
-           Factories::registerController(FPSTR_PLATFORM(#cls), NULL,cls##Factory::raw_create); \
+           Factories::registerController(FPSTR_PLATFORM(#cls), cls##Create); \
         };\
-        static CBaseController* ICACHE_FLASH_ATTR raw_create(){ \
-			return new cls(); \
-		}; \
     }; \
 
 #define REGISTER_CONTROLLER_FACTORY(cls) \
-static  cls##Factory global_##cls##Factory;
+ static  cls##Factory global_##cls##Factory; \
+CBaseController * ICACHE_FLASH_ATTR cls##Create() { return new cls(); };
 
 template<class T>
 class TrgFactory {
@@ -311,7 +318,8 @@ public:
 		if (handler_statechange != NULL) {
 			handler_statechange(this,state);
 		}
-
+		for (int i = 0;i < events.GetSize();i++)
+			events.GetAt(i)(this, state);
 		
 	}
 	const P& get_state() {
@@ -321,11 +329,12 @@ public:
 		return this->deserializestate(readfile(this->get_filename_state().c_str()), srcRestore);
 	}
 	void set_handler_statechange(func_onstatechange f) { handler_statechange = f; };
+	void add_eventshandler_statechange(func_onstatechange f) { events.Add(f); };
 protected:
 	CSimpleArray<command> commands;
 	P state;
 	func_onstatechange   handler_statechange;
-
+	CSimpleArray<func_onstatechange> events;
 };
 
 template<class T, typename P, typename M>

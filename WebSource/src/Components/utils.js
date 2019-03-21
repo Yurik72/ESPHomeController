@@ -71,6 +71,12 @@ function internaldoFetch(apiurl, callback, iter,leave) {
 export function constrain (aNumber, aMin, aMax) {
     return aNumber > aMax ? aMax : aNumber < aMin ? aMin : aNumber;
 };
+export function inrange(aNumber, aMin, aMax) {
+    return aNumber>=aMin && aNumber <= aMax; 
+};
 export function map(value, istart, istop, ostart, ostop) {
     return ostart + (ostop - ostart) * ((value - istart) / (istop - istart));
+};
+export function mapInt(value, istart, istop, ostart, ostop) {
+    return parseInt(map(value, istart, istop, ostart, ostop),10);
 };

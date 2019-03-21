@@ -258,7 +258,7 @@ void Controllers::setuphandlers(AsyncWebServer& server) {
 		info += "\",\"mem\":";
 		info += String(ESP.getFreeHeap());
 		info += "}";
-		AsyncWebServerResponse *response = request->beginResponse(200, "application/json", info.c_str());
+		AsyncWebServerResponse *response = request->beginResponse(200, "application/json", info);
 		//response->addHeader("Access-Control-Allow-Origin", "*");
 		//response->addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
 

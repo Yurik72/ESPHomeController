@@ -10,8 +10,9 @@
 #if defined(LOG_SERIAL) && !defined(LOG_STRING_LOGGER)
 #define DBG_OUTPUT_PORT Serial  // Set debug output port
 #define GET_LOG String("")
-#define GET_CONSTCHARGLOG ""
+#define GET_CONSTCHARGLOG GET_LOG
 #endif
+
 #if defined(LOG_SERIAL) && defined(LOG_STRING_LOGGER)
 #include "Logger.h"
 #define DBG_OUTPUT_PORT ESPLogger  // Set debug output port
@@ -45,6 +46,7 @@
 //#define MQTT_DEBUG
 //#define FACTORY_DEBUG
 //#define RFCONTROLLER_DEBUG
+#define MENU_DEBUG
 const char name_localhost_host[] = "localhost";
 const char name_mqtt_host[] = "mqtt_host";
 const char name_mqtt_port[] = "mqtt_port";
@@ -79,11 +81,7 @@ extern bool isReboot;
 
 
 
-static const char szPinText[] PROGMEM = "pin";
-static const char szbrightnessText[] PROGMEM = "brightness";
-static const char szisOnText[] PROGMEM = "isOn";
-static const char szStatusText[] PROGMEM = "Status";
-static const char szParseJsonFailText[] PROGMEM = "parse Json() failed: ";
+
 #endif
 
 

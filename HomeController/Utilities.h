@@ -70,5 +70,10 @@ void configModeCallback(AsyncWiFiManager *myWiFiManager);
 #endif 
 
 
+static const char szPinText[] PROGMEM = "pin";
+static const char szbrightnessText[] PROGMEM = "brightness";
+static const char szisOnText[] PROGMEM = "isOn";
+static const char szStatusText[] PROGMEM = "Status";
+static const char szParseJsonFailText[] PROGMEM = "parse Json() failed: ";
 
 #endif

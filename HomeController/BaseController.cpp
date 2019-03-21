@@ -14,14 +14,13 @@ static CSimpleArray<ControllerRecord*>*   pctlfactories=NULL;
 static CSimpleArray<TriggerRecord*>* ptriggerfactories=NULL;
 
 
-
-void ICACHE_FLASH_ATTR Factories::registerController(const __FlashStringHelper* name, ControllerFactory *factory, func_create_ctl f)
+void ICACHE_FLASH_ATTR Factories::registerController(const __FlashStringHelper* name, func_create_ctl f)
 {
 
 	if (!pctlfactories)
 		pctlfactories = new CSimpleArray<ControllerRecord*>();
 
-	ControllerRecord* prec = new ControllerRecord(name, factory,f);
+	ControllerRecord* prec = new ControllerRecord(name, f);
 	pctlfactories->Add(prec);
 
 };
@@ -30,16 +29,18 @@ void ICACHE_FLASH_ATTR Factories::registerTrigger(const __FlashStringHelper* nam
 	//DBG_OUTPUT_PORT.print("registerTrigger");
 	if (!ptriggerfactories)
 		ptriggerfactories = new CSimpleArray<TriggerRecord*>();
-	TriggerRecord* prec = new TriggerRecord(name, NULL,f);
+	TriggerRecord* prec = new TriggerRecord(name, f);
 	ptriggerfactories->Add(prec);
 };
 ControllerFactory* ICACHE_FLASH_ATTR Factories::get_ctlfactory(const  String& name) {
 	if (!pctlfactories)
 		return NULL;
+	/*
 	for (int i = 0;i < pctlfactories->GetSize();i++)
 		//if (pctlfactories->GetAt(i)->name == name)
 	   if(strcmp_P(name.c_str(), (PGM_P)pctlfactories->GetAt(i)->name)==0)
 			   return pctlfactories->GetAt(i)->pCtl;
+			   */
 	return NULL;
 	
 };
@@ -70,7 +71,7 @@ CBaseController* ICACHE_FLASH_ATTR Factories::CreateController(const  String& na
 #ifdef FACTORY_DEBUG
 			DBG_OUTPUT_PORT.println("using class factory method");
 #endif
-			return  pRec->pCtl->create();
+			return NULL;// pRec->pCtl->create();
 		}
 	return NULL;
 }

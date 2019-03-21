@@ -24,7 +24,9 @@
 
 REGISTER_TRIGGER_FACTORY(TimeToRGBStripTrigger)
 REGISTER_TRIGGER_FACTORY(TimeToRelayTrigger)
+#ifndef ESP8266 
 REGISTER_TRIGGER_FACTORY(LDRToRelay)
+#endif
 REGISTER_TRIGGER_FACTORY(LDRToRGBStrip)
 REGISTER_TRIGGER_FACTORY(RFToRelay)
 
@@ -106,7 +108,12 @@ Trigger* Triggers::CreateByType(const char* nametype) {
 	
 
 
+
+
+
+
 	/*
+	
 	Trigger* res = NULL;
 	if (strcmp(nametype, "TimeToRGBStrip") == 0) {
 		res= new TimeToRGBStripTrigger();
@@ -123,7 +130,7 @@ Trigger* Triggers::CreateByType(const char* nametype) {
 	else {
 		res = new Trigger();
 	}
-	res->type = nametype;
+	//res->type = nametype;
 	return res;
 	*/
 }

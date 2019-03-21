@@ -1,6 +1,6 @@
 import React from "react";
 import Checkbox from "./Checkbox";
-import { getBaseuri, doFetch, map, constrain } from "./utils"
+import { getBaseuri, doFetch, map, mapInt, constrain, inrange } from "./utils"
 import RangeCtl from "./RangeCtl";
 import { Card, Row, Col } from "./Card"
 
@@ -9,46 +9,81 @@ import { Card, Row, Col } from "./Card"
 class JoyStickPoint extends React.Component {
     constructor(props) {
         super(props);
-        this.coords = { x: 0, y: 0 };
-       
+        this.coords = { x: 0, y: 0};
+        this.ismove = false;
+        this.pointpos = { x: 0, y: 0 };
     }
+
     handleMouseDown = (e) => {
         this.coords = {
             x: e.pageX,
             y: e.pageY
         }
         document.addEventListener('mousemove', this.handleMouseMove);
+        this.ismove = true;
+        this.pointpos = this.getPointPos();
     };
 
     handleMouseUp = () => {
         document.removeEventListener('mousemove', this.handleMouseMove);
         this.coords = {};
+        this.ismove = false;
     };
 
     handleMouseMove = (e) => {
-        const { xpos, ypos, onPositionChange, minx, maxx, miny, maxy} = this.getDftProps();
+        const { xpos, ypos, x_offs,y_offs, onPositionChange, minx, maxx, miny, maxy, xposmin, xposmax, yposmin, yposmax} = this.getDftProps();
         const xDiff = this.coords.x - e.pageX;
         const yDiff = this.coords.y - e.pageY;
 
         this.coords.x = e.pageX;
         this.coords.y = e.pageY;
+        this.pointpos.x -= xDiff;
+        this.pointpos.y -= yDiff;
 
+      
+        let resx = this.pointpos.x + x_offs;
+        let resy = this.pointpos.y + y_offs;
+        if (!inrange(resx, minx, maxx)) {
+            this.pointpos.x += xDiff;
+        }
+        if(!inrange(resy, miny, maxy)) {
+            this.pointpos.y += yDiff;
+        } 
+
+
+        resx = mapInt(resx, minx, maxx, xposmin, xposmax);
+        resy = mapInt(resy, miny, maxy, yposmin, yposmax);
+       
         onPositionChange({
-            x: constrain(xpos - xDiff,minx,maxx),
-            y: constrain(ypos - yDiff, miny, maxy)
+            x: resx,
+            y: resy
         });
     };
     getDftProps() {
         const dftlprops = {
-            xpos: 0, ypos: 0, onPositionChange: (pos) => { }, minx:0, maxx:300, miny:0, maxy:300};
+            xpos: 0, ypos: 0, onPositionChange: (pos) => { },
+            xposmin: 0, xposmax: 180, yposmin: 0, yposmax:180,
+            minx: 0, maxx: 300, miny: 0, maxy: 300,
+            x_offs: 50, y_offs: 50, radius: 40
+        };
         return { ...dftlprops, ...this.props };
+    }
+    getPointPos() {
+        const { xpos, ypos, x_offs, y_offs, radius, minx, maxx, miny, maxy, xposmin, xposmax, yposmin, yposmax } = this.getDftProps();
+
+        const leftval = mapInt(xpos, xposmin, xposmax, minx, maxx) - x_offs;
+        const topval = mapInt(ypos, yposmin, yposmax, miny, maxy) - y_offs;
+        return { x: leftval, y: topval };
     }
     render() {
        
-        const { xpos, ypos } = this.getDftProps();
+        const {x_offs, y_offs, radius,} = this.getDftProps();
+
+        const pointpos = this.ismove ? this.pointpos:this.getPointPos();
+       
         return (
-            <svg height="100" width="100" style={{ position: 'absolute', left: xpos,top:ypos}}>
-                <circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red"
+            <svg height="100" width="100" style={{ position: 'absolute', left: pointpos.x, top: pointpos.y}}>
+                <circle cx={x_offs} cy={y_offs} r={radius} stroke="black" strokeWidth="3" fill="red"
                     onMouseDown={this.handleMouseDown}
                     onMouseUp={this.handleMouseUp}
                 />
@@ -64,9 +99,12 @@ function JoyStickBox({
     style,
 }) {
     const baseStyles = {
-        width,
-        height,
-        position:'relative'
+        width:300,
+        height: 300,
+        position:'relative',
+        alignItems:"center",
+        justifyContent: "center"
+        //position:'relative'
   //      transformOrigin: '50% 50%',
         
     };
@@ -85,7 +123,7 @@ class ServoHV extends React.Component {
         this.jsheight = 300;
         console.log(props);
         const { compprops } = props;
-        this.state = { isOn: false, posH:0,posV:0 };
+        this.state = { isOn: false, posH:0,posV:0,minH:0,maxH:180,minV:0,maxV:180 };
         this.toggleCheckbox = st => {
 
             this.setState(st, () => this.SendStateUpdate());
@@ -177,7 +215,8 @@ class ServoHV extends React.Component {
                            
                             label="Position H"
                             name="posH"
-                            maxval={180}
+                            minval={this.state.minH}
+                            maxval={this.state.maxH}
                             rangevalue={this.state.posH}
                             handleRangeChange={this.onPosChanged}
                         />
@@ -189,14 +228,16 @@ class ServoHV extends React.Component {
                            
                             label="Position V"
                             name="posV"
-                            maxval={180}
+                            minval={this.state.minV}
+                            maxval={this.state.maxV}
+
                             rangevalue={this.state.posV}
                             handleRangeChange={this.onPosChanged}
                         />
                     </Col>
                 </Row>
-                <Row>
-                    <Col num={12}>
+                <Row className="valign-wrapper">
+                    <Col num={12} className="valign-wrapper" style={{ alignItems: "center", justifyContent: "center" }}>
                         <JoyStickBox style={{ height: this.jsheight, width: this.jswidth}}>
                             <canvas id="axis" ref={el => this.axis = el} height={this.jsheight} width={this.jswidth}>
                             </canvas>
