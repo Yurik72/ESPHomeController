@@ -244,6 +244,15 @@ class ServoHV extends React.Component {
                             <JoyStickPoint
                                 xpos={this.state.posH}
                                 ypos={this.state.posV}
+                                minx={0}
+                                maxx={this.jswidth}
+                                miny={0}
+                                maxy={this.jsheight}
+                                xposmin={this.state.minH}
+                                xposmax={this.state.maxH}
+                                yposmin={this.state.minV}
+                                yposmax={this.state.maxH}
+                               
                                 onPositionChange={(pos) => { this.internal_setState({ posH:pos.x ,posV:pos.y},10) }}
                             ></JoyStickPoint>
                        
