@@ -50,54 +50,64 @@ public:
 	virtual void drawContent(CMenuDisplayAdapter& adapter);
 	virtual void drawPreview(CMenuDisplayAdapter& adapter);
 	const String& getname() { return name; };
-	const CMenu* getsubmenu() { return pSubMenu; };
+	CMenu* getsubmenu() { return pSubMenu; };
 	bool isSubMenu() { return pSubMenu!=NULL; };
-	
+	CMenu* getParent() { return pParent; };
 private:
 	String name;
 	CMenu* pParent;
 	CMenu* pSubMenu;
 };
-enum nav {next,prev,first,last};
+enum nav {next,prev,first,last,action,back};
 enum MenuVisualState {Main,SubMenu,Content};
+
 class CMenu {
 public:
 	CMenu();
-	const CMenuItem* AddItem(String& text);
-	const CMenuItem* AddItem(CMenuItem* pItem);
+	void AddItem(String& text);
+	void AddItem(CMenuItem* pItem);
 	const MenuItems getitems() { return  items; };
-	const CMenuItem* getcurrent();
-	const CMenuItem*  donavigation(nav cmd);
+	CMenuItem* getcurrent();
 
 	void redraw(CMenuDisplayAdapter* pAdapter);
-	bool isRedrawRequired() { return bredrawRequired; };
-	void invalidate() { bredrawRequired = true; }
-	
+	size_t getcurrentidx() { return currentidx; };
+	void setcurrentidx(size_t val) { currentidx = val; };
+	CMenuItem* getParentItem(CMenu* pMenu);
 protected :
 	void drawItems(const MenuItems& its, CMenuDisplayAdapter* pAdapter);
 	const MenuItems& getActiveItems();
 	virtual bool isTopLevel() { return false; }
+	MenuVisualState getVisualState() { return vs_state; };
+	void setVisualState(MenuVisualState vs) { vs_state=vs; };
 	MenuVisualState vs_state;
+
 private:
 	MenuItems items;
-	
+	size_t currentidx;
 	//CMenuItem* pCurrent;
-	size_t current;
-	bool bredrawRequired;
+	
+	
 	
 };
 class CTopLevelMenu :public CMenu {
 public :
 	CTopLevelMenu();
 	const CMenuDisplayAdapter* get_adapter() { return pAdapter; };
-	void redraw() { CMenu::redraw(pAdapter); };
+	void redraw();
 	void set_adapter(CMenuDisplayAdapter* p) { pAdapter = p; };
+	CMenuItem*  donavigation(nav cmd);
+	bool isRedrawRequired() { return bredrawRequired; };
+	void invalidate() { bredrawRequired = true; }
+	void setActiveSubMenu(CMenu* pVal) {  pActiveSubMenu=pVal; };
+	CMenu* getActiveSubMenu() { return pActiveSubMenu; };
 protected:
 	virtual bool isTopLevel() { return true; };
 private:
 	CMenuDisplayAdapter* pAdapter;
 	CMenu* pActiveSubMenu;
+	bool bredrawRequired;
 };
+
 class CMenuDisplayAdapter {
 public:
 	CMenuDisplayAdapter() {

@@ -97,48 +97,109 @@ void MenuController::run() {
 CTopLevelMenu::CTopLevelMenu() {
 	vs_state = Main;
 	pActiveSubMenu = NULL;
-}
-CMenu::CMenu():current(0) {
 	bredrawRequired = true;
-	vs_state = Main;
 }
-const CMenuItem* CMenu::AddItem(String& text) {
-	CMenuItem* it = new CMenuItem(this, text);
-	AddItem(it);
+void CTopLevelMenu::redraw() {
 
-}
-const CMenuItem* CMenu::AddItem(CMenuItem* pItem) {
-	items.Add(pItem);
-}
-const CMenuItem* CMenu::getcurrent() {
-	if (getitems().GetSize() == 0 || current<0 || current>= getitems().GetSize())
-	      return  NULL; 
-	return getitems().GetAt(current);
+	if (this->getVisualState() == SubMenu && this->getActiveSubMenu()) {
+		this->getActiveSubMenu()->redraw(pAdapter);
+	}
+	else {
+		CMenu::redraw(pAdapter);
+	}
+
+	bredrawRequired = false;
 };
-const CMenuItem* CMenu::donavigation(nav cmd) {
+CMenuItem* CTopLevelMenu::donavigation(nav cmd) {
 	if (getitems().GetSize() == 0)
 		return NULL;
+	
+	CMenu* pActiveMenu = this;
+	if (this->getVisualState() == SubMenu && this->getActiveSubMenu())
+		pActiveMenu = this->getActiveSubMenu();
+	size_t idx = pActiveMenu->getcurrentidx();
+	CMenuItem* pCurrent = pActiveMenu->getcurrent();
 	switch (cmd) {
-	case first:
-		current = 0;
-		break;
-	case last:
-		current = getitems().GetSize()-1;
-		break;
-	case next:
-		current++;
-		if (current >= getitems().GetSize())
-			current--;
-		break;
-	case prev:
-		current--;
-		if (current<0)
-			current=0;
-		break;
-	default:
-		break;
+			case first:
+				idx = 0;
+				pActiveMenu->setcurrentidx(idx);
+				break;
+			case last:
+				idx = pActiveMenu->getitems().GetSize() - 1;
+				pActiveMenu->setcurrentidx(idx);
+				break;
+			case next:
+				idx++;
+				if (idx >= pActiveMenu->getitems().GetSize())
+					idx--;
+				pActiveMenu->setcurrentidx(idx);
+				break;
+			case prev:
+				idx--;
+				if (idx < 0)
+					idx = 0;
+				pActiveMenu->setcurrentidx(idx);
+				break;
+			case action:
+				
+				if (pCurrent && pCurrent->isSubMenu()) {
+					setActiveSubMenu(pCurrent->getsubmenu());
+					setVisualState(SubMenu);
+				}
+				else {
+					
+				}
+				break;
+			case back:
+				if (this->getVisualState() == SubMenu && pCurrent->getParent() != this) {
+					CMenuItem* pParent = this->getParentItem(pCurrent->getParent());
+					if (pParent && pParent->getParent()==this) {
+						setActiveSubMenu(NULL);
+						setVisualState(Main);
+					}
+					else if (pParent && pParent->getParent() ){
+						setActiveSubMenu(pParent->getParent());
+						setVisualState(SubMenu);
+					}
+
+				}
+			default:
+				break;
 	}
+	this->bredrawRequired = true;
 	return this->getcurrent();
+}
+CMenu::CMenu():currentidx(0) {
+	
+	vs_state = Main;
+}
+void  CMenu::AddItem(String& text) {
+	CMenuItem* it = new CMenuItem(this, text);
+	 AddItem(it);
+
+}
+void CMenu::AddItem(CMenuItem* pItem) {
+	 items.Add(pItem);
+}
+CMenuItem* CMenu::getcurrent() {
+	if (getitems().GetSize() == 0 || getcurrentidx() <0 || getcurrentidx() >= getitems().GetSize())
+	      return  NULL; 
+	return getitems().GetAt(getcurrentidx());
+};
+CMenuItem* CMenu::getParentItem(CMenu* pMenu) {
+
+	for (int i = 0;i < this->getitems().GetSize();i++) {
+		CMenuItem* p = this->getitems().GetAt(i);
+		if (p->getParent() == pMenu) {
+			return p;
+		}
+		if (p->isSubMenu())
+			p = p->getsubmenu()->getParentItem(pMenu);
+		if (p)
+			return p;
+		
+	}
+	return NULL;
 }
 const MenuItems& CMenu::getActiveItems() {
 	//to do sub menu
@@ -150,7 +211,7 @@ void CMenu::redraw(CMenuDisplayAdapter* pAdapter) {
 #ifdef  MENU_DEBUG
 	DBG_OUTPUT_PORT.println("Menu redraw");
 	DBG_OUTPUT_PORT.print("Menu current:");
-	DBG_OUTPUT_PORT.println(current);
+	DBG_OUTPUT_PORT.println(getcurrentidx());
 
 	DBG_OUTPUT_PORT.println(pAdapter->getcurrentpage());
 #endif 
@@ -159,26 +220,26 @@ void CMenu::redraw(CMenuDisplayAdapter* pAdapter) {
 	drawItems(getActiveItems(), pAdapter);
 
 	pAdapter->update();
-	this->bredrawRequired = false;
+	
 	
 }
 void  CMenu::drawItems(const MenuItems& its, CMenuDisplayAdapter* pAdapter) {
-	if (pAdapter->getcurrentpage() != pAdapter->getpage(current))
-		pAdapter->setpage(current);
+	if (pAdapter->getcurrentpage() != pAdapter->getpage(getcurrentidx()))
+		pAdapter->setpage(getcurrentidx());
 	for (size_t i = pAdapter->getfirstindex();(i < items.GetSize() && i < pAdapter->getmaxlines());i++) {
 #ifdef  MENU_DEBUG
 		DBG_OUTPUT_PORT.print("Menu draw item:");
 		DBG_OUTPUT_PORT.println(i);
 #endif 
 		String text;
-		if (i == current) {
+		if (i == getcurrentidx()) {
 			text = ">>" + items.GetAt(i)->getname();
 		}
 		else {
 			text = "  " + items.GetAt(i)->getname();
 		}
 		pAdapter->drawline(i, text);
-		if (i == current) {
+		if (i == getcurrentidx()) {
 			items.GetAt(i)->drawPreview(*pAdapter);
 		}
 	}
