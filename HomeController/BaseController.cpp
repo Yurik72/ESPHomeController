@@ -280,7 +280,8 @@ void CBaseController::setup() {
 #else
 	if (this->get_coremode() == Core || this->get_coremode() == Both) {
 		this->pTicker = new Ticker();
-		this->pTicker->attach_ms<CBaseController*>(this->interval?1:this->interval, CBaseController::callback, this);
+		this->pTicker->attach_ms<CBaseController*>(!this->interval?1:this->interval, CBaseController::callback, this);
+		
 	}
 #endif
 }

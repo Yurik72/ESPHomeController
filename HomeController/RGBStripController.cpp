@@ -24,7 +24,9 @@ public:
 static channelregister globchannelregister;
 #endif //  ESP32
 //REGISTER_CONTROLLER(RGBStripController)
+#ifndef DISABLE_RGB
 REGISTER_CONTROLLER_FACTORY(RGBStripController)
+#endif
 
 const size_t bufferSize = JSON_OBJECT_SIZE(40);
 static String rgbModes;

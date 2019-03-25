@@ -60,14 +60,16 @@ void  MenuController::setup() {
 	pmenu->AddItem(s);
 	s = "Item 2";
 	pmenu->AddItem(s);
+	s = "RF Send";
+	CTopRFMenuItem* prfTop = new CTopRFMenuItem(static_cast<CMenu*>(pmenu),s);
+	
+	pmenu->AddItem(prfTop);
 #ifdef  MENU_DEBUG
-	DBG_OUTPUT_PORT.println(F("Setup button handlers"));
+	DBG_OUTPUT_PORT.println(F("Setup button handlers "));
 #endif
 	CBaseController* pBCtl = Controllers::getInstance()->GetByName("Button");
 	if (pBCtl) {
-#ifdef  MENU_DEBUG
-		DBG_OUTPUT_PORT.println(F("can't find button controller"));
-#endif
+
 		pBtnController=static_cast<ButtonController*>(pBCtl);
 		MenuController* self = this;
 		pBtnController->add_eventshandler_statechange(
@@ -77,7 +79,9 @@ void  MenuController::setup() {
 		);
 	}
 	else{
-
+#ifdef  MENU_DEBUG
+		DBG_OUTPUT_PORT.println(F("can't find button controller"));
+#endif
 	}
 }
 void MenuController::onButtonEvent(ButtonState bs) {
@@ -85,6 +89,20 @@ void MenuController::onButtonEvent(ButtonState bs) {
 	DBG_OUTPUT_PORT.println(F("Button event"));
 	DBG_OUTPUT_PORT.println(bs.idx);
 #endif
+	if (bs.isPressed) {
+		switch (bs.idx) {
+		case 1:
+			pmenu->donavigation(next);
+			break;
+		case 2:
+			pmenu->donavigation(prev);
+			break;
+		case 0:
+			pmenu->donavigation(action);
+			break;
+
+		}
+	}
 }
 void MenuController::run() {
 	if (!pmenu)
@@ -113,12 +131,20 @@ void CTopLevelMenu::redraw() {
 CMenuItem* CTopLevelMenu::donavigation(nav cmd) {
 	if (getitems().GetSize() == 0)
 		return NULL;
-	
-	CMenu* pActiveMenu = this;
+#ifdef  MENU_DEBUG
+	DBG_OUTPUT_PORT.println(F("donavigation"));
+#endif
+	CMenu* pActiveMenu = static_cast<CMenu*>(this);
 	if (this->getVisualState() == SubMenu && this->getActiveSubMenu())
 		pActiveMenu = this->getActiveSubMenu();
+#ifdef  MENU_DEBUG
+	DBG_OUTPUT_PORT.println(F("active menu"));
+#endif
 	size_t idx = pActiveMenu->getcurrentidx();
+
 	CMenuItem* pCurrent = pActiveMenu->getcurrent();
+	if (pCurrent)
+		pCurrent->onPreload();
 	switch (cmd) {
 			case first:
 				idx = 0;
@@ -129,16 +155,21 @@ CMenuItem* CTopLevelMenu::donavigation(nav cmd) {
 				pActiveMenu->setcurrentidx(idx);
 				break;
 			case next:
-				idx++;
-				if (idx >= pActiveMenu->getitems().GetSize())
-					idx--;
-				pActiveMenu->setcurrentidx(idx);
+				{
+
+					idx++;
+					if (idx >= pActiveMenu->getitems().GetSize())
+						idx--;
+					pActiveMenu->setcurrentidx(idx);
+				}
 				break;
 			case prev:
+			{
 				idx--;
 				if (idx < 0)
 					idx = 0;
 				pActiveMenu->setcurrentidx(idx);
+			}
 				break;
 			case action:
 				
@@ -147,7 +178,8 @@ CMenuItem* CTopLevelMenu::donavigation(nav cmd) {
 					setVisualState(SubMenu);
 				}
 				else {
-					
+					if (pCurrent)
+						pCurrent->doAction();
 				}
 				break;
 			case back:
@@ -182,9 +214,10 @@ void CMenu::AddItem(CMenuItem* pItem) {
 	 items.Add(pItem);
 }
 CMenuItem* CMenu::getcurrent() {
-	if (getitems().GetSize() == 0 || getcurrentidx() <0 || getcurrentidx() >= getitems().GetSize())
+	if ((getitems().GetSize() == 0 )|| (getcurrentidx() <0) || (getcurrentidx() >= getitems().GetSize()))
 	      return  NULL; 
-	return getitems().GetAt(getcurrentidx());
+
+	return (CMenuItem * )getitems().GetAt(getcurrentidx());
 };
 CMenuItem* CMenu::getParentItem(CMenu* pMenu) {
 
@@ -236,7 +269,7 @@ void  CMenu::drawItems(const MenuItems& its, CMenuDisplayAdapter* pAdapter) {
 			text = ">>" + items.GetAt(i)->getname();
 		}
 		else {
-			text = "  " + items.GetAt(i)->getname();
+			text = "   " + items.GetAt(i)->getname();
 		}
 		pAdapter->drawline(i, text);
 		if (i == getcurrentidx()) {
@@ -257,6 +290,28 @@ void CMenuItem::drawContent(CMenuDisplayAdapter& adapter) {
 void CMenuItem::drawPreview(CMenuDisplayAdapter& adapter) {
 
  }
+
+////rf
+CTopRFMenuItem::CTopRFMenuItem(CMenu* pParent) :CMenuItem(pParent) {
+
+};
+CTopRFMenuItem::CTopRFMenuItem(CMenu* pParent, String& text) :CMenuItem(pParent, text) {
+};
+
+void CTopRFMenuItem::onPreload() {
+	if (!this->getsubmenu()) {
+		this->setsubmenu(new CMenu());
+	}
+	
+	String s = "RF1";
+	CActionRFMenuItem* prf = new CActionRFMenuItem(this->getsubmenu(), s);
+
+	this->getsubmenu()->AddItem(prf);
+}
+void CActionRFMenuItem::doAction() {
+
+}
+
 
 CMenuDisplayAdapterSSD1306::CMenuDisplayAdapterSSD1306() {
 	pdisplay = NULL;

@@ -47,6 +47,20 @@
 //#define FACTORY_DEBUG
 //#define RFCONTROLLER_DEBUG
 #define MENU_DEBUG
+//#define BUTTON_DEBUG
+
+
+//DISABLE /ENABLE services
+// Importnat due to iram limitation on ESp8266 (virtual function  table)
+#define RF_SNIFFER
+
+#ifdef ESP8266
+#ifdef RF_SNIFFER
+#define DISABLE_RGB
+
+#endif
+#endif
+
 const char name_localhost_host[] = "localhost";
 const char name_mqtt_host[] = "mqtt_host";
 const char name_mqtt_port[] = "mqtt_port";

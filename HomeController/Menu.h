@@ -49,10 +49,15 @@ public:
 
 	virtual void drawContent(CMenuDisplayAdapter& adapter);
 	virtual void drawPreview(CMenuDisplayAdapter& adapter);
+	virtual void doAction() {};
+	virtual void onPreload() {};
 	const String& getname() { return name; };
 	CMenu* getsubmenu() { return pSubMenu; };
+	
 	bool isSubMenu() { return pSubMenu!=NULL; };
 	CMenu* getParent() { return pParent; };
+protected:
+	void setsubmenu(CMenu* p) { pSubMenu=p; };
 private:
 	String name;
 	CMenu* pParent;
@@ -66,7 +71,7 @@ public:
 	CMenu();
 	void AddItem(String& text);
 	void AddItem(CMenuItem* pItem);
-	const MenuItems getitems() { return  items; };
+	MenuItems& getitems() { return  items; };
 	CMenuItem* getcurrent();
 
 	void redraw(CMenuDisplayAdapter* pAdapter);
@@ -108,6 +113,18 @@ private:
 	bool bredrawRequired;
 };
 
+class CTopRFMenuItem :public CMenuItem {
+public:
+	CTopRFMenuItem(CMenu* pParent);
+	CTopRFMenuItem(CMenu* pParent, String& text);
+	virtual void onPreload();
+};
+class CActionRFMenuItem :public CMenuItem {
+public:
+	CActionRFMenuItem(CMenu* pParent) :CMenuItem(pParent) {};
+	CActionRFMenuItem(CMenu* pParent, String& text) :CMenuItem(pParent, text) {};
+	virtual void doAction() ;
+};
 class CMenuDisplayAdapter {
 public:
 	CMenuDisplayAdapter() {
@@ -115,7 +132,7 @@ public:
 		firtsindex = 0;
 		preview_offset = 0;
 	};
-	virtual void setup(int adr= 0x3c, int pinSda =21, int pinScl =22) {};
+	virtual void setup(int adr= 0x3c, int pinSda =5, int pinScl =4) {};
 	virtual int getmaxlines() { return get_maxy() / lineheight; };
 
 	virtual int get_maxy() { return 0; };
@@ -146,7 +163,7 @@ public:
 	~CMenuDisplayAdapterSSD1306();
 	virtual int get_maxy() { return 32; };
 	virtual int get_maxx() { return 128; };
-	virtual void setup(int adr = 0x3c, int pinSda = 21, int pinScl = 22);
+	virtual void setup(int adr = 0x3c, int pinSda = 1, int pinScl = 2);
 	virtual int drawline(size_t idx, const String& text) ;
 	virtual void drawtext(size_t x, size_t y, const String& text) ;
 	virtual void clear() ;
