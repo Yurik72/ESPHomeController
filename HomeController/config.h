@@ -50,17 +50,23 @@
 //#define BUTTON_DEBUG
 
 
-//DISABLE /ENABLE services
+//DISABLE /ENABLE services Section
 // Importnat due to iram limitation on ESp8266 (virtual function  table)
-#define RF_SNIFFER
+//#define RF_SNIFFER
+#define RGB
 
 #ifdef ESP8266
 #ifdef RF_SNIFFER
 #define DISABLE_RGB
-
-#endif
 #endif
 
+#ifdef RGB
+#define DISABLE_MENU
+#endif
+
+#endif
+
+//DISABLE/ENABLE end
 const char name_localhost_host[] = "localhost";
 const char name_mqtt_host[] = "mqtt_host";
 const char name_mqtt_port[] = "mqtt_port";

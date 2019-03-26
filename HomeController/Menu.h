@@ -36,7 +36,9 @@ protected:
 	ButtonController* pBtnController;
 };
 
+#ifndef DISABLE_MENU
 DEFINE_CONTROLLER_FACTORY(MenuController)
+#endif
 
 class CMenuDisplayAdapter;
 typedef  CSimpleArray<CMenuItem*> MenuItems;

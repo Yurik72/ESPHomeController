@@ -2,7 +2,10 @@
 #include "Menu.h"
 #include "Controllers.h"
 #include "ButtonController.h"
+
+#ifndef DISABLE_MENU
 REGISTER_CONTROLLER_FACTORY(MenuController)
+#endif
 
 const size_t bufferSize = JSON_OBJECT_SIZE(20);
 
