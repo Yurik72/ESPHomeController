@@ -7,8 +7,9 @@
 //#ifndef ESP8266   /// further solving factory
 //REGISTER_CONTROLLER(ButtonController)
 //#endif // !1
+#ifndef DISABLE_BUTTON
 REGISTER_CONTROLLER_FACTORY(ButtonController)
-
+#endif
 const size_t bufferSize = JSON_OBJECT_SIZE(10);
 
 ButtonController::ButtonController() {

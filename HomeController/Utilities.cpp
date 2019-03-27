@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include "config.h"
-#include <ArduinoJson.h>  
+ 
 #include <FS.h>
 #if !defined(ESP8266)
 #include <SPIFFS.h>
@@ -360,3 +360,4 @@ void configModeCallback(AsyncWiFiManager *myWiFiManager) {
 	//entered config mode, make led toggle faster
 
 }
+

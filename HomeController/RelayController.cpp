@@ -5,7 +5,9 @@
 #include "RelayController.h"
 
 //REGISTER_CONTROLLER(RelayController)
+#ifndef DISABLE_RELAY
 REGISTER_CONTROLLER_FACTORY(RelayController)
+#endif
 
 const size_t bufferSize = JSON_OBJECT_SIZE(20);
 

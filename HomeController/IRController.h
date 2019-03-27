@@ -7,6 +7,12 @@
 #include "BaseController.h"
 
 #define IRDATANAME_MAXLEN 20
+
+
+
+#ifdef ESP8266
+class IRrecv;
+#endif
 struct IRState
 {
 	bool isOn = true;
@@ -62,7 +68,7 @@ public:
 	void irsend(IRState sendstate);
 	void savepersist(IRState psstate);
 	IRData* getdata_byname(String& name);
-	String string_rfdata();
+	String string_irdata();
 	void saveperisttofile();
 	void load_persist();
 	String getfilename_data();
@@ -76,6 +82,11 @@ private:
 
 	bool store_recdata;
 	CSimpleArray< IRData> persistdata;
+
+#ifdef ESP8266
+	IRrecv* pReceiver;
+#endif
+
 };
 
 DEFINE_CONTROLLER_FACTORY(IRController)

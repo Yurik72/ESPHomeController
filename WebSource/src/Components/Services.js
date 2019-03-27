@@ -140,10 +140,10 @@ class Services extends React.Component {
                         return (
                             <Row key={rowkey} className="valign-wrapper" style={{marginBottom:"0px"}}>
                                 <Col num={2} className="left">
-                                    <label for={sidx + key} className="input-label">{key}</label>
+                                    <label for={key} className="input-label">{key}</label>
                                 </Col>
                                 <Col num={4} className="left">
-                                    <input type="text" id={sidx + key} name={sidx +key} value={item[key]}
+                                    <input type="text" id={sidx + key} name={key} value={item[key]}
                                         onChange={this.handleChange(sidx)}
                                         
                                     />

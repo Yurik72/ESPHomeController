@@ -2,11 +2,13 @@
 #define menu_h
 
 #include <Arduino.h>
+#include <ArduinoJson.h>
 #include "config.h"
 #include <functional>
 #include "Array.h"
 #include <SSD1306.h>
 #include "BaseController.h"
+#include "RFController.h"
 
 class CMenuItem;
 class CMenu;
@@ -31,9 +33,19 @@ public:
 	virtual void setup();
 	virtual void run();
 	void onButtonEvent(ButtonState bs);
+	void loadconfig(JsonObject& json);
+	virtual void getdefaultconfig(JsonObject& json);
+	const char* getrfname() { return rfController.c_str(); };
+	const char* getbtnname() { return buttonController.c_str(); };
+	void loadservices();
 protected:
 	CTopLevelMenu* pmenu;
 	ButtonController* pBtnController;
+	uint pinsda;
+	uint pinslc;
+	uint i2caddr;
+	String rfController;
+	String buttonController;
 };
 
 #ifndef DISABLE_MENU
@@ -51,19 +63,24 @@ public:
 
 	virtual void drawContent(CMenuDisplayAdapter& adapter);
 	virtual void drawPreview(CMenuDisplayAdapter& adapter);
-	virtual void doAction() {};
+	virtual void doAction() ;
 	virtual void onPreload() {};
 	const String& getname() { return name; };
 	CMenu* getsubmenu() { return pSubMenu; };
 	
 	bool isSubMenu() { return pSubMenu!=NULL; };
 	CMenu* getParent() { return pParent; };
+	void clearsubmenu();
+	bool iscontroller() { return !pCtl; }
+	void setcontroller(CBaseController* p) { pCtl = p; };
+	CBaseController* getcontroller() { return pCtl ; };
 protected:
 	void setsubmenu(CMenu* p) { pSubMenu=p; };
 private:
 	String name;
 	CMenu* pParent;
 	CMenu* pSubMenu;
+	CBaseController* pCtl;
 };
 enum nav {next,prev,first,last,action,back};
 enum MenuVisualState {Main,SubMenu,Content};
@@ -71,8 +88,8 @@ enum MenuVisualState {Main,SubMenu,Content};
 class CMenu {
 public:
 	CMenu();
-	void AddItem(String& text);
-	void AddItem(CMenuItem* pItem);
+	CMenuItem* AddItem(String& text);
+	CMenuItem* AddItem(CMenuItem* pItem);
 	MenuItems& getitems() { return  items; };
 	CMenuItem* getcurrent();
 
@@ -100,7 +117,7 @@ class CTopLevelMenu :public CMenu {
 public :
 	CTopLevelMenu();
 	const CMenuDisplayAdapter* get_adapter() { return pAdapter; };
-	void redraw();
+	void redrawall();
 	void set_adapter(CMenuDisplayAdapter* p) { pAdapter = p; };
 	CMenuItem*  donavigation(nav cmd);
 	bool isRedrawRequired() { return bredrawRequired; };
@@ -125,7 +142,12 @@ class CActionRFMenuItem :public CMenuItem {
 public:
 	CActionRFMenuItem(CMenu* pParent) :CMenuItem(pParent) {};
 	CActionRFMenuItem(CMenu* pParent, String& text) :CMenuItem(pParent, text) {};
+	virtual void drawContent(CMenuDisplayAdapter& adapter);
 	virtual void doAction() ;
+	void setRF(RFData dt) { rf = dt; };
+	RFData getRF() {return rf ; };
+protected:
+	RFData rf;
 };
 class CMenuDisplayAdapter {
 public:
@@ -163,7 +185,7 @@ class CMenuDisplayAdapterSSD1306 :public  CMenuDisplayAdapter {
 public:
 	CMenuDisplayAdapterSSD1306();
 	~CMenuDisplayAdapterSSD1306();
-	virtual int get_maxy() { return 32; };
+	virtual int get_maxy() { return 64; };
 	virtual int get_maxx() { return 128; };
 	virtual void setup(int adr = 0x3c, int pinSda = 1, int pinScl = 2);
 	virtual int drawline(size_t idx, const String& text) ;

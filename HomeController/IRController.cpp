@@ -1,12 +1,23 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
+#ifdef ESP32
+#include <IRremote.h>
+#endif
+
+#ifdef ESP8266
+#include <IRremoteESP8266.h>
+#include <IRrecv.h>
+#include <IRutils.h>
+#endif
 #include "config.h"
 #include "RCSwitch.h"
 #include "IRController.h"
 
-//REGISTER_CONTROLLER(RFController)
-REGISTER_CONTROLLER_FACTORY(IRController)
 
+//REGISTER_CONTROLLER(RFController)
+#ifndef DISABLE_IR
+REGISTER_CONTROLLER_FACTORY(IRController)
+#endif
 const size_t bufferSize = JSON_OBJECT_SIZE(5);
 
 
@@ -14,7 +25,9 @@ const size_t bufferSize = JSON_OBJECT_SIZE(5);
 IRController::IRController() {
 	this->pin = 0;
 	this->pinsend = 0;
-	//this->pSwitch = NULL;
+#ifdef ESP8266
+	this->pReceiver = NULL;
+#endif
 	this->store_recdata = true;
 
 }
@@ -66,13 +79,17 @@ void IRController::loadconfig(JsonObject& json) {
 void IRController::getdefaultconfig(JsonObject& json) {
 	json[FPSTR(szPinText)] = pin;
 	json["pinsend"] = pinsend;
-	json["service"] = "RFController";
-	json["name"] = "RF";
+	json["service"] = "IRController";
+	json["name"] = "IR";
 	IR::getdefaultconfig(json);
 }
 
 void  IRController::setup() {
 	IR::setup();
+#ifdef ESP8266
+	this->pReceiver = new IRrecv(this->pin);
+	this->pReceiver->enableIRIn();
+#endif
 //	this->pSwitch = new RCSwitch();
 //	this->pSwitch->enableReceive(this->pin);
 	//pinMode(pin, INPUT);
@@ -81,13 +98,40 @@ void  IRController::setup() {
 
 void IRController::run() {
 	bool savepersist = false;
+#ifdef ESP8266
+	decode_results results;
+	if (pReceiver->decode(&results)) {
+		// print() & println() can't handle printing long longs. (uint64_t)
+		command newcmd;
+		newcmd.mode = IROnReceive;
+		newcmd.state.irtoken = results.value;
+		pReceiver->resume();  // Receive the next value
 
-	
+		this->AddCommand(newcmd.state, newcmd.mode, srcSelf);
+		savepersist = this->store_recdata;
+	}
+#endif	
+	command cmd;
+	while (commands.Dequeue(&cmd)) {
+		if (this->baseprocesscommands(cmd))
+			continue;
+		if (cmd.mode == IRSend) {
+			this->irsend(cmd.state);
+		}
+		if (cmd.mode == IRSaveReceive) {
+			this->savepersist(cmd.state);
+			continue; //state not changed
+		}
+		this->set_state(cmd.state);
+}
+	if (savepersist) {  ///will proceed next cycle
+		this->AddCommand(cmd.state, IRSaveReceive, srcSelf);
+	}
 
 }
 void IRController::savepersist(IRState psstate) {
-#ifdef	RFCONTROLLER_DEBUG
-	DBG_OUTPUT_PORT.println("RF savepersist");
+#ifdef	IRCONTROLLER_DEBUG
+	DBG_OUTPUT_PORT.println("IR savepersist");
 
 #endif
 	bool exist = false;
@@ -98,7 +142,7 @@ void IRController::savepersist(IRState psstate) {
 		}
 	}
 	if (!exist) {
-#ifdef	RFCONTROLLER_DEBUG
+#ifdef	IRCONTROLLER_DEBUG
 		DBG_OUTPUT_PORT.println("RF savepersist to file");
 #endif
 		IRData dt(psstate);
@@ -138,8 +182,8 @@ void IRController::load_persist() {
 
 		this->persistdata.Add(dt);
 	}
-#ifdef	RFCONTROLLER_DEBUG
-	DBG_OUTPUT_PORT.print("RF persist loaded count->");
+#ifdef	IRCONTROLLER_DEBUG
+	DBG_OUTPUT_PORT.print("IR persist loaded count->");
 	DBG_OUTPUT_PORT.println(this->persistdata.GetSize());
 #endif
 }
@@ -148,7 +192,7 @@ IRData IRController::deserializeIRData(String strdata) {
 	DynamicJsonDocument jsonBuffer(jsonsize);
 	DeserializationError error = deserializeJson(jsonBuffer, strdata);
 	if (error) {
-		DBG_OUTPUT_PORT.print("deserializeRFData error");
+		DBG_OUTPUT_PORT.print("deserializeIRData error");
 		DBG_OUTPUT_PORT.println(error.c_str());
 		IRData empty;
 		return empty;
@@ -176,7 +220,7 @@ String IRController::serializeIRData(IRData data) {
 
 	return json;
 }
-String IRController::string_rfdata() {
+String IRController::string_irdata() {
 	const size_t jsonsize = JSON_ARRAY_SIZE(this->persistdata.GetSize() + 1) + this->persistdata.GetSize()*JSON_OBJECT_SIZE(40);
 	DynamicJsonDocument jsonBuffer(jsonsize);
 	JsonArray json = jsonBuffer.to<JsonArray>();
@@ -195,11 +239,11 @@ String IRController::string_rfdata() {
 }
 void IRController::saveperisttofile() {
 #ifdef	IRCONTROLLER_DEBUG
-	DBG_OUTPUT_PORT.println("RF saveperisttofile()");
+	DBG_OUTPUT_PORT.println("IR saveperisttofile()");
 	DBG_OUTPUT_PORT.println(getfilename_data());
 	DBG_OUTPUT_PORT.println(this->string_rfdata());
 #endif
-	savefile(getfilename_data().c_str(), this->string_rfdata());
+	savefile(getfilename_data().c_str(), this->string_irdata());
 }
 
 void IRController::irsend(IRState sendstate) {
@@ -236,7 +280,7 @@ void IRController::setuphandlers(AsyncWebServer& server) {
 		// DBG_OUTPUT_PORT.println("get modes request");
 		DBG_OUTPUT_PORT.println(ESP.getFreeHeap());
 		AsyncWebServerResponse *response = request->beginResponse(200, "application/json",
-			self->string_rfdata().c_str());
+			self->string_irdata().c_str());
 
 		request->send(response);
 		DBG_OUTPUT_PORT.println(ESP.getFreeHeap());

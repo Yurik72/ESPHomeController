@@ -18,7 +18,7 @@ import TimeCtl from "./Components/TimeCtl"
 import BME280Ctl from "./Components/BME280Ctl"
 import RFCtl from "./Components/RFCtl"
 import ServoHV from "./Components/ServoHV"
-
+import IRCtl from "./Components/IRCtl"
 const styles = {
     fontFamily: "sans-serif",
     textAlign: "center",
@@ -97,6 +97,10 @@ class App extends Component {
                 return (props => <RelayDim  {...props} compprops={svc} />);
             case "ServoHVController":
                 return (props => <ServoHV  {...props} compprops={svc} />);
+            case "IRController":
+                return (props => <IRCtl  {...props} compprops={svc} />);
+
+
             default:
                 return (props =><div></div>);
                 break;

@@ -5,8 +5,9 @@
 #include "RFController.h"
 
 //REGISTER_CONTROLLER(RFController)
+#ifndef DISABLE_RF
 REGISTER_CONTROLLER_FACTORY(RFController)
-
+#endif
 const size_t bufferSize = JSON_OBJECT_SIZE(5);
 
 
@@ -316,10 +317,11 @@ void RFController::setuphandlers(AsyncWebServer& server) {
 		RFData* pData =self->getdata_byname(name);
 		if(!pData)
 			return request->send(500, "text/plain", "NOT EXIST");
-		command cmd;
-		pData->SetState(cmd.state);
-		cmd.state.isSend = true;
-		self->AddCommand(cmd.state, Send, srcUserAction);
+		//command cmd;
+		//pData->SetState(cmd.state);
+		//cmd.state.isSend = true;
+		//self->AddCommand(cmd.state, Send, srcUserAction);
+		self->send(*pData);
 		AsyncWebServerResponse *response = request->beginResponse(200, "text/plain", name);
 
 		request->send(response);
@@ -327,6 +329,12 @@ void RFController::setuphandlers(AsyncWebServer& server) {
 
 	});
 
-
 }
 #endif
+
+void RFController::send(RFData rf) {
+	command cmd;
+	rf.SetState(cmd.state);
+	cmd.state.isSend = true;
+	this->AddCommand(cmd.state, Send, srcUserAction);
+}

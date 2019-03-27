@@ -13,7 +13,7 @@
 #endif
 
 //REGISTER_CONTROLLER(RelayDimController)
-#ifdef ESP32
+#ifndef DISABLE_RELAY
 REGISTER_CONTROLLER_FACTORY(RelayDimController)
 #endif
 const size_t bufferSize = JSON_OBJECT_SIZE(20);

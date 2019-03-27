@@ -78,9 +78,13 @@ public:
 	static RFData deserializeRFData(JsonObject& json);
 	static RFData deserializeRFData(String strdata);
 	static String serializeRFData(RFData data);
+	CSimpleArray<RFData>& getpersistdata() { return persistdata; };
+	void send(RFData rf);
+
 protected:
 	uint pin;
 	uint pinsend;
+	 
 private:
 	RCSwitch* pSwitch;
 	bool store_recdata;

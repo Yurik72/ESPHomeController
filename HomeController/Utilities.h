@@ -1,6 +1,7 @@
 #ifndef utilities_h
 #define utilities_h
 #include  <Arduino.h>
+#include <ArduinoJson.h> 
 #include "config.h"
 #include <functional>
 
@@ -76,4 +77,10 @@ static const char szisOnText[] PROGMEM = "isOn";
 static const char szStatusText[] PROGMEM = "Status";
 static const char szParseJsonFailText[] PROGMEM = "parse Json() failed: ";
 
+template<typename T>
+void loadif(T& var, JsonObject& json, char * key) {
+	if (json.containsKey(key)) {
+		var = json[key].as<T>();
+	}
+}
 #endif

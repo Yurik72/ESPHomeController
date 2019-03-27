@@ -31,8 +31,9 @@ REGISTER_TRIGGER_FACTORY(LDRToRelay)
 #ifndef DISABLE_RGB
 REGISTER_TRIGGER_FACTORY(LDRToRGBStrip)
 #endif
+#ifndef DISABLE_RELAY
 REGISTER_TRIGGER_FACTORY(RFToRelay)
-
+#endif
 void Triggers::setup() {
 	this->loadconfig();
 	

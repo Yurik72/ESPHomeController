@@ -194,7 +194,7 @@ void handleFileDelete(AsyncWebServerRequest *request) {
 
 void handleFileUpload(AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
 	if (!index) {
-		//DBG_OUTPUT_PORT.println("UploadStart ->: ");
+		DBG_OUTPUT_PORT.println("UploadStart ->: ");
 
 		String filenameupl = filename;
 		uploadpos = 0;
@@ -216,6 +216,9 @@ void handleFileUpload(AsyncWebServerRequest *request, String filename, size_t in
 	}
 	uploadpos += len;
 	if (final) {
+		DBG_OUTPUT_PORT.print("Upload final");
+		
+
 		if (fsUploadFile)
 			fsUploadFile.close();
 		//DBG_OUTPUT_PORT.println("UploadEnd:");
