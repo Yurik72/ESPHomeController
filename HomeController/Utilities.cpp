@@ -361,3 +361,6 @@ void configModeCallback(AsyncWiFiManager *myWiFiManager) {
 
 }
 
+double map_i_f(float val, uint in_min, uint in_max, float out_min, float out_max) {
+	return (val - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}

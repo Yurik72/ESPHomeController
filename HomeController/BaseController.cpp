@@ -236,6 +236,7 @@ String CBaseController::getdefaultconfig() {
 	JsonObject root = jsonBuffer.to<JsonObject>();
 	root["enabled"]= enabled;
 	root["interval"]= interval;
+	
 	this->getdefaultconfig(root);
 	String json;
 	json.reserve(200);

@@ -211,6 +211,17 @@ bool wifidirectconnect() {
 
 	return false;
 }
+#if defined(ESP8266)
+void onWifiDisconnect(const WiFiEventStationModeDisconnected& event) {
+	DBG_OUTPUT_PORT.println("WiFi On Disconnect.");
+
+}
+#else
+void onWifiDisconnect() {
+	DBG_OUTPUT_PORT.println("WiFi On Disconnect.");
+}
+
+#endif
 void startwifimanager() {
 
 
@@ -277,7 +288,13 @@ void startwifimanager() {
 		}
 		DBG_OUTPUT_PORT.println("Entering offline mode");
 	}
-	
+#if defined(ESP8266)
+	 WiFi.onStationModeDisconnected(onWifiDisconnect);
+#else
+	WiFiEventId_t eventID = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info) {
+		onWifiDisconnect();
+	}, WiFiEvent_t::SYSTEM_EVENT_STA_DISCONNECTED);
+#endif
 #if ! defined ASYNC_WEBSERVER
 	if (shouldSaveConfig) {
 		char localHost[32];

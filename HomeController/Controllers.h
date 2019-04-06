@@ -24,7 +24,7 @@
 #endif 
 #endif
 
-
+#define DELAY_MS_RECONNECT 300000 //5 min
 //#include "BaseController.h"
 
 class Triggers;
@@ -40,6 +40,8 @@ public:
 	void setup();
 	void handleloops();
 	void connectmqtt();
+	void onWifiDisconnect();
+	
 #if !defined ASYNC_WEBSERVER
 #if defined(ESP8266)
 	void setuphandlers(ESP8266WebServer& server);
@@ -53,6 +55,8 @@ public:
 private:
 	void loadconfig();
 	Triggers& triggers;
+	long lastWifiReconnectms;
+	bool isConnectingMode;
 };
 void onstatechanged(CBaseController *);
 #ifdef ENABLE_HOMEBRIDGE

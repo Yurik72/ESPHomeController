@@ -48,7 +48,8 @@ Controllers::Controllers():
 {
 	_instance = this;
 	//globlog += "CTOR";
-	
+	lastWifiReconnectms = 0;
+	isConnectingMode = false;
 	
 }
 CBaseController* Controllers::GetByName(const char* name) {
@@ -418,6 +419,21 @@ void Controllers::handleloops() {
 			}
 		}
 	}
+	if (!WiFi.isConnected()) {
+		if ((this->lastWifiReconnectms + DELAY_MS_RECONNECT) < millis()) {
+			this->lastWifiReconnectms = millis();
+			DBG_OUTPUT_PORT.println("Controllers detect lost wifi");
+			WiFi.reconnect();
+			isConnectingMode = true;
+		}
+	}
+	if (isConnectingMode) {
+		if (WiFi.isConnected()) {
+			isConnectingMode = false;
+			DBG_OUTPUT_PORT.println("Wifi Restored connection");
+			mqttReconnectTimer.attach(2, realconnectToMqtt);
+		}
+	}
 }
 
 void onstatechanged(CBaseController * ctl)
@@ -529,3 +545,7 @@ void realconnectToMqtt() {
 	amqttClient.connect();
 }
 #endif
+
+void Controllers::onWifiDisconnect() {
+	
+}

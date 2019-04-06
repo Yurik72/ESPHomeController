@@ -14,6 +14,8 @@ const size_t bufferSize = JSON_OBJECT_SIZE(20);
 #define BUF_SIZE_LDR  JSON_OBJECT_SIZE(20)
 LDRController::LDRController() {
 	this->pin = 0;
+	this->cvalmin = 0.0;
+	this->cvalmax = MAX_LDRVAL;
 }
 String  LDRController::serializestate() {
 
@@ -21,6 +23,16 @@ String  LDRController::serializestate() {
 	JsonObject root = jsonBuffer.to<JsonObject>();
 	root[FPSTR(szisOnText)] = this->get_state().isOn;
 	root["ldrValue"] = this->get_state().ldrValue;
+
+	if (cvalmin != cvalmax) {
+		float cval = map_i_f(this->get_state().ldrValue, 0, MAX_LDRVAL, cvalmin, cvalmax);
+		root["cValue"] = cval;
+		if (cfmt.length()) {
+			char buff[30];
+			snprintf(buff, sizeof(buff), cfmt.c_str(), cval);
+			root["csValue"] = buff;
+		}
+	}
 	String json;
 	json.reserve(128);
 	serializeJson(root, json);
@@ -48,12 +60,20 @@ bool  LDRController::deserializestate(String jsonstate, CmdSource src) {
 
 }
 void LDRController::loadconfig(JsonObject& json) {
-	pin = json["pin"];
+
+	pin = json[szPinText];
+	cvalmin= json["cvalmin"].as<float>();
+	cvalmax = json["cvalmax"].as<float>();
+	cfmt = json["cfmt"].as<String>();
+
 }
 void LDRController::getdefaultconfig(JsonObject& json) {
 	json[FPSTR(szPinText)] = pin;
 	json["service"] = "LDRController";
 	json["name"] = "LDR";
+	json["cvalmin"]= cvalmin;
+	json["cvalmax"]= cvalmax;
+	json["cfmt"] = cfmt;
 	LDR::getdefaultconfig(json);
 }
 void  LDRController::setup() {

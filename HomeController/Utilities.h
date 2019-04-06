@@ -83,4 +83,6 @@ void loadif(T& var, JsonObject& json, char * key) {
 		var = json[key].as<T>();
 	}
 }
+double map_i_f(float val, uint in_min, uint in_max, float out_min, float out_max);
+
 #endif

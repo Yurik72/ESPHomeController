@@ -121,6 +121,7 @@ void RelayDimController::run() {
 			break;
 		case DimRelayOn:
 			newState.isOn = true;
+			newState.brightness = cmd.state.brightness;
 			//DBG_OUTPUT_PORT.println("RelayDimOn");
 			break;
 		case DimSetLdrVal:

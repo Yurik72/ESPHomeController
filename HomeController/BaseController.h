@@ -357,6 +357,10 @@ public:
 		this->manualtime = json["manualtime"];
 		CController<T, P, M>::loadconfig(json);
 	}
+	virtual void getdefaultconfig(JsonObject& json) {
+		json["manualtime"] = this->manualtime;
+		CController<T, P, M>::getdefaultconfig(json);
+	}
 	virtual int AddCommand(P state, M mode, CmdSource src) {
 
 		if (src == srcState || src==srcPowerOn) { //save state

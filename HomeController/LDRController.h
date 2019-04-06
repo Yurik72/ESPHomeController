@@ -29,6 +29,9 @@ public:
 	virtual bool onpublishmqtt(String& endkey, String& payload);
 protected:
 	uint pin;
+	float cvalmin;
+	float cvalmax;
+	String cfmt;
 };
 DEFINE_CONTROLLER_FACTORY(LDRController)
 
