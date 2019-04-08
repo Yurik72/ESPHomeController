@@ -1,7 +1,7 @@
 
 
-//var HomeURL = 'http://192.168.0.2'
-var HomeURL = 'http://192.168.88.96'
+var HomeURL = 'http://192.168.0.213'
+//var HomeURL = 'http://192.168.88.96'
 
 var i = 0;
 export function getConfigData() {

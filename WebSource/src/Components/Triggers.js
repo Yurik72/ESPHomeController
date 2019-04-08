@@ -28,7 +28,7 @@ const InpText = (props) => {
 class Triggers extends React.Component {
     constructor(props) {
         super(props);
-        this.triggerlist = "TimeToRGBStrip,LDRToRGBStrip,TimeToRelay,RFToRelay".split(",");
+        this.triggerlist = "TimeToRGBStrip,LDRToRGBStrip,TimeToRelay,RFToRelay,TimeToRelayDimTrigger".split(",");
 
 
         this.state = { triggerlist: this.triggerlist, triggers: [], services:[]};
@@ -138,6 +138,8 @@ class Triggers extends React.Component {
             return this.renderTimeRgb(item.value, idx, "timergb");
         if (item.type === 'TimeToRelay')
             return this.renderTimeRgb(item.value, idx, "timerelay");
+        if (item.type === 'TimeToRelayDimTrigger')
+            return this.renderTimeRgb(item.value, idx, "timerelaydim");
         if (item.type === 'RFToRelay')
             return this.renderRF(item, idx, "rfrelay");
     }
@@ -200,8 +202,8 @@ class Triggers extends React.Component {
         if (!times || !Array.isArray(times))
             times = [];
         const showcolor = timetype  === "timergb";
-        const showbrightness = timetype === "timergb";
-        const showldr = timetype === "timergb";
+        const showbrightness = (timetype === "timergb" || timetype === "timerelaydim" );
+        const showldr = (timetype === "timergb" || timetype === "timerelaydim");
 
         return (
             <>
@@ -288,6 +290,10 @@ class Triggers extends React.Component {
         if (rtype === "rfrelay") {
             values.push({ isOn: true, isSwitch: 0,rfkey:0});
         }
+        if (rtype === "timerelaydim") {
+            values.push({ "isOn": true, "isLdr": true, "time": 0, "bg": 1 });
+        }
+        
         item.value = values; //back values
         triggers[trindex] = item;   //back item  
         
@@ -322,7 +328,7 @@ class Triggers extends React.Component {
         close();
     }
     getsourceservices(triggertype) {
-        if (triggertype === "TimeToRGBStrip" || triggertype === "TimeToRelay")
+        if (triggertype === "TimeToRGBStrip" || triggertype === "TimeToRelay" || triggertype === "TimeToRelayDimTrigger")
             return this.state.services.reduce((acc, item) => { if (item.service === "TimeController") acc.push(item.name);
                 return acc;
             }, []);
@@ -342,6 +348,8 @@ class Triggers extends React.Component {
                 (sitem.service === "RelayController" && triggertype === "TimeToRelay")
                 ||
                 (sitem.service === "RelayController" && triggertype === "RFToRelay")
+                ||
+                (sitem.service === "RelayDimController" && triggertype === "TimeToRelayDimTrigger")
             )
                 acc.push(sitem.name);
             return acc;

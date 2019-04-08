@@ -33,7 +33,9 @@ REGISTER_TRIGGER_FACTORY(LDRToRGBStrip)
 #endif
 #ifndef DISABLE_RELAY
 REGISTER_TRIGGER_FACTORY(RFToRelay)
+REGISTER_TRIGGER_FACTORY(TimeToRelayDimTrigger)
 #endif
+
 void Triggers::setup() {
 	this->loadconfig();
 	
@@ -529,4 +531,64 @@ void RFToRelay::processrecord(RFRecord& rec, RelayController* pr) {
 		newState.isOn = rec.isOn;
 	}
 	pr->AddCommand(newState, cmd, srcTrigger);
+}
+
+
+/// time to relay dim
+TimeToRelayDimTrigger::TimeToRelayDimTrigger() {
+
+	this->pRelayDim = NULL;
+}
+void TimeToRelayDimTrigger::loadconfig(JsonObject& json) {
+	Trigger::loadconfig(json);
+	JsonArray arr = json["value"].as<JsonArray>();
+	for (int i = 0; i < arr.size(); i++) {
+		timerecRelayDim & rec = *(new timerecRelayDim());
+		JsonObject json = arr[i];
+		this->parsetime(json, rec);
+		rec.isOn = arr[i][FPSTR(szisOnText)].as<bool>();
+		rec.isLdr = arr[i]["isLdr"].as<int>();
+		rec.brightness = arr[i]["bg"].as<int>();
+		times.Add(rec);
+	}
+}
+
+void TimeToRelayDimTrigger::dotrigger(timerecRelayDim & rec, Controllers* pctlss) {
+	//#ifdef	TRIGGER_DEBUG
+		//DBG_OUTPUT_PORT.println("TimeToRGBStripTrigger::dotrigger");
+	//#endif
+	DBG_OUTPUT_PORT.println("TimeToRelayDimTrigger::dotrigger");
+	if (!this->get_relayctl()) {
+		CBaseController* pBase = pctlss->GetByName(this->dst.c_str());
+		if (pBase == NULL) {
+			//DBG_OUTPUT_PORT.println("Destination service not found");
+			return;
+		}
+
+		RelayDimController *pRelaydim = static_cast<RelayDimController*>(pBase);
+		this->set_relayctl(pRelaydim);
+	}
+	RelayDimState newstate = this->get_relayctl()->get_state();
+
+	if (rec.isOn) {
+#ifdef	TRIGGER_DEBUG
+		DBG_OUTPUT_PORT.println("Mode On");
+#endif
+		//DBG_OUTPUT_PORT.println("Sending command On");
+
+		newstate.isOn = true;
+
+		newstate.brightness = rec.brightness;
+		newstate.isLdr = rec.isLdr;
+
+		this->get_relayctl()->AddCommand(newstate, DimSet, srcTrigger);
+
+	}
+	else {
+#ifdef	TRIGGER_DEBUG
+		DBG_OUTPUT_PORT.println("Mode Off");
+#endif
+		this->get_relayctl()->AddCommand(newstate, DimRelayOff, srcTrigger);
+	}
+
 }

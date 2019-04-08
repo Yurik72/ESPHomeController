@@ -6,6 +6,7 @@
 #include "Array.h"
 #include "BaseController.h"
 #include "RFController.h"
+#include "RelayDimController.h"
 
 #define NEXT_DAY_SEC (1 * 24 * 60 * 60)
 #define SEC_TOLLERANCE 1200  //2 min
@@ -16,7 +17,7 @@ class TimeController;
 class LDRController;
 class RelayController;
 class RFController;
-
+class RelayDimController;
 
 class Trigger {
 public:
@@ -120,7 +121,25 @@ private:
 	
 	void dotrigger(timerecRGB & rec, Controllers* pctlss);
 };
+struct timerecRelayDim : public timerecOn {
 
+	int brightness = 0;
+	bool isLdr = false;
+};
+class TimeToRelayDimTrigger :public CBaseTimeTrigger<timerecRelayDim> {
+public:
+	TimeToRelayDimTrigger();
+	virtual void loadconfig(JsonObject& json);
+protected:
+	RelayDimController* get_relayctl() { return pRelayDim; };
+	void set_relayctl(RelayDimController *pCtl) { pRelayDim = pCtl; };
+private:
+	RelayDimController *pRelayDim;
+	//void parsetime(JsonObject& json, timerecRGB & rec);
+
+
+	void dotrigger(timerecRelayDim & rec, Controllers* pctlss);
+};
 class TimeToRelayTrigger :public CBaseTimeTrigger<timerecOn> {
 public:
 	TimeToRelayTrigger();
@@ -190,6 +209,8 @@ DEFINE_TRIGGER_FACTORY(TimeToRelayTrigger)
 DEFINE_TRIGGER_FACTORY(LDRToRelay)
 DEFINE_TRIGGER_FACTORY(LDRToRGBStrip)
 DEFINE_TRIGGER_FACTORY(RFToRelay)
+DEFINE_TRIGGER_FACTORY(TimeToRelayDimTrigger)
+
 
 //DEFINE_TRIGGER_FACTORY(LDRToRelay)
 //DEFINE_TRIGGER_FACTORY(LDRToRGBStrip)
