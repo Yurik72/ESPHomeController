@@ -13,6 +13,9 @@ const size_t bufferSize = JSON_OBJECT_SIZE(20);
 
 #define BUF_SIZE_LDR  JSON_OBJECT_SIZE(20)
 LDRController::LDRController() {
+#ifdef  LDRCONTROLLER_DEBUG
+	DBG_OUTPUT_PORT.println("LDRController Ctor");
+#endif
 	this->pin = 0;
 	this->cvalmin = 0.0;
 	this->cvalmax = MAX_LDRVAL;
@@ -60,12 +63,16 @@ bool  LDRController::deserializestate(String jsonstate, CmdSource src) {
 
 }
 void LDRController::loadconfig(JsonObject& json) {
-
-	pin = json[szPinText];
+#ifdef  LDRCONTROLLER_DEBUG
+	DBG_OUTPUT_PORT.println("LDRController before  load config");
+#endif
+	pin = json[FPSTR(szPinText)];
 	cvalmin= json["cvalmin"].as<float>();
 	cvalmax = json["cvalmax"].as<float>();
 	cfmt = json["cfmt"].as<String>();
-
+#ifdef  LDRCONTROLLER_DEBUG
+	DBG_OUTPUT_PORT.println("LDRController load config");
+#endif
 }
 void LDRController::getdefaultconfig(JsonObject& json) {
 	json[FPSTR(szPinText)] = pin;

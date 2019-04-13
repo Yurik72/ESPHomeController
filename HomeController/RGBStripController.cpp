@@ -108,6 +108,8 @@ RGBStripController::RGBStripController() {
 	this->mqtt_saturation = 0.0;
 	this->pSmooth = new CSmoothVal();
 	this->isEnableSmooth = true;
+	//rgbModes = "";
+	
 	//this->coreMode = Both;
 	//this->core = 1;
 	//this->priority = 100;
@@ -194,6 +196,7 @@ void  RGBStripController::setup() {
 	pStripWrapper->setMode(FX_MODE_STATIC);
 	pStripWrapper->start();
 	RGBStrip::setup();
+	//String modes = this->string_modes();
 }
 void RGBStripController::runcore() {
 
@@ -421,21 +424,27 @@ void RGBStripController::onmqqtmessage(String topic, String payload) {
 String RGBStripController::string_modes(void) {
 	if (rgbModes.length() > 0)
 		return rgbModes;
-	const size_t bufferSize = JSON_ARRAY_SIZE(pStripWrapper->getModeCount() + 1) + pStripWrapper->getModeCount()*JSON_OBJECT_SIZE(2);
+	const size_t bufferSize = JSON_ARRAY_SIZE(pStripWrapper->getModeCount() + 1) + pStripWrapper->getModeCount()*JSON_OBJECT_SIZE(20);
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	JsonArray json = jsonBuffer.to<JsonArray>();
+	
 	for (uint8_t i = 0; i < pStripWrapper->getModeCount(); i++) {
 		JsonObject object = json.createNestedObject();
 		object["mode"] = i;
 		object["name"] = pStripWrapper->getModeName(i);
 	}
+	
 	JsonObject object = json.createNestedObject();
-
+	
 	String json_str;
-	json_str.reserve(4096);
+	json_str.reserve(2048);
+	//DBG_OUTPUT_PORT.println("load modes 3");
 	serializeJson(json, json_str);
+	DBG_OUTPUT_PORT.println("load modes 4");
 	rgbModes = json_str;
-	return json_str;
+	//DBG_OUTPUT_PORT.println(rgbModes);
+	//return json_str;
+	return rgbModes;
 }
 #if !defined ASYNC_WEBSERVER
 #if defined(ESP8266)
@@ -469,14 +478,14 @@ void RGBStripController::setuphandlers(AsyncWebServer& server) {
 	RGBStripController* self = this;
 	server.on(path.c_str(), HTTP_GET, [self](AsyncWebServerRequest *request) {
 	   // DBG_OUTPUT_PORT.println("get modes request");
-		DBG_OUTPUT_PORT.println(ESP.getFreeHeap());
-		AsyncWebServerResponse *response = request->beginResponse(200, "application/json", 
+		//DBG_OUTPUT_PORT.println(ESP.getFreeHeap());
+		AsyncWebServerResponse *response = request->beginResponse(200, "application/json",
 			self->string_modes().c_str());
 		//AsyncWebServerResponse *response = request->beginResponse(200, "application/json","");
 		//response->addHeader("Access-Control-Allow-Origin", "*");
 		//response->addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
 		request->send(response);
-		DBG_OUTPUT_PORT.println(ESP.getFreeHeap());
+		//DBG_OUTPUT_PORT.println(ESP.getFreeHeap());
 	//	DBG_OUTPUT_PORT.println("Processed");
 	});
 

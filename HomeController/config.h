@@ -38,7 +38,7 @@
 						   // As well browser can send simultaneous requests to resources css,js,....
 //#define TRIGGER_DEBUG  //debug triggers output enable
 //#define TIMECONTROLLER_DEBUG  //debug timecontroller output enable
-//#define LDRCONTROLLER_DEBUG  //debug timecontroller output enable
+//#define LDRCONTROLLER_DEBUG  //debug ldrcontroller output enable
 //#define BMECONTROLLER_DEBUG    //debug bme280controller output enable
 //#define RF_TRIGGER_DEBUG         //debug rf trigger
 //#define RELAYDIM_DEBUG    //debug relay dim
@@ -52,8 +52,8 @@
 
 //DISABLE /ENABLE services Section
 // Importnat due to iram limitation on ESp8266 (virtual function  table)
-#define RF_SNIFFER
-//#define RGB
+//#define RF_SNIFFER
+#define RGB
 
 #ifdef ESP8266
 #ifdef RF_SNIFFER

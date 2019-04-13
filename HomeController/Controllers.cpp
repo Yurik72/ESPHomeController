@@ -73,8 +73,8 @@ void Controllers::setup() {
 		CBaseController* ctl = this->GetAt(i);
 		ctl->setup();
 		if (ctl->ispersiststate()) {
-			DBG_OUTPUT_PORT.print(ctl->get_name());
-			DBG_OUTPUT_PORT.println(" : Restore persist state");
+			//DBG_OUTPUT_PORT.print(ctl->get_name());
+			//DBG_OUTPUT_PORT.println(" : Restore persist state");
 			ctl->loadstate();
 		}
 		ctl->set_power_on();
@@ -99,6 +99,8 @@ void Controllers::loadconfig() {
 				JsonArray arr = jsonBuffer.as<JsonArray>();
 				for (int i = 0; i < arr.size(); i++) {
 					String servicename= arr[i]["service"].as<String>();
+					//DBG_OUTPUT_PORT.print("Controllers before added:");
+					//DBG_OUTPUT_PORT.println(servicename);
 					CBaseController* controller= Controllers::CreateByName(servicename.c_str());
 					if (controller == NULL) {
 						DBG_OUTPUT_PORT.println(String("Service not found:")+servicename);
@@ -334,9 +336,9 @@ void Controllers::setuphandlers(AsyncWebServer& server) {
 		},[](AsyncWebServerRequest *request, String filename, size_t index, uint8_t *data, size_t len, bool final) {
 			
 		},[ctl](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-			DBG_OUTPUT_PORT.println("body load");
-			DBG_OUTPUT_PORT.printf("len %d, index %d, total %d ",len,index,total);
-			DBG_OUTPUT_PORT.println("");
+			//DBG_OUTPUT_PORT.println("body load");
+			//DBG_OUTPUT_PORT.printf("len %d, index %d, total %d ",len,index,total);
+			//DBG_OUTPUT_PORT.println("");
 			uint8_t * bodydata = NULL;
 			if (index == 0) {//starts
 				bodydata=ctl->allocatebuffer(total);
@@ -353,7 +355,7 @@ void Controllers::setuphandlers(AsyncWebServer& server) {
 					ctl->deserializestate(body);
 				}
 				ctl->cleanbuffer();
-				DBG_OUTPUT_PORT.println("Buffer cleaned");
+				//DBG_OUTPUT_PORT.println("Buffer cleaned");
 			}
 
 
