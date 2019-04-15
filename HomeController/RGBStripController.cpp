@@ -92,8 +92,8 @@ void WS2812Wrapper::trigger() {
 int WS2812Wrapper::getModeCount() {
 	return pstrip->getModeCount();
 }
-const char* WS2812Wrapper::getModeName(int i) {
-	return (const char*)pstrip->getModeName(i);
+const __FlashStringHelper* WS2812Wrapper::getModeName(int i) {
+	return pstrip->getModeName(i);
 }
 bool WS2812Wrapper::isRunning() {
 	return pstrip->isRunning();
@@ -424,7 +424,7 @@ void RGBStripController::onmqqtmessage(String topic, String payload) {
 String RGBStripController::string_modes(void) {
 	if (rgbModes.length() > 0)
 		return rgbModes;
-	const size_t bufferSize = JSON_ARRAY_SIZE(pStripWrapper->getModeCount() + 1) + pStripWrapper->getModeCount()*JSON_OBJECT_SIZE(20);
+	const size_t bufferSize = JSON_ARRAY_SIZE(pStripWrapper->getModeCount() + 1) +JSON_OBJECT_SIZE(10);
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	JsonArray json = jsonBuffer.to<JsonArray>();
 	
@@ -433,15 +433,15 @@ String RGBStripController::string_modes(void) {
 		object["mode"] = i;
 		object["name"] = pStripWrapper->getModeName(i);
 	}
-	
-	JsonObject object = json.createNestedObject();
+
+	//JsonObject object = json.createNestedObject();
 	
 	String json_str;
-	json_str.reserve(2048);
+	//json_str.reserve(4096);
 	//DBG_OUTPUT_PORT.println("load modes 3");
-	serializeJson(json, json_str);
-	DBG_OUTPUT_PORT.println("load modes 4");
-	rgbModes = json_str;
+	serializeJson(json, rgbModes);
+	//DBG_OUTPUT_PORT.println("load modes 4");
+	//rgbModes = json_str;
 	//DBG_OUTPUT_PORT.println(rgbModes);
 	//return json_str;
 	return rgbModes;

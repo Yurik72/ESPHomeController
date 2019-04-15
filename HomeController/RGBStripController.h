@@ -30,7 +30,7 @@ public:
 	virtual void setSpeed(uint16_t speed) {};
 	virtual void service() {};
 	virtual int getModeCount() { return 0; }
-	virtual const char* getModeName(int i) { return NULL; };
+	virtual  const __FlashStringHelper* getModeName(int i) { return NULL; };
 	virtual bool isRunning() { return false; }
 };
 
@@ -51,7 +51,7 @@ public:
 	virtual void setSpeed(uint16_t speed);
 	virtual void service() ;
 	virtual int getModeCount();
-	virtual const char* getModeName(int i);
+	virtual  const __FlashStringHelper* getModeName(int i);
 	virtual bool isRunning();
 	virtual void trigger(void) ;
 private:
