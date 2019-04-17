@@ -98,7 +98,9 @@ const __FlashStringHelper* WS2812Wrapper::getModeName(int i) {
 bool WS2812Wrapper::isRunning() {
 	return pstrip->isRunning();
 }
-
+uint8_t WS2812Wrapper::getBrightness(void) {
+	return pstrip->getBrightness();
+}
 
 
 ///// Controller
@@ -107,7 +109,9 @@ RGBStripController::RGBStripController() {
 	this->mqtt_hue = 0.0;
 	this->mqtt_saturation = 0.0;
 	this->pSmooth = new CSmoothVal();
+	this->pCycle = NULL;
 	this->isEnableSmooth = true;
+	this->cyclemode = 0;
 	//rgbModes = "";
 	
 	//this->coreMode = Both;
@@ -119,6 +123,8 @@ RGBStripController::~RGBStripController() {
 		delete pStripWrapper;
 	if (this->pSmooth)
 		delete this->pSmooth;
+	if (this->pCycle)
+		delete this->pCycle;
 }
 String  RGBStripController::serializestate() {
 
@@ -195,6 +201,9 @@ void  RGBStripController::setup() {
 	pStripWrapper->setColor(0x007BFF);
 	pStripWrapper->setMode(FX_MODE_STATIC);
 	pStripWrapper->start();
+
+	this->pCycle = new RGBStripCycler(pStripWrapper);
+	this->cyclemode = pStripWrapper->getModeCount();
 	RGBStrip::setup();
 	//String modes = this->string_modes();
 }
@@ -314,8 +323,23 @@ void RGBStripController::set_state(RGBState state) {
 	if (state.isOn) {
 		if (oldState.wxmode != state.wxmode) {
 			//DBG_OUTPUT_PORT.println("oldState.wxmode != state.wxmod");
+			if (oldState.wxmode == this->cyclemode) {
+#ifdef RGBSTRIP_DEBUG
+				DBG_OUTPUT_PORT.println("cycler stop");
+#endif
+				this->pCycle->stop();
+			}
 			if (pStripWrapper->isRunning())pStripWrapper->stop();
-			if (state.wxmode >= 0) pStripWrapper->setMode(state.wxmode);
+
+			if (state.wxmode == this->cyclemode) {
+#ifdef RGBSTRIP_DEBUG
+				DBG_OUTPUT_PORT.println("cycler start");
+#endif
+				this->pCycle->start();
+			}
+			else {
+				if (state.wxmode >= 0) pStripWrapper->setMode(state.wxmode);
+			}
 			if (!pStripWrapper->isRunning()) pStripWrapper->start();
 		}
 		if (state.isLdr) {
@@ -424,7 +448,7 @@ void RGBStripController::onmqqtmessage(String topic, String payload) {
 String RGBStripController::string_modes(void) {
 	if (rgbModes.length() > 0)
 		return rgbModes;
-	const size_t bufferSize = JSON_ARRAY_SIZE(pStripWrapper->getModeCount() + 1) +JSON_OBJECT_SIZE(10);
+	const size_t bufferSize = JSON_ARRAY_SIZE(pStripWrapper->getModeCount() + 3) +JSON_OBJECT_SIZE(10);
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	JsonArray json = jsonBuffer.to<JsonArray>();
 	
@@ -433,7 +457,9 @@ String RGBStripController::string_modes(void) {
 		object["mode"] = i;
 		object["name"] = pStripWrapper->getModeName(i);
 	}
-
+	JsonObject cycleobj = json.createNestedObject();
+	cycleobj["mode"] = this->cyclemode;
+	cycleobj["name"] = F("Cycle modes");
 	//JsonObject object = json.createNestedObject();
 	
 	String json_str;
@@ -491,7 +517,7 @@ void RGBStripController::setuphandlers(AsyncWebServer& server) {
 
 
 }
-
+#endif
 void RGBStripController::setbrightness(int br, CmdSource src) {
 	RGBState st = this->get_state();
 	if (st.brightness == 0 && br!=0) 
@@ -504,4 +530,65 @@ void RGBStripController::setbrightness(int br, CmdSource src) {
 	
 
 }
+
+
+///cycler
+uint32_t defaultcycleParams[][4] = { // color, speed, mode, duration (seconds)  // to do load from json config
+	  {0xff0000, 200,  1,  15.0}, // blink red for 15 seconds
+	  {0x00ff00, 200,  3, 20.0}, // wipe green for 20 seconds
+	  {0x0000ff, 200, 11,  25.0}, // dual scan blue for 25 seconds
+	  {0xeeeeee, 200, 29,  25.0}, // Blink Rainbow blue for 25 seconds
+	  {0xeeeeee, 200, 32,  25.0}, // Chase Random for 25 seconds
+	  {0xeeeeee, 200, 33,  25.0}, // Chase Rainbow for 25 seconds
+	  {0x0000ff, 200, 42, 25.0}  // fireworks for 25 seconds
+};
+
+RGBStripCycler::RGBStripCycler(StripWrapper* pStrip) {
+	cycleIndex = 0;
+	cyclecount = 7;
+	
+	pcycleParams = &defaultcycleParams[0][0];
+	pStripWrapper = pStrip;
+}
+
+void RGBStripCycler::start() {
+	this->reset();
+#ifdef RGBSTRIP_DEBUG
+	DBG_OUTPUT_PORT.println("RGBStripCycler  start");
 #endif
+
+	this->oncallback();
+}
+void RGBStripCycler::stop() {
+	cycleTicker.detach();
+}
+void RGBStripCycler::reset() {
+	cycleIndex = 0;
+}
+void RGBStripCycler::oncallback() {
+#ifdef RGBSTRIP_DEBUG
+	DBG_OUTPUT_PORT.println("RGBStripCycler  oncallback");
+	DBG_OUTPUT_PORT.print("color");
+	DBG_OUTPUT_PORT.println(GET_CYCLE_PARAM(pcycleParams, cycleIndex, 0));
+
+	DBG_OUTPUT_PORT.print("mode");
+	DBG_OUTPUT_PORT.println(GET_CYCLE_PARAM(pcycleParams, cycleIndex, 2));
+
+	DBG_OUTPUT_PORT.print("time");
+	DBG_OUTPUT_PORT.println(GET_CYCLE_PARAM(pcycleParams, cycleIndex, 3));
+	uint8_t br = this->pStripWrapper->getBrightness();
+	DBG_OUTPUT_PORT.print("brigthness");
+	DBG_OUTPUT_PORT.println(br);
+
+#endif
+	this->pStripWrapper->setColor(GET_CYCLE_PARAM(pcycleParams, cycleIndex, 0));
+	this->pStripWrapper->setMode(GET_CYCLE_PARAM(pcycleParams, cycleIndex, 2));
+	this->pStripWrapper->setSpeed(GET_CYCLE_PARAM(pcycleParams, cycleIndex, 1));
+	this->pStripWrapper->setBrightness(br);
+	cycleTicker.once<RGBStripCycler*>(GET_CYCLE_PARAM(pcycleParams, cycleIndex, 3), RGBStripCycler::callback, this);
+	cycleIndex++;
+	if (cycleIndex >= cyclecount) cycleIndex = 0;
+}
+void RGBStripCycler::callback(RGBStripCycler* self) {
+	self->oncallback();
+}

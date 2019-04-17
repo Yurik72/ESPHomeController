@@ -46,6 +46,7 @@
 //#define MQTT_DEBUG
 //#define FACTORY_DEBUG
 //#define RFCONTROLLER_DEBUG
+//#define RGBSTRIP_DEBUG
 #define MENU_DEBUG
 //#define BUTTON_DEBUG
 

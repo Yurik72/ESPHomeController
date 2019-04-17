@@ -16,10 +16,13 @@ ButtonController::ButtonController() {
 	memset(pin, 0, sizeof(uint8_t)*MAX_BUTTONS); 
 	memset(btnhistory, 0, sizeof(uint16_t)*MAX_BUTTONS);
 	memset(btnstate, 0, sizeof(enumstate)*MAX_BUTTONS);
-	
+
+	memset(btn_long_history, 0, sizeof(btn_state_history_record)*STATE_HISTORY_MAX*MAX_BUTTONS);
+
 	this->btncount = 0;
 	Ticker* pTicker;
 	this->coreMode = Both;
+	this->last_history_state_update = 0;
 }
 
 String  ButtonController::serializestate() {
@@ -132,6 +135,7 @@ void ButtonController::runcore() {
 			st.isDown = !this->get_state().isDown;
 		    btnstate[i] = isdown;
 			this->AddCommand(st, SetBtn, srcSelf);
+			this->update_history_state(i, btnstate[i], millis());
 #ifdef BUTTON_DEBUG
 			DBG_OUTPUT_PORT.println(F("button down"));
 #endif
@@ -141,11 +145,39 @@ void ButtonController::runcore() {
 			st.isPressed = true;
 			btnstate[i] = ispressed;
 			this->AddCommand(st, SetBtn, srcSelf);
+			this->update_history_state(i, btnstate[i], millis());
 #ifdef BUTTON_DEBUG
 			DBG_OUTPUT_PORT.println(F("button press"));
 #endif
 		}
 	}
+	if ((last_history_state_update + STATE_HISTORY_PERIOD_UPDATE) < millis()) {
+		for (uint8_t i = 0;i < btncount;i++)
+			check_update_longhistory(i);
+		
+	}
+}
+void ButtonController::update_history_state(uint8_t idx, enumstate state, long ms) {
+
+	memcpy(btn_long_history[idx], btn_long_history[idx] + 1, (sizeof(btn_state_history_record)*STATE_HISTORY_MAX) - 1);
+	btn_long_history[idx][STATE_HISTORY_MAX - 1].state = state;
+	btn_long_history[idx][STATE_HISTORY_MAX - 1].ms = ms;
+	check_update_longhistory(idx);
+}
+void ButtonController::check_update_longhistory(uint8_t idx) {
+	if (btn_long_history[idx][STATE_HISTORY_MAX - 1].state != ispressed &&
+		btn_long_history[idx][STATE_HISTORY_MAX - 2].state == ispressed &&
+		(btn_long_history[idx][STATE_HISTORY_MAX - 2].ms + LONG_ACTIONDURATION) < btn_long_history[idx][STATE_HISTORY_MAX - 1].ms) {
+		ButtonState st = this->get_state();
+		st.idx = idx;
+		st.isLongPressed = true;
+		this->AddCommand(st, SetBtn, srcSelf);
+#ifdef BUTTON_DEBUG
+		DBG_OUTPUT_PORT.println(F("button long press"));
+#endif
+	}
+	last_history_state_update = millis();
+
 }
 void ButtonController::update(uint8_t idx) {
 

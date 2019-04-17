@@ -7,11 +7,13 @@
 #include "BaseController.h"
 #include <WS2812FX.h>
 
+#include <Ticker.h>
 
 
 
 class WS2812FX;
 class Ticker;
+class RGBStripCycler;
 class StripWrapper {
 public:
 	~StripWrapper() {
@@ -32,6 +34,7 @@ public:
 	virtual int getModeCount() { return 0; }
 	virtual  const __FlashStringHelper* getModeName(int i) { return NULL; };
 	virtual bool isRunning() { return false; }
+	virtual uint8_t getBrightness(void) { return 0; };
 };
 
 class WS2812Wrapper :public StripWrapper {
@@ -54,6 +57,7 @@ public:
 	virtual  const __FlashStringHelper* getModeName(int i);
 	virtual bool isRunning();
 	virtual void trigger(void) ;
+	virtual uint8_t getBrightness(void);
 private:
 	WS2812FX* pstrip;
 	bool useinternaldriver;
@@ -124,10 +128,34 @@ private:
 	float mqtt_saturation;
 	float mqtt_hue;
 	CSmoothVal* pSmooth;
+	RGBStripCycler* pCycle;
 	bool isEnableSmooth;
-	
+	uint cyclemode;
 };
 DEFINE_CONTROLLER_FACTORY(RGBStripController)
+
+//// auto cycler
+
+#define GET_CYCLE_PARAM(parr,row,idx) parr[row*4+idx]
+class RGBStripCycler
+{
+public:
+	RGBStripCycler(StripWrapper* pStrip );
+	void start();
+	void stop();
+	void reset();
+	void oncallback();
+	static void callback(RGBStripCycler* self);
+	
+protected:
+	Ticker cycleTicker;
+	uint8_t cycleIndex ;
+	uint8_t cyclecount;
+	uint32_t *pcycleParams;
+
+	StripWrapper* pStripWrapper;
+};
+
 
 
 #endif
