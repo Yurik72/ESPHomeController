@@ -566,6 +566,7 @@ void RGBStripCycler::reset() {
 	cycleIndex = 0;
 }
 void RGBStripCycler::oncallback() {
+	uint8_t br = this->pStripWrapper->getBrightness();
 #ifdef RGBSTRIP_DEBUG
 	DBG_OUTPUT_PORT.println("RGBStripCycler  oncallback");
 	DBG_OUTPUT_PORT.print("color");
@@ -576,7 +577,7 @@ void RGBStripCycler::oncallback() {
 
 	DBG_OUTPUT_PORT.print("time");
 	DBG_OUTPUT_PORT.println(GET_CYCLE_PARAM(pcycleParams, cycleIndex, 3));
-	uint8_t br = this->pStripWrapper->getBrightness();
+	
 	DBG_OUTPUT_PORT.print("brigthness");
 	DBG_OUTPUT_PORT.println(br);
 

@@ -213,6 +213,7 @@ void handleFileUpload(AsyncWebServerRequest *request, String filename, size_t in
 	for (size_t i = 0; i < len; i++) {
 		if (fsUploadFile)
 			fsUploadFile.write(data[i]);
+		
 	}
 	uploadpos += len;
 	if (final) {

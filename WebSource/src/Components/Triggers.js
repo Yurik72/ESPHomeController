@@ -133,13 +133,13 @@ class Triggers extends React.Component {
        
     }
     renderSwitchType(item, idx) {
-        //console.log("renderSwitchType");
-        if (item.type === 'TimeToRGBStrip')
-            return this.renderTimeRgb(item.value, idx, "timergb");
+
+        if (item.type.startsWith ('TimeToRGBStrip'))
+            return this.renderTimeRgb(item.value, idx, "timergb",item);
         if (item.type === 'TimeToRelay')
-            return this.renderTimeRgb(item.value, idx, "timerelay");
+            return this.renderTimeRgb(item.value, idx, "timerelay",item);
         if (item.type === 'TimeToRelayDimTrigger')
-            return this.renderTimeRgb(item.value, idx, "timerelaydim");
+            return this.renderTimeRgb(item.value, idx, "timerelaydim",item);
         if (item.type === 'RFToRelay')
             return this.renderRF(item, idx, "rfrelay");
     }
@@ -195,7 +195,7 @@ class Triggers extends React.Component {
             </>
             )
     }
-    renderTimeRgb(times, tidx,timetype) {
+    renderTimeRgb(times, tidx,timetype,trigger) {
        // console.log("renderTimeRgb");
         if (!timetype)
             timetype="timergb"
@@ -204,7 +204,7 @@ class Triggers extends React.Component {
         const showcolor = timetype  === "timergb";
         const showbrightness = (timetype === "timergb" || timetype === "timerelaydim" );
         const showldr = (timetype === "timergb" || timetype === "timerelaydim");
-
+        const showmode = (timetype === "timergb" );
         return (
             <>
                 <Row className="blue-grey lighten-5 valign-wrapper" >
@@ -256,6 +256,8 @@ class Triggers extends React.Component {
                                     showcolor={showcolor}
                                     showldr={showldr}
                                     showbrightness={showbrightness}
+                                    showmode={showmode}
+                                    trigger={trigger}
                                     handlechange={val => this.handlecomponentindexedchange(val, tidx, idx)} />
                                   
                                 
@@ -315,9 +317,14 @@ class Triggers extends React.Component {
       //  this.setState({ triggers });
     }
     addtrigger(triggertype) {
-       // console.log("addtrigger");
+
         let triggers = this.clonetriggers();
-        triggers.push({ type: triggertype, source: this.getsourceservices(triggertype).shift(), destination: this.getdestinationservices(triggertype).shift() });
+        if (triggers.find((it) => { return it.type.startsWith(triggertype) || triggertype.startsWith(it.type) })) {
+            alert("Trigger already there")
+            return;
+        }
+
+       triggers.push({ type: triggertype, source: this.getsourceservices(triggertype).shift(), destination: this.getdestinationservices(triggertype).shift() });
        // console.log(triggers);
         this.setState({ triggers });
     }
@@ -328,7 +335,7 @@ class Triggers extends React.Component {
         close();
     }
     getsourceservices(triggertype) {
-        if (triggertype === "TimeToRGBStrip" || triggertype === "TimeToRelay" || triggertype === "TimeToRelayDimTrigger")
+        if (triggertype.startsWith('TimeToRGBStrip') || triggertype === "TimeToRelay" || triggertype === "TimeToRelayDimTrigger")
             return this.state.services.reduce((acc, item) => { if (item.service === "TimeController") acc.push(item.name);
                 return acc;
             }, []);
@@ -343,7 +350,7 @@ class Triggers extends React.Component {
     getdestinationservices(triggertype) {
         return this.state.services.reduce((acc, sitem) => {
 
-            if ((sitem.service === "RGBStripController" && triggertype === "TimeToRGBStrip")
+            if ((sitem.service === "RGBStripController" && triggertype.startsWith('TimeToRGBStrip'))
                 ||
                 (sitem.service === "RelayController" && triggertype === "TimeToRelay")
                 ||
