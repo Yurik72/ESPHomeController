@@ -36,6 +36,8 @@
 						   //and normal WebServer is not able to do this
 						   //Hovewer website will continu to send request in case of error, but this is perfomance
 						   // As well browser can send simultaneous requests to resources css,js,....
+#define CUSTOM_WEBASYNCFILEHANDLER  //Use custom file handler to distinguish real file and gzip 
+#define CUSTOM_WEBASYNCFILEHANDLER_GZIP_FIRST
 //#define TRIGGER_DEBUG  //debug triggers output enable
 //#define TIMECONTROLLER_DEBUG  //debug timecontroller output enable
 //#define LDRCONTROLLER_DEBUG  //debug ldrcontroller output enable
@@ -47,7 +49,7 @@
 //#define FACTORY_DEBUG
 //#define RFCONTROLLER_DEBUG
 //#define RGBSTRIP_DEBUG
-#define MENU_DEBUG
+//#define MENU_DEBUG
 //#define BUTTON_DEBUG
 
 

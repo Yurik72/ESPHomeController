@@ -1,5 +1,5 @@
 
-
+#include "config.h"
 #if defined(ESP8266)
 #include <ESPAsyncTCP.h>
 #else
@@ -7,19 +7,21 @@
 #endif 
 #include <ESPAsyncWebServer.h>
 
+#ifdef CUSTOM_WEBASYNCFILEHANDLER
+#include "SPIFStaticWebHandler.h"
+#endif
 
 #define server asserver
 
 
-#define SETUP_FILEHANDLES   server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html"); \
+#define SETUP_FILEHANDLES   setupself();\
 						server.on("/browse", handleFileBrowser); \
 server.on("/upload", HTTP_POST, [](AsyncWebServerRequest *request) { request->send(200, "text/plain", ""); }, handleFileUpload); \
 server.on("/reboot", handleReboot); \
 server.on("/restartesp", handleReboot); \
 server.on("/jsonsave", handleJsonSave); \
- server.onNotFound(onNotFoundRequest); \
-server.serveStatic("/", SPIFFS, "/www/").setCacheControl("max-age=600");\
-setupself();
+ server.onNotFound(onNotFoundRequest); 
+//setupself();
 //do something useful
 
 File fsUploadFile;
@@ -29,7 +31,27 @@ const char* szPlaintext = "text/plain";
 void setupself() {
 	DefaultHeaders::Instance().addHeader("Access-Control-Allow-Origin", "*");
 	DefaultHeaders::Instance().addHeader("Access-Control-Allow-Methods", "POST, GET, PUT, DELETE, OPTIONS");
+#ifdef CUSTOM_WEBASYNCFILEHANDLER
 	
+	SPIFStaticWebHandler* handler = new SPIFStaticWebHandler("/", SPIFFS, "/", "max-age=600");
+#ifdef CUSTOM_WEBASYNCFILEHANDLER_GZIP_FIRST
+	handler->setAlwaysGzipIfExists(true);
+
+#endif // CUSTOM_WEBASYNCFILEHANDLER_GZIP_FIRST
+	handler->setDefaultFile("index.html");
+	server.addHandler(handler);
+	SPIFStaticWebHandler* wwwhandler = new SPIFStaticWebHandler("/", SPIFFS, "/www/", "max-age=600");
+#ifdef CUSTOM_WEBASYNCFILEHANDLER_GZIP_FIRST
+	wwwhandler->setAlwaysGzipIfExists(true);
+
+#endif // CUSTOM_WEBASYNCFILEHANDLER_GZIP_FIRST
+	wwwhandler->setDefaultFile("index.html");
+	server.addHandler(wwwhandler);
+	//return *handler;
+#else
+	server.serveStatic("/", SPIFFS, "/").setDefaultFile("index.html");
+	server.serveStatic("/", SPIFFS, "/www/").setCacheControl("max-age=600");
+#endif
 }
 static void setExternRebootFlag(bool *pb) {
 	pExReboot = pb;
