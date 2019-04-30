@@ -27,6 +27,7 @@
     "not op_mini all"
   ],
   "devDependencies": {
+    "compression-webpack-plugin": "^2.0.0",
     "webpack-cli": "^3.2.1"
   }
 }

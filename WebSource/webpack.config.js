@@ -1,6 +1,7 @@
 const path = require("path")
 const UglifyJsPlugin = require("uglifyjs-webpack-plugin")
 const glob = require("glob")
+var CompressionPlugin = require('compression-webpack-plugin');
 
 module.exports = {
     entry: {
@@ -17,5 +18,5 @@ module.exports = {
             },
         ],
     },
-    plugins: [new UglifyJsPlugin()],
+    plugins: [new UglifyJsPlugin(), new CompressionPlugin()],
 }
