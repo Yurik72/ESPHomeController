@@ -133,7 +133,7 @@ class LedInterruptDriver :public LedInterruptDriverBase//: public CPixelLEDContr
 	int            mSize = 0;
 	int            mCurByte;
 	uint16_t       mCurPulse;
-
+	int rgb_startled = -1;
 	// -- Buffer to hold all of the pulses. For the version that uses
 	//    the RMT driver built into the ESP core.
 	rmt_item32_t * mBuffer;
@@ -146,7 +146,9 @@ public:
 		this->init(neopixel->getPin(), neopixel->numPixels());
 
 	}
-
+	void set_rgb_startled(int val) { 
+		rgb_startled = val; 
+	}
 	void init(int datapin, int numleds)
 	{
 		// -- Precompute rmt items corresponding to a zero bit and a one bit
@@ -324,8 +326,25 @@ public:
 		uint8_t *neodata = neopixel.getPixels();
 		//int posneodata = 0;
 		/// direct copy can be used, due to the right order sequence
-		memcpy(mPixelData, neodata, count * 3);
+		if (rgb_startled <= 0) {  // copies direct GRB sequence
+			memcpy(mPixelData, neodata, count * 3);
+		}
+		else {
+			uint16_t grb_count =  rgb_startled-1;
+			if (grb_count > 0) {
+				memcpy(mPixelData, neodata, grb_count * 3);  //copies firts GRB 
+			}
+			int cur =( rgb_startled-1) * 3;
+			//return;
+			if(cur>0)
+				for (uint16_t i = rgb_startled-1;i < count; i++) {
+					uint8_t * curled = &neodata[i * 3];
 
+					mPixelData[cur++] = curled[1];// curled[0]; red first
+					mPixelData[cur++] = curled[0];//curled[1];
+					mPixelData[cur++] = curled[2];
+				}
+		}
 
 		/*
 		for (uint16_t i = 0;i < count; i++) {

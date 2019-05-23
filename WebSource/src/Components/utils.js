@@ -29,7 +29,7 @@ export function getBaseuri() {
     return path;
 }
 var entrance = 0;
-const timeout = 100;
+const timeout = 300;
 export function doFetch(apiurl, callback) {
     
    // console.log("entrance count" + entrance);

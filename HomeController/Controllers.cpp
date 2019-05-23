@@ -225,7 +225,7 @@ void Controllers::setuphandlers(WebServer& server){
 			DBG_OUTPUT_PORT.println("Processed preflight");
 		});
 		_server->on(pathset, HTTP_POST, [=]() {
-			DBG_OUTPUT_PORT.println("sending header from POST");
+			//DBG_OUTPUT_PORT.println("sending header from POST");
 			String body;
 			if (_server->hasArg("plain")) {
 				DBG_OUTPUT_PORT.println("has plain");
@@ -329,7 +329,7 @@ void Controllers::setuphandlers(AsyncWebServer& server) {
 			request->send(response);
 		});
 		server.on(pathset.c_str(), HTTP_POST, [](AsyncWebServerRequest *request) {
-			DBG_OUTPUT_PORT.println("sending header from POST");
+			//DBG_OUTPUT_PORT.println("sending header from POST");
 			AsyncWebServerResponse *response = request->beginResponse(200, "text/plain", "OK");
 			response->addHeader("Connection", "close");
 			request->send(response);

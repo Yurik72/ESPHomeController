@@ -92,12 +92,12 @@ private:
 		}
 		///YK
 
-		Serial.println(request->url());
+		//Serial.println(request->url());
 	   
 	   
-	    Serial.println(gzip);
+	    //Serial.println(gzip);
 
-	    Serial.println(gzipFound);
+	   // Serial.println(gzipFound);
 	   
 		return found;
 	};

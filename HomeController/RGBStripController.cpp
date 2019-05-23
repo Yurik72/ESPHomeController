@@ -33,6 +33,7 @@ static String rgbModes;
 WS2812Wrapper::WS2812Wrapper() {
 	pstrip = NULL;
 	this->useinternaldriver = false;
+	this->rgb_startled = -1;
 }
 WS2812Wrapper::WS2812Wrapper(bool useinternaldriver):WS2812Wrapper(){
 	this->useinternaldriver = useinternaldriver;
@@ -47,6 +48,7 @@ void WS2812Wrapper::setup(int pin, int numleds) {
 	if (useinternaldriver) {
 		
 		ws2812driver.init(pstrip);
+		ws2812driver.set_rgb_startled(rgb_startled);
 		pstrip->setCustomShow([] () {
 			ws2812driver.customShow();
 		
@@ -112,6 +114,7 @@ RGBStripController::RGBStripController() {
 	this->pCycle = NULL;
 	this->isEnableSmooth = true;
 	this->cyclemode = 0;
+	this->rgb_startled = -1;
 	//rgbModes = "";
 	
 	//this->coreMode = Both;
@@ -144,7 +147,7 @@ String  RGBStripController::serializestate() {
 	return json;
 }
 bool  RGBStripController::deserializestate(String jsonstate, CmdSource src) {
-	DBG_OUTPUT_PORT.println("RGBStripController::deserializestate");
+	//DBG_OUTPUT_PORT.println("RGBStripController::deserializestate");
 	if (jsonstate.length() == 0) {
 		DBG_OUTPUT_PORT.println("State is empty");
 		return false;
@@ -177,6 +180,8 @@ void RGBStripController::loadconfig(JsonObject& json) {
 	pin = json["pin"];
 	numleds = json["numleds"];
 	isEnableSmooth = json["issmooth"];
+	if(json.containsKey("rgb_startled"))
+		rgb_startled= json["rgb_startled"];
 }
 void RGBStripController::getdefaultconfig(JsonObject& json) {
 	json[FPSTR(szPinText)]= pin;
@@ -184,6 +189,7 @@ void RGBStripController::getdefaultconfig(JsonObject& json) {
 	json["service"] = "RGBStripController";
 	json["name"] = "RGBStrip";
 	json["issmooth"] = false;
+	json["rgb_startled"] = -1;
 	RGBStrip::getdefaultconfig(json);
 }
 void  RGBStripController::setup() {
@@ -192,7 +198,7 @@ void  RGBStripController::setup() {
 #else
 	pStripWrapper = new  WS2812Wrapper();
 #endif
-	
+	pStripWrapper->set_rgb_startled(rgb_startled);
 	pStripWrapper->setup(pin, numleds);
 	pStripWrapper->init();
 
@@ -200,8 +206,8 @@ void  RGBStripController::setup() {
 	pStripWrapper->setSpeed(1000);
 	pStripWrapper->setColor(0x007BFF);
 	pStripWrapper->setMode(FX_MODE_STATIC);
-	pStripWrapper->start();
-
+	
+	
 	this->pCycle = new RGBStripCycler(pStripWrapper);
 	this->cyclemode = pStripWrapper->getModeCount();
 	RGBStrip::setup();

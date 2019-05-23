@@ -34,7 +34,10 @@ public:
 	virtual int getModeCount() { return 0; }
 	virtual  const __FlashStringHelper* getModeName(int i) { return NULL; };
 	virtual bool isRunning() { return false; }
-	virtual uint8_t getBrightness(void) { return 0; };
+	virtual uint8_t getBrightness(void) { return 0; }
+	void set_rgb_startled(int val) { rgb_startled = val; };
+protected:
+	int rgb_startled;
 };
 
 class WS2812Wrapper :public StripWrapper {
@@ -58,9 +61,11 @@ public:
 	virtual bool isRunning();
 	virtual void trigger(void) ;
 	virtual uint8_t getBrightness(void);
+
 private:
 	WS2812FX* pstrip;
 	bool useinternaldriver;
+
 };
 
 struct RGBState
@@ -131,6 +136,7 @@ private:
 	RGBStripCycler* pCycle;
 	bool isEnableSmooth;
 	uint cyclemode;
+	int rgb_startled;   /// indicates from which led rgb  sequence started instead grb
 };
 DEFINE_CONTROLLER_FACTORY(RGBStripController)
 
