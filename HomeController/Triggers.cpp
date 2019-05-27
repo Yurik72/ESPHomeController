@@ -604,8 +604,8 @@ uint32_t tempranges[3][10] = { // color, speed, mode, duration (seconds)  // to 
 	  { 0  , 20, 100, 140, 255, 140, 100, 20, 0, 0}, // green
 	  { 255, 200, 120, 80, 40, 0, 0, 0, 0, 0} // blue
 };
-float temp_min=18;
-float temp_max = 30;
+//float temp_min=18;
+//float temp_max = 30;
 void DallasToRGBStrip::handleloopsvc(DallasController* ps, RGBStripController* pd) {
 	TriggerFromService< DallasController, RGBStripController>::handleloopsvc(ps, pd);
 	DallasState l = ps->get_state();
@@ -672,13 +672,13 @@ uint32_t DallasToRGBStrip::calcColorSimple(float temp) {
 		if (temp < mid) {
 			res= Color(
 				0,
-				map((uint32_t)(temp * 100), (uint32_t)(temp_min * 100), (uint32_t)(mid * 100), 0, 255),
-				map((uint32_t)(temp * 100), (uint32_t)(temp_min * 100), (uint32_t)(mid * 100),255,0));
+				map((uint32_t)(temp * 100.0), (uint32_t)(temp_min * 100.0), (uint32_t)(mid * 100.0), 0, 255),
+				map((uint32_t)(temp * 100.0), (uint32_t)(temp_min * 100.0), (uint32_t)(mid * 100.0),255,0));
 		}
 		else {
 			res = Color(
-				map((uint32_t)(temp * 100),  (uint32_t)(mid * 100), (uint32_t)(temp_max * 100), 0, 255),
-				map((uint32_t)(temp * 100),  (uint32_t)(mid * 100), (uint32_t)(temp_max * 100), 255, 0),
+				map((uint32_t)(temp * 100.0),  (uint32_t)(mid * 100.0), (uint32_t)(temp_max * 100.0), 0, 255),
+				map((uint32_t)(temp * 100.0),  (uint32_t)(mid * 100.0), (uint32_t)(temp_max * 100.0), 255, 0),
 				0);
 		}
 	}
@@ -690,6 +690,10 @@ void DallasToRGBStrip::loadconfig(JsonObject& json) {
 	JsonArray arr = json["value"].as<JsonArray>();
 	if (arr.size() == 2) {
 		this->temp_min = arr[0].as<float>();
-		this->temp_max = arr[0].as<float>();
+		this->temp_max = arr[1].as<float>();
 	}
+	//DBG_OUTPUT_PORT.println("Dallas tr min ");
+	//DBG_OUTPUT_PORT.println(this->temp_min);
+	//DBG_OUTPUT_PORT.println("Dallas tr max ");
+	//DBG_OUTPUT_PORT.println(this->temp_max);
 }
