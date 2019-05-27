@@ -16,6 +16,7 @@ import Triggers from './Components/Triggers';
 import RGBStrip from './Components/RGBStrip';
 import TimeCtl from "./Components/TimeCtl"
 import BME280Ctl from "./Components/BME280Ctl"
+import DallasCtl from "./Components/DallasCtl"
 import RFCtl from "./Components/RFCtl"
 import ServoHV from "./Components/ServoHV"
 import IRCtl from "./Components/IRCtl"
@@ -99,7 +100,8 @@ class App extends Component {
                 return (props => <ServoHV  {...props} compprops={svc} />);
             case "IRController":
                 return (props => <IRCtl  {...props} compprops={svc} />);
-
+            case "DallasController":
+                return (props => <DallasCtl {...props} compprops={svc} />);
 
             default:
                 return (props =><div></div>);

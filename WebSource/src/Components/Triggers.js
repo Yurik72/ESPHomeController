@@ -142,7 +142,50 @@ class Triggers extends React.Component {
             return this.renderTimeRgb(item.value, idx, "timerelaydim",item);
         if (item.type === 'RFToRelay')
             return this.renderRF(item, idx, "rfrelay");
+        if (item.type === 'DallasToRGBStrip')
+            return this.renderDallasRGB(item, idx, "dallas");
     }
+    renderDallasRGB(trigger, tidx, rftype) {
+        if (!trigger.value) {
+            trigger.value = [18.0, 30.0];
+        }
+        //const { item, name, onchange, idx } = props;
+        return (
+            <>
+
+                <Row className="blue-grey lighten-5 valign-wrapper" >
+                    <Col num={2}>
+                       Temperature values
+                    </Col>
+                    <Col num={2}>
+                       
+                    <label htmlFor={"mintemp"} className="input-label">Min Temp</label><br />
+                   
+                        <input 
+                            id={"mintemp"}
+                            name={"mintemp"}
+
+                            value={trigger.value[0]}
+                            onChange={(ev)=>this.assigntotrigger(tidx, (it)=> { it.value[0] = ev.target.value; })}
+                        />
+                    </Col>
+                    <Col num={2}>
+                        <label htmlFor={"maxtemp"} className="input-label">Max Temp</label><br />
+                        
+                            <input
+                                id={"maxtemp"}
+                                name={"maxtemp"}
+
+                                value={trigger.value[1]}
+                               onChange={(ev) => this.assigntotrigger(tidx, (it) => { it.value[1] = ev.target.value; })}
+                            />
+                    </Col>
+                </Row>
+            </>
+       )
+            
+    }
+           
     renderRF(trigger, tidx, rftype) {
 
 
@@ -344,6 +387,11 @@ class Triggers extends React.Component {
                 if (item.service === "RFController") acc.push(item.name);
                 return acc;
             }, []);
+        if (triggertype === "DallasToRGBStrip")
+            return this.state.services.reduce((acc, item) => {
+                if (item.service === "DallasController") acc.push(item.name);
+                return acc;
+            }, []);
         return [];
     }
 
@@ -357,6 +405,8 @@ class Triggers extends React.Component {
                 (sitem.service === "RelayController" && triggertype === "RFToRelay")
                 ||
                 (sitem.service === "RelayDimController" && triggertype === "TimeToRelayDimTrigger")
+                ||
+                (sitem.service === "RGBStripController" && triggertype === "DallasToRGBStrip")
             )
                 acc.push(sitem.name);
             return acc;

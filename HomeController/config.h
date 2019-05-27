@@ -38,6 +38,10 @@
 						   // As well browser can send simultaneous requests to resources css,js,....
 #define CUSTOM_WEBASYNCFILEHANDLER  //Use custom file handler to distinguish real file and gzip 
 #define CUSTOM_WEBASYNCFILEHANDLER_GZIP_FIRST
+
+
+//#define DALLASCONTROLLER_DEBUG
+//#define DALLSATRIGGER_DEBUG
 //#define TRIGGER_DEBUG  //debug triggers output enable
 //#define TIMECONTROLLER_DEBUG  //debug timecontroller output enable
 //#define LDRCONTROLLER_DEBUG  //debug ldrcontroller output enable

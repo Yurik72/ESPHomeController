@@ -43,7 +43,17 @@ WS2812Wrapper::~WS2812Wrapper() {
 		delete pstrip;
 }
 void WS2812Wrapper::setup(int pin, int numleds) {
+#ifdef  ESP8266	
+	if (rgb_startled == 1) {
+		pstrip = new  WS2812FX(numleds, pin, NEO_RGB + NEO_KHZ800);
+	}
+	else {
+		pstrip = new  WS2812FX(numleds, pin, NEO_GRB + NEO_KHZ800);
+	}
+
+#else
 	pstrip=new  WS2812FX(numleds, pin, NEO_GRB + NEO_KHZ800);
+#endif
 #ifdef  ESP32	
 	if (useinternaldriver) {
 		

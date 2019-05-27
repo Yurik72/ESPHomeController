@@ -7,6 +7,7 @@
 #include "BaseController.h"
 #include "RFController.h"
 #include "RelayDimController.h"
+#include "DallasController.h"
 
 #define NEXT_DAY_SEC (1 * 24 * 60 * 60)
 #define SEC_TOLLERANCE 1200  //2 min
@@ -200,7 +201,19 @@ private:
 	long delaywait;
 };
 
+class DallasToRGBStrip :public TriggerFromService< DallasController, RGBStripController> {
+public:
+	DallasToRGBStrip();
 
+	virtual void handleloopsvc(DallasController* ps, RGBStripController* pd);
+	virtual void loadconfig(JsonObject& json);
+protected:
+	uint32_t calcColor(float temp);
+	uint32_t calcColorSimple(float temp);
+private:
+	float temp_min ;
+	float temp_max ;
+};
 
 //DEFINE_TRIGGER_FACTORY(TimeToRGBStripTrigger)
 
@@ -210,7 +223,7 @@ DEFINE_TRIGGER_FACTORY(LDRToRelay)
 DEFINE_TRIGGER_FACTORY(LDRToRGBStrip)
 DEFINE_TRIGGER_FACTORY(RFToRelay)
 DEFINE_TRIGGER_FACTORY(TimeToRelayDimTrigger)
-
+DEFINE_TRIGGER_FACTORY(DallasToRGBStrip)
 
 //DEFINE_TRIGGER_FACTORY(LDRToRelay)
 //DEFINE_TRIGGER_FACTORY(LDRToRGBStrip)

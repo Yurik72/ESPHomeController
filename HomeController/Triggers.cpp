@@ -36,6 +36,8 @@ REGISTER_TRIGGER_FACTORY(RFToRelay)
 REGISTER_TRIGGER_FACTORY(TimeToRelayDimTrigger)
 #endif
 
+REGISTER_TRIGGER_FACTORY(DallasToRGBStrip)
+
 void Triggers::setup() {
 	this->loadconfig();
 	
@@ -591,4 +593,103 @@ void TimeToRelayDimTrigger::dotrigger(timerecRelayDim & rec, Controllers* pctlss
 		this->get_relayctl()->AddCommand(newstate, DimRelayOff, srcTrigger);
 	}
 
+}
+
+DallasToRGBStrip::DallasToRGBStrip() {
+	temp_min = 18;
+	temp_max = 30;
+}
+uint32_t tempranges[3][10] = { // color, speed, mode, duration (seconds)  // to do load from json config
+	  { 0, 0, 0, 0, 0, 40, 80, 120, 200, 255}, ///red
+	  { 0  , 20, 100, 140, 255, 140, 100, 20, 0, 0}, // green
+	  { 255, 200, 120, 80, 40, 0, 0, 0, 0, 0} // blue
+};
+float temp_min=18;
+float temp_max = 30;
+void DallasToRGBStrip::handleloopsvc(DallasController* ps, RGBStripController* pd) {
+	TriggerFromService< DallasController, RGBStripController>::handleloopsvc(ps, pd);
+	DallasState l = ps->get_state();
+	RGBState rState;
+	uint32_t color = calcColor(l.temp);
+	rState.color = color;
+	RGBCMD cmd = SetColor;
+#ifdef	DALLSATRIGGER_DEBUG
+	DBG_OUTPUT_PORT.println("LDRToRGBStrip set ");
+	DBG_OUTPUT_PORT.println(rState.ldrValue);
+#endif	//DALLSATRIGGER_DEBUG
+	pd->AddCommand(rState, cmd, srcTrigger);
+}
+uint32_t DallasToRGBStrip::calcColor(float temp) {
+	return calcColorSimple(temp);
+	uint32_t res = 0;
+	int idx = map((uint32_t)temp, (uint32_t)temp_min, (uint32_t)temp_max, 0, 9);
+	if (idx == 0) {
+		res = Color(tempranges[0][0], tempranges[0][0], tempranges[0][0]);
+	}
+	else if (idx == 9) {
+		res = Color(tempranges[0][9], tempranges[0][9], tempranges[0][9]);
+	}
+	else {
+	
+		int idxto = idx+1;
+		float degreeperrange = (temp_max - temp_min) / 10.0;
+		float rangemin = temp_min+degreeperrange * idx;
+		float rangemax = temp_min+degreeperrange * idxto;
+		uint32_t red = map((uint32_t)(temp * 100), (uint32_t)(rangemin * 100), (uint32_t)(rangemax * 100), tempranges[0][idx], tempranges[0][idxto]);
+		uint32_t green = map((uint32_t)(temp * 100), (uint32_t)(rangemin * 100), (uint32_t)(rangemax * 100), tempranges[1][idx], tempranges[1][idxto]);
+		uint32_t blue = map((uint32_t)(temp * 100), (uint32_t)(rangemin * 100), (uint32_t)(rangemax * 100), tempranges[2][idx], tempranges[2][idxto]);
+#ifdef	DALLSATRIGGER_DEBUG
+		DBG_OUTPUT_PORT.println("idx ");
+		DBG_OUTPUT_PORT.println(idx);
+		DBG_OUTPUT_PORT.println("idxto ");
+		DBG_OUTPUT_PORT.println(idxto);
+		DBG_OUTPUT_PORT.println("degreeperrange");
+		DBG_OUTPUT_PORT.println(degreeperrange);
+		DBG_OUTPUT_PORT.println("range min ");
+		DBG_OUTPUT_PORT.println(rangemin);
+		DBG_OUTPUT_PORT.println("range max ");
+		DBG_OUTPUT_PORT.println(rangemax);
+		DBG_OUTPUT_PORT.println("green ");
+		DBG_OUTPUT_PORT.println(green);
+
+
+#endif
+		res = Color(red, green, blue);
+	}
+	
+	return res;
+}
+uint32_t DallasToRGBStrip::calcColorSimple(float temp) {
+	uint32_t res = 0;
+	if (temp <= temp_min) {
+		res = Color(0, 0, 255);
+	}
+	else if (temp >= temp_max) {
+		res = Color(255, 0, 0);
+	}
+	else {
+		float mid = (temp_max + temp_min) / 2.0;
+		if (temp < mid) {
+			res= Color(
+				0,
+				map((uint32_t)(temp * 100), (uint32_t)(temp_min * 100), (uint32_t)(mid * 100), 0, 255),
+				map((uint32_t)(temp * 100), (uint32_t)(temp_min * 100), (uint32_t)(mid * 100),255,0));
+		}
+		else {
+			res = Color(
+				map((uint32_t)(temp * 100),  (uint32_t)(mid * 100), (uint32_t)(temp_max * 100), 0, 255),
+				map((uint32_t)(temp * 100),  (uint32_t)(mid * 100), (uint32_t)(temp_max * 100), 255, 0),
+				0);
+		}
+	}
+
+		return res;
+}
+void DallasToRGBStrip::loadconfig(JsonObject& json) {
+	Trigger::loadconfig(json);
+	JsonArray arr = json["value"].as<JsonArray>();
+	if (arr.size() == 2) {
+		this->temp_min = arr[0].as<float>();
+		this->temp_max = arr[0].as<float>();
+	}
 }
