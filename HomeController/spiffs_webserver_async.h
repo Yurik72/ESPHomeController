@@ -249,6 +249,7 @@ void handleFileUpload(AsyncWebServerRequest *request, String filename, size_t in
 }
 
 void handleFileBrowser(AsyncWebServerRequest *request) {
+	
 	if (request->hasArg("do") && request->arg("do") == "list") {
 		handleFileList(request);
 	}

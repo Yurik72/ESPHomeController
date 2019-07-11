@@ -80,7 +80,9 @@ void AsyncWiFiManager::addParameter(AsyncWiFiManagerParameter *p) {
   DEBUG_WM("Adding parameter");
   DEBUG_WM(p->getID());
 }
-
+void     AsyncWiFiManager::cleanParameters() {
+	_paramsCount = 0;
+}
 void AsyncWiFiManager::setupConfigPortal() {
   // dnsServer.reset(new DNSServer());
   // server.reset(new ESP8266WebServer(80));
@@ -186,7 +188,16 @@ boolean AsyncWiFiManager::autoConnect(bool bstartConfig) {
   #endif
   return autoConnect(ssid.c_str(), NULL, bstartConfig);
 }
-
+void    AsyncWiFiManager::startOfflineApp(char const *apName, char const *apPassword ){
+	DEBUG_WM(F("startOfflineApp"));
+	Serial.println((long)this);
+	DEBUG_WM(apName);
+	_apName = apName;
+	_apPassword = apPassword;
+	WiFi.mode(WIFI_AP);
+	setupConfigPortal();
+	scan();
+}
 boolean AsyncWiFiManager::autoConnect(char const *apName, char const *apPassword, bool bstartConfig) {
   DEBUG_WM(F(""));
   DEBUG_WM(F("AutoConnect"));
@@ -213,6 +224,7 @@ boolean AsyncWiFiManager::autoConnect(char const *apName, char const *apPassword
 String AsyncWiFiManager::networkListAsString()
 {
   String pager ;
+  
   //display networks in page
   for (int i = 0; i < wifiSSIDCount; i++) {
     if (wifiSSIDs[i].duplicate == true) continue; // skip dups
@@ -369,8 +381,10 @@ void AsyncWiFiManager::loop(){
 }
 
 void AsyncWiFiManager::setInfo() {
+	DEBUG_WM(F("setInfo"));
 	if (needInfo) {
 		pager = infoAsString();
+		DEBUG_WM(pager);
 	    wifiStatus = WiFi.status();
 	    needInfo = false;
 	}
@@ -689,6 +703,7 @@ void AsyncWiFiManager::handleRoot(AsyncWebServerRequest *request) {
   shouldscan=true;
   scannow= -1 ;
   DEBUG_WM(F("Handle root"));
+
   if (captivePortal(request)) { // If captive portal redirect instead of displaying the page.
     return;
   }
@@ -705,7 +720,7 @@ void AsyncWiFiManager::handleRoot(AsyncWebServerRequest *request) {
   page += F("<h3>AsyncWiFiManager</h3>");
   page += FPSTR(HTTP_PORTAL_OPTIONS);
   page += FPSTR(HTTP_END);
-
+  DEBUG_WM(page);
   request->send(200, "text/html", page);
 
 }
@@ -714,14 +729,14 @@ void AsyncWiFiManager::handleRoot(AsyncWebServerRequest *request) {
 void AsyncWiFiManager::handleWifi(AsyncWebServerRequest *request,boolean scan) {
   shouldscan=true;
   scannow= -1 ;
-
+  DEBUG_WM(F("handleWifi"));
   String page = FPSTR(WFM_HTTP_HEAD);
   page.replace("{v}", "Config ESP");
   page += FPSTR(HTTP_SCRIPT);
   page += FPSTR(HTTP_STYLE);
   page += _customHeadElement;
   page += FPSTR(HTTP_HEAD_END);
-
+  DEBUG_WM(page);
   if (scan) {
     wifiSSIDscan=false;
 
@@ -733,14 +748,14 @@ void AsyncWiFiManager::handleWifi(AsyncWebServerRequest *request,boolean scan) {
       page += F("No networks found. Refresh to scan again.");
     } else {
 
-
+		DEBUG_WM(F("Getting network list"));
       //display networks in page
       String pager = networkListAsString();
 
       page += pager;
       page += "<br/>";
     }
-
+	DEBUG_WM(page);
   }
   wifiSSIDscan=true;
 
@@ -825,7 +840,7 @@ void AsyncWiFiManager::handleWifi(AsyncWebServerRequest *request,boolean scan) {
   page += FPSTR(HTTP_SCAN_LINK);
 
   page += FPSTR(HTTP_END);
-
+  DEBUG_WM(F("Sending wifi config page"));
   request->send(200, "text/html", page);
 
 

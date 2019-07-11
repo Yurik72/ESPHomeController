@@ -148,6 +148,7 @@ public:
   void          setSaveConfigCallback( void (*func)(void) );
   //adds a custom parameter
   void          addParameter(AsyncWiFiManagerParameter *p);
+  void          cleanParameters();
   //if this is set, it will exit after config, even if connection is unsucessful.
   void          setBreakAfterConfig(boolean shouldBreak);
   //if this is set, try WPS setup when starting (this will delay config portal for up to 2 mins)
@@ -156,7 +157,7 @@ public:
   void          setCustomHeadElement(const char* element);
   //if this is true, remove duplicated Access Points - defaut true
   void          setRemoveDuplicateAPs(boolean removeDuplicates);
-
+  void          startOfflineApp(char const *apName, char const *apPassword = NULL);
 private:
   #ifdef USE_EADNS
   AsyncDNSServer      *dnsServer;

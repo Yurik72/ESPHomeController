@@ -59,8 +59,8 @@
 
 //DISABLE /ENABLE services Section
 // Importnat due to iram limitation on ESp8266 (virtual function  table)
-//#define RF_SNIFFER
-#define RGB
+#define RF_SNIFFER
+//#define RGB
 
 #ifdef ESP8266
 #ifdef RF_SNIFFER
@@ -102,6 +102,7 @@ extern short qossub ; // AMQTT can sub qos 0 or 1 or 2
 #endif
 extern bool isOffline;
 extern bool isReboot;
+extern bool isAPMode;
 //extern  String globlog;
 
 #define VERSION "0.9"

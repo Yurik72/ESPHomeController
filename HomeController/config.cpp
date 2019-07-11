@@ -10,7 +10,7 @@ char mqtt_pass[32] = "";
 short qossub=0; // AMQTT can sub qos 0 or 1 or 2
 bool isOffline = false;
 bool isReboot = false;
-
+bool isAPMode =false;
 
 
 //String globlog;

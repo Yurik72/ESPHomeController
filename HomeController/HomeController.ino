@@ -104,7 +104,11 @@ WebServer server(80);
 #include "spiffs_webserver_async.h"
 #endif
 
+#if defined ASYNC_WEBSERVER
 
+
+ AsyncWiFiManager* pwifiManager=NULL;
+#endif
  bool shouldSaveConfig = false;
 ////now main function
 #include "Controllers.h"
@@ -154,11 +158,14 @@ void setup()
 	//setup mdns
 	DBG_OUTPUT_PORT.print("Starting MDNS  host:");
 	DBG_OUTPUT_PORT.println(HOSTNAME);
-	if (MDNS.begin(HOSTNAME)) {
-		DBG_OUTPUT_PORT.println("MDNS responder started");
+	if (!isAPMode) {
+		if (MDNS.begin(HOSTNAME)) {
+			DBG_OUTPUT_PORT.println("MDNS responder started");
+		}
 	}
-	
-	SETUP_FILEHANDLES  ///setup file browser
+	//if (!isAPMode) {
+		SETUP_FILEHANDLES  ///setup file browser
+	//}
 #if defined(ASYNC_WEBSERVER)
 		setExternRebootFlag(&isReboot);
 #endif
@@ -171,8 +178,10 @@ void setup()
 #endif
 
 #if defined (HTTP_OTA) && defined(ASYNC_WEBSERVER)
-	httpUpdater.setExternRebootFlag(&isReboot);
-	httpUpdater.setup(asserver, "/update");
+		if (!isAPMode) {
+			httpUpdater.setExternRebootFlag(&isReboot);
+			httpUpdater.setup(asserver, "/update");
+		}
 #endif
 
 	///finaly start  web server
@@ -181,7 +190,8 @@ void setup()
 #endif
 
 #if defined ASYNC_WEBSERVER
-	asserver.begin();
+	if(!isAPMode)
+		asserver.begin();
 #endif
 	//and start controllers
 	controllers.setup();
@@ -190,8 +200,10 @@ void setup()
 #endif
 
 #if defined ASYNC_WEBSERVER
-	controllers.setuphandlers(asserver);
+	//if (!isAPMode)
+		controllers.setuphandlers(asserver);
 #endif
+	
 }
 
 // Add the main program code into the continuous loop() function
@@ -232,20 +244,24 @@ void startwifimanager() {
 	DNSServer dns;
 	DBG_OUTPUT_PORT.println("AsyncWiFiManager");
 	
-	AsyncWiFiManager wifiManager(&asserver, &dns);
+	//AsyncWiFiManager wifiManager(&asserver, &dns);
+	pwifiManager = new AsyncWiFiManager(&asserver, &dns);
 #else
 	WiFiManager wifiManager;
 #endif
 
-
+#if defined ASYNC_WEBSERVER
+	pwifiManager->setAPCallback(configModeCallback);
+#else
 	wifiManager.setAPCallback(configModeCallback);
+#endif
 
 #if !defined ASYNC_WEBSERVER
 	WiFiManagerParameter local_host(name_localhost_host, "Local hostname", HOSTNAME, 64);
 	wifiManager.addParameter(&local_host);
 #else
 	AsyncWiFiManagerParameter local_host(name_localhost_host, "Local hostname", HOSTNAME, 64);
-	wifiManager.addParameter(&local_host);
+	pwifiManager->addParameter(&local_host);
 #endif
 
 #if defined ENABLE_HOMEBRIDGE
@@ -266,19 +282,23 @@ void startwifimanager() {
 	AsyncWiFiManagerParameter hb_mqtt_port("port", "MQTT port", mqtt_port, 6);
 	AsyncWiFiManagerParameter hb_mqtt_user("user", "MQTT user", mqtt_user, 32);
 	AsyncWiFiManagerParameter hb_mqtt_pass("pass", "MQTT pass", mqtt_pass, 32);
-	wifiManager.addParameter(&hb_mqtt_host);
-	wifiManager.addParameter(&hb_mqtt_port);
-	wifiManager.addParameter(&hb_mqtt_user);
-	wifiManager.addParameter(&hb_mqtt_pass);
+	pwifiManager->addParameter(&hb_mqtt_host);
+	pwifiManager->addParameter(&hb_mqtt_port);
+	pwifiManager->addParameter(&hb_mqtt_user);
+	pwifiManager->addParameter(&hb_mqtt_pass);
 
 #endif	
 #endif
-
+#if! defined ASYNC_WEBSERVER
 	wifiManager.setSaveConfigCallback(saveConfigCallback);
 	wifiManager.setConfigPortalTimeout(CONFIG_PORTAL_TIMEOUT);
+#else
+	pwifiManager->setSaveConfigCallback(saveConfigCallback);
+	pwifiManager->setConfigPortalTimeout(CONFIG_PORTAL_TIMEOUT);
+#endif
 	//finally let's wait normal wifi connection
 #if defined ASYNC_WEBSERVER
-	if (!wifiManager.autoConnect(HOSTNAME,NULL,!isOffline)) {
+	if (!pwifiManager->autoConnect(HOSTNAME,NULL,!isOffline)) {
 #else
 	if (!wifiManager.autoConnect(HOSTNAME, NULL)) {
 #endif
@@ -288,10 +308,18 @@ void startwifimanager() {
 			ESP.restart();
 			delay(1000);
 		}
-		DBG_OUTPUT_PORT.println("Entering offline mode");
+		else {
+			DBG_OUTPUT_PORT.println("Entering offline mode");
+			isAPMode = true;
+#if defined ASYNC_WEBSERVER
+			pwifiManager->startOfflineApp(HOSTNAME, NULL);
+#endif
+		}
+		
 	}
 #if defined(ESP8266)
-	 WiFi.onStationModeDisconnected(onWifiDisconnect);
+	if(!isAPMode)
+		WiFi.onStationModeDisconnected(onWifiDisconnect);
 #else
 	WiFiEventId_t eventID = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info) {
 		onWifiDisconnect();
@@ -313,6 +341,13 @@ void startwifimanager() {
 
 	}
 #endif
+	if (!isAPMode) {
+		delete pwifiManager;
+		pwifiManager = NULL;
+	}
+	else {
+		pwifiManager->cleanParameters();
+	}
 }
 
 // gets called when WiFiManager enters configuration mode

@@ -421,19 +421,21 @@ void Controllers::handleloops() {
 			}
 		}
 	}
-	if (!WiFi.isConnected()) {
-		if ((this->lastWifiReconnectms + DELAY_MS_RECONNECT) < millis()) {
-			this->lastWifiReconnectms = millis();
-			DBG_OUTPUT_PORT.println("Controllers detect lost wifi");
-			WiFi.reconnect();
-			isConnectingMode = true;
+	if (!isAPMode) {
+		if (!WiFi.isConnected()) {
+			if ((this->lastWifiReconnectms + DELAY_MS_RECONNECT) < millis()) {
+				this->lastWifiReconnectms = millis();
+				DBG_OUTPUT_PORT.println("Controllers detect lost wifi");
+				WiFi.reconnect();
+				isConnectingMode = true;
+			}
 		}
-	}
-	if (isConnectingMode) {
-		if (WiFi.isConnected()) {
-			isConnectingMode = false;
-			DBG_OUTPUT_PORT.println("Wifi Restored connection");
-			mqttReconnectTimer.attach(2, realconnectToMqtt);
+		if (isConnectingMode) {
+			if (WiFi.isConnected()) {
+				isConnectingMode = false;
+				DBG_OUTPUT_PORT.println("Wifi Restored connection");
+				mqttReconnectTimer.attach(2, realconnectToMqtt);
+			}
 		}
 	}
 }
