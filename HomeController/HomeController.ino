@@ -297,6 +297,7 @@ void startwifimanager() {
 	pwifiManager->setConfigPortalTimeout(CONFIG_PORTAL_TIMEOUT);
 #endif
 	//finally let's wait normal wifi connection
+	
 #if defined ASYNC_WEBSERVER
 	if (!pwifiManager->autoConnect(HOSTNAME,NULL,!isOffline)) {
 #else

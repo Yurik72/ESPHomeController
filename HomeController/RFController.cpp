@@ -61,9 +61,12 @@ bool  RFController::deserializestate(String jsonstate, CmdSource src) {
 void RFController::loadconfig(JsonObject& json) {
 	RF::loadconfig(json);
 	pin = json[FPSTR(szPinText)];
-	pinsend = json["sendpin"];
+	pinsend = json["pinsend"];
+	
 #ifdef	RFCONTROLLER_DEBUG
 	DBG_OUTPUT_PORT.println("RF loadconfig");
+	DBG_OUTPUT_PORT.println(pin);
+	DBG_OUTPUT_PORT.println(pinsend);
 #endif
 	load_persist();
 }
@@ -252,6 +255,10 @@ void RFController::saveperisttofile() {
 }
 
 void RFController::rfsend(RFState sendstate) {
+#ifdef	RFCONTROLLER_DEBUG
+	DBG_OUTPUT_PORT.println("rfsend");
+#endif
+	this->pSwitch->disableReceive();
 	RFState tosend = sendstate;
 	if (tosend.rfprotocol == 0)
 		tosend.rfprotocol = 1;
@@ -269,6 +276,7 @@ void RFController::rfsend(RFState sendstate) {
 	this->pSwitch->send(tosend.rftoken, tosend.rfdatalen);
 	delay(100);
 	this->pSwitch->disableTransmit();
+	this->pSwitch->enableReceive(this->pin);
 }
 
 RFData* RFController::getdata_byname(String& name) {
