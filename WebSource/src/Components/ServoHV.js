@@ -12,8 +12,47 @@ class JoyStickPoint extends React.Component {
         this.coords = { x: 0, y: 0};
         this.ismove = false;
         this.pointpos = { x: 0, y: 0 };
-    }
+        this.circ = {};
+        this.doTouchMove = this.doTouchMove.bind(this);
 
+    }
+    componentDidMount() {
+        this.circ.addEventListener("touchmove", this.doTouchMove, false);
+    }
+    doTouchMove(e) {
+        this.circleMove(e.pageX, e.pageY);
+    }
+    circleMove(pageX, pageY) {
+        const { xpos, ypos, x_offs, y_offs, onPositionChange, minx, maxx, miny, maxy, xposmin, xposmax, yposmin, yposmax } = this.getDftProps();
+        const xDiff = this.coords.x - pageX;
+        const yDiff = this.coords.y - pageY;
+
+        this.coords.x = pageX;
+        this.coords.y = pageY;
+        this.pointpos.x -= xDiff;
+        this.pointpos.y -= yDiff;
+
+
+        let resx = this.pointpos.x + x_offs;
+        let resy = this.pointpos.y + y_offs;
+        if (!inrange(resx, minx, maxx)) {
+            this.pointpos.x += xDiff;
+
+        }
+        if (!inrange(resy, miny, maxy)) {
+            this.pointpos.y += yDiff;
+
+        }
+
+
+        resx = mapInt(resx, minx, maxx, xposmin, xposmax);
+        resy = mapInt(resy, miny, maxy, yposmin, yposmax);
+
+        onPositionChange({
+            x: resx,
+            y: resy
+        });
+    }
     handleMouseDown = (e) => {
         this.coords = {
             x: e.pageX,
@@ -31,6 +70,13 @@ class JoyStickPoint extends React.Component {
     };
 
     handleMouseMove = (e) => {
+       // console.log(e);
+        if (e.target !== this.circ) {
+            this.handleMouseUp();
+            return;
+        }
+        this.circleMove(e.pageX, e.pageY);
+       /*
         const { xpos, ypos, x_offs,y_offs, onPositionChange, minx, maxx, miny, maxy, xposmin, xposmax, yposmin, yposmax} = this.getDftProps();
         const xDiff = this.coords.x - e.pageX;
         const yDiff = this.coords.y - e.pageY;
@@ -40,14 +86,16 @@ class JoyStickPoint extends React.Component {
         this.pointpos.x -= xDiff;
         this.pointpos.y -= yDiff;
 
-      
+    
         let resx = this.pointpos.x + x_offs;
         let resy = this.pointpos.y + y_offs;
         if (!inrange(resx, minx, maxx)) {
             this.pointpos.x += xDiff;
+   
         }
         if(!inrange(resy, miny, maxy)) {
             this.pointpos.y += yDiff;
+        
         } 
 
 
@@ -58,6 +106,7 @@ class JoyStickPoint extends React.Component {
             x: resx,
             y: resy
         });
+        */
     };
     getDftProps() {
         const dftlprops = {
@@ -83,7 +132,7 @@ class JoyStickPoint extends React.Component {
        
         return (
             <svg height="100" width="100" style={{ position: 'absolute', left: pointpos.x, top: pointpos.y}}>
-                <circle cx={x_offs} cy={y_offs} r={radius} stroke="black" strokeWidth="3" fill="red"
+                <circle ref={el => this.circ = el}  cx={x_offs} cy={y_offs} r={radius} stroke="black" strokeWidth="3" fill="red"
                     onMouseDown={this.handleMouseDown}
                     onMouseUp={this.handleMouseUp}
                 />
