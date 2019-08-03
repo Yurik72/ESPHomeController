@@ -50,7 +50,7 @@ bool  DallasController::deserializestate(String jsonstate, CmdSource src) {
 	newState.isOn = root[FPSTR(szisOnText)];
 	newState.temp = root["temp"];
 
-	this->AddCommand(newState, BMESet, src);
+	this->AddCommand(newState, DlSet, src);
 	//this->set_state(newState);
 	return true;
 
@@ -76,7 +76,7 @@ void  DallasController::setup() {
 void DallasController::run() {
 	if (this->commands.GetSize() == 0) {
 		command newcmd;
-		newcmd.mode = BMEMeasure;
+		newcmd.mode = DlMeasure;
 		this->meassure(newcmd.state);
 #ifdef  DALLASCONTROLLER_DEBUG
 		DBG_OUTPUT_PORT.print("DallasController->");

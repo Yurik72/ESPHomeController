@@ -144,7 +144,7 @@ void BME280Controller::meassure(BMEState& state) {
 	if (this->uselegacy) {
 		if (this->pbme && this->isinit) {
 			state.temp = constrain(this->pbme->readTemperature(),-30,100);
-			state.pres = constrain(this->pbme->readPressure(),0,2000);
+			state.pres = constrain(this->pbme->readPressure() / 100.0F,0,2000);
 			state.hum = constrain( this->pbme->readHumidity(),0,100);
 		}
 	}

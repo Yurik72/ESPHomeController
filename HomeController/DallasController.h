@@ -14,11 +14,11 @@ struct DallasState
 	double pres = 0.0;
 };
 enum DallasCMD {
-	BMEOn = 1,
-	BMEOff = 2,
-	BMESet = 3,
-	BMEMeasure = 4,
-	BMERestore = 2048
+	DLOn = 1,
+	DlOff = 2,
+	DlSet = 3,
+	DlMeasure = 4,
+	DlRestore = 2048
 };
 class DallasController;
 typedef CController<DallasController, DallasState, DallasCMD> Dallas;

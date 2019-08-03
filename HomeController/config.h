@@ -39,7 +39,8 @@
 #define CUSTOM_WEBASYNCFILEHANDLER  //Use custom file handler to distinguish real file and gzip 
 #define CUSTOM_WEBASYNCFILEHANDLER_GZIP_FIRST
 
-
+//#define OLED_DEBUG
+//#define BMETRIGGER_DEBUG
 //#define DALLASCONTROLLER_DEBUG
 //#define DALLSATRIGGER_DEBUG
 //#define TRIGGER_DEBUG  //debug triggers output enable
@@ -51,7 +52,7 @@
 //#define SERVO_DEBUG    //debug relay dim
 //#define MQTT_DEBUG
 //#define FACTORY_DEBUG
-#define RFCONTROLLER_DEBUG
+//#define RFCONTROLLER_DEBUG
 //#define RGBSTRIP_DEBUG
 //#define MENU_DEBUG
 //#define BUTTON_DEBUG
@@ -59,10 +60,11 @@
 
 //DISABLE /ENABLE services Section
 // Importnat due to iram limitation on ESp8266 (virtual function  table)
-#define RF_SNIFFER
-//#define RGB
+//#define RF_SNIFFER
+#define RGB
 
 #ifdef ESP8266
+#define DISABLE_OLED
 #ifdef RF_SNIFFER
 #define DISABLE_RGB
 #define DISABLE_RELAY

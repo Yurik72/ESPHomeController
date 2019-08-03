@@ -8,6 +8,8 @@
 #include "RFController.h"
 #include "RelayDimController.h"
 #include "DallasController.h"
+#include "BME280Controller.h"
+#include "OledController.h"
 
 #define NEXT_DAY_SEC (1 * 24 * 60 * 60)
 #define SEC_TOLLERANCE 1200  //2 min
@@ -19,7 +21,7 @@ class LDRController;
 class RelayController;
 class RFController;
 class RelayDimController;
-
+class BME280Controller;
 class Trigger {
 public:
 	Trigger() {};
@@ -215,6 +217,25 @@ private:
 	float temp_max ;
 };
 
+class BMEToOled :public TriggerFromService< BME280Controller, OledController> {
+public:
+	enum DMODE: uint8_t {
+		all = 0,
+		temp=1,
+		hum=2,
+		pres=3
+	};
+	BMEToOled();
+
+	virtual void handleloopsvc(BME280Controller* ps, OledController* pd);
+	virtual void loadconfig(JsonObject& json);
+	static String format_doublestr(const char* fmt, double val);
+protected:
+	DMODE mode = all;
+private:
+	float temp_min;
+	float temp_max;
+};
 //DEFINE_TRIGGER_FACTORY(TimeToRGBStripTrigger)
 
 DEFINE_TRIGGER_FACTORY(TimeToRGBStripTrigger)
@@ -224,7 +245,7 @@ DEFINE_TRIGGER_FACTORY(LDRToRGBStrip)
 DEFINE_TRIGGER_FACTORY(RFToRelay)
 DEFINE_TRIGGER_FACTORY(TimeToRelayDimTrigger)
 DEFINE_TRIGGER_FACTORY(DallasToRGBStrip)
-
+DEFINE_TRIGGER_FACTORY(BMEToOled)
 //DEFINE_TRIGGER_FACTORY(LDRToRelay)
 //DEFINE_TRIGGER_FACTORY(LDRToRGBStrip)
 //DEFINE_TRIGGER_FACTORY(RFToRelay)

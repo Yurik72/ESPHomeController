@@ -27,6 +27,8 @@ REGISTER_TRIGGER_FACTORY(TimeToRGBStripTrigger)
 //REGISTER_TRIGGER_FACTORY(TimeToRelayTrigger)
 #ifndef ESP8266 
 REGISTER_TRIGGER_FACTORY(LDRToRelay)
+REGISTER_TRIGGER_FACTORY(BMEToOled)
+
 #endif
 #ifndef DISABLE_RGB
 REGISTER_TRIGGER_FACTORY(LDRToRGBStrip)
@@ -615,7 +617,10 @@ void DallasToRGBStrip::handleloopsvc(DallasController* ps, RGBStripController* p
 	RGBCMD cmd = SetColor;
 #ifdef	DALLSATRIGGER_DEBUG
 	DBG_OUTPUT_PORT.println("LDRToRGBStrip set ");
-	DBG_OUTPUT_PORT.println(rState.ldrValue);
+	DBG_OUTPUT_PORT.println(rState.color);
+	DBG_OUTPUT_PORT.println(REDVALUE(rState.color));  
+	DBG_OUTPUT_PORT.println(GREENVALUE(rState.color));
+	DBG_OUTPUT_PORT.println(BLUEVALUE(rState.color));
 #endif	//DALLSATRIGGER_DEBUG
 	pd->AddCommand(rState, cmd, srcTrigger);
 }
@@ -696,4 +701,86 @@ void DallasToRGBStrip::loadconfig(JsonObject& json) {
 	//DBG_OUTPUT_PORT.println(this->temp_min);
 	//DBG_OUTPUT_PORT.println("Dallas tr max ");
 	//DBG_OUTPUT_PORT.println(this->temp_max);
+}
+
+BMEToOled::BMEToOled() {
+
+}
+void BMEToOled::loadconfig(JsonObject& json) {
+	Trigger::loadconfig(json);
+	JsonArray arr = json["value"].as<JsonArray>();
+	
+
+}
+void BMEToOled::handleloopsvc(BME280Controller* ps, OledController* pd) {
+	TriggerFromService< BME280Controller, OledController>::handleloopsvc(ps, pd);
+	BMEState l = ps->get_state();
+	OledState dispState;
+	
+	OLEDCMD cmd = OledClear;
+	pd->AddCommand(dispState, cmd, srcTrigger);
+	cmd = OledDrawText;
+	switch (this->mode)
+	{
+	case all:
+		
+		dispState.fontsize = 1;
+		dispState.text = format_doublestr("Temp %.2f C", l.temp);
+		dispState.x = 3;
+		dispState.y = 0;
+#ifdef	BMETRIGGER_DEBUG
+		DBG_OUTPUT_PORT.println("BMEToOled set ");
+		DBG_OUTPUT_PORT.println(dispState.text);
+#endif	//DALLSATRIGGER_DEBUG
+		pd->AddCommand(dispState, cmd, srcTrigger);
+		dispState.text = format_doublestr("Hum %.2f %", l.hum);
+		dispState.x = 3;
+		dispState.y = 10;
+		pd->AddCommand(dispState, cmd, srcTrigger);
+		dispState.text = format_doublestr("Pres %.2f hPa", l.pres);
+		dispState.x = 3;
+		dispState.y = 20;
+		pd->AddCommand(dispState, cmd, srcTrigger);
+		break;
+	case temp:
+		dispState.fontsize = 3;
+		dispState.text = format_doublestr("T %.2f C", l.temp);
+		dispState.x = 3;
+		dispState.y = 0;
+		pd->AddCommand(dispState, cmd, srcTrigger);
+		break;
+	case hum:
+		dispState.fontsize = 3;
+		dispState.text = format_doublestr("H %.2f ", l.hum);
+		dispState.x = 3;
+		dispState.y = 0;
+		pd->AddCommand(dispState, cmd, srcTrigger);
+		break;
+	case pres:
+		dispState.fontsize = 3;
+		dispState.text = format_doublestr("P %.2f ", l.pres);
+		dispState.x = 3;
+		dispState.y = 0;
+		pd->AddCommand(dispState, cmd, srcTrigger);
+		
+		break;
+	default:
+		break;
+
+	}
+	if (this->mode == pres) {
+		this->mode = all;
+	}
+	else {
+		this->mode=(DMODE)(this->mode+1);
+	}
+}
+
+String BMEToOled::format_doublestr(const char* fmt, double val) {
+
+	String res;
+	char buff[50];
+	snprintf(buff, sizeof(buff), fmt, val);
+	res = buff;
+	return res;
 }
