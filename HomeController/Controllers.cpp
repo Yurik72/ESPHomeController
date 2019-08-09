@@ -98,7 +98,7 @@ void Controllers::loadconfig() {
 			
 				JsonArray arr = jsonBuffer.as<JsonArray>();
 				for (int i = 0; i < arr.size(); i++) {
-					String servicename= arr[i]["service"].as<String>();
+					String servicename= arr[i][FPSTR(szservice)].as<String>();
 					//DBG_OUTPUT_PORT.print("Controllers before added:");
 					//DBG_OUTPUT_PORT.println(servicename);
 					CBaseController* controller= Controllers::CreateByName(servicename.c_str());
@@ -107,7 +107,7 @@ void Controllers::loadconfig() {
 					}
 					else {
 						controller->onstatechanged = &onstatechanged;
-						String name = arr[i]["name"].as<String>();
+						String name = arr[i][FPSTR(szname)].as<String>();
 						controller->set_name(name.c_str());
 						JsonObject json = arr[i];
 						controller->loadconfigbase(json);

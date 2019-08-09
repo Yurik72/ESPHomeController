@@ -100,8 +100,8 @@ static const uint8_t TX = 1;
 */
 void ButtonController::getdefaultconfig(JsonObject& json) {
 	json[FPSTR(szPinText)] = pin;
-	json["service"] = "ButtonController";
-	json["name"] = "Button";
+	json[FPSTR(szservice)] = "ButtonController";
+	json[FPSTR(szname)] = "Button";
 	json["pins"] = "";
 	
 	Button::getdefaultconfig(json);

@@ -238,6 +238,7 @@ void onWifiDisconnect() {
 #endif
 void startwifimanager() {
 
+D2	
 
 #if defined ASYNC_WEBSERVER
 	DBG_OUTPUT_PORT.println("Setupr DNS ");

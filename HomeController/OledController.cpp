@@ -44,10 +44,12 @@ bool  OledController::deserializestate(String jsonstate, CmdSource src) {
 }
 void OledController::loadconfig(JsonObject& json) {
 	Oled::loadconfig(json);
-	
-	i2caddr = json["i2caddr"];
-	if (i2caddr == 0)
-		i2caddr = 0x3c;
+	loadif(pinsda, json, FPSTR(szpinsda));
+	loadif(pinslc, json, FPSTR(szpinslc));
+	loadif(i2caddr, json, FPSTR(szi2caddr));
+	//i2caddr = json[FPSTR(szi2caddr)];
+	//if (i2caddr == 0)
+	//	i2caddr = 0x3c;
 }
 
 void OledController::setup() {
@@ -55,21 +57,23 @@ void OledController::setup() {
 }
 OledControllerSSD1306::OledControllerSSD1306() {
 	pdisplay = NULL;
-	
+	this->pinsda = 21;
+	this->pinslc = 22;
 }
 OledControllerSSD1306::~OledControllerSSD1306() {
 	if (pdisplay)
 		delete pdisplay;
 }
 void OledControllerSSD1306::getdefaultconfig(JsonObject& json) {
-	json["i2caddr"] = i2caddr;
-
-	json["service"] = "OledControllerSSD1306";
-	json["name"] = "OLED";
+	json[FPSTR(szi2caddr)] = i2caddr;
+	json[FPSTR(szpinsda)] = pinsda;
+	json[FPSTR(szpinslc)] = pinslc;
+	json[FPSTR(szservice)] = "OledControllerSSD1306";
+	json[FPSTR(szname)] = "OLED";
 	Oled::getdefaultconfig(json);
 }
 void OledControllerSSD1306::setup() {
-	this->setup(this->i2caddr, 21, 22);
+	this->setup(this->i2caddr, this->pinsda, this->pinslc);
 }
 void OledControllerSSD1306::setup(int adr, int pinSda, int pinScl) {
 #ifdef  OLED_DEBUG

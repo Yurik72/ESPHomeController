@@ -51,6 +51,8 @@ public:
 	virtual void drawtext(size_t x, size_t y, const String& text) {};
 protected:
 	uint8_t i2caddr;
+	uint8_t pinsda;
+	uint8_t pinslc;
 };
 
 //class SSD1306;

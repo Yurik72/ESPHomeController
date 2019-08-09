@@ -79,8 +79,8 @@ void IRController::loadconfig(JsonObject& json) {
 void IRController::getdefaultconfig(JsonObject& json) {
 	json[FPSTR(szPinText)] = pin;
 	json["pinsend"] = pinsend;
-	json["service"] = "IRController";
-	json["name"] = "IR";
+	json[FPSTR(szservice)] = "IRController";
+	json[FPSTR(szname)] = "IR";
 	IR::getdefaultconfig(json);
 }
 
@@ -176,7 +176,7 @@ void IRController::load_persist() {
 	JsonArray arr = jsonBuffer.as<JsonArray>();
 	for (int i = 0; i < arr.size(); i++) {
 		IRData dt;
-		const char * szName = arr[i]["name"].as<char*>();
+		const char * szName = arr[i][FPSTR(szname)].as<char*>();
 		strncpy(dt.name, szName, IRDATANAME_MAXLEN);
 		dt.token = arr[i]["token"];;
 
@@ -202,7 +202,7 @@ IRData IRController::deserializeIRData(String strdata) {
 }
 IRData IRController::deserializeIRData(JsonObject& json) {
 	IRData dt;
-	const char * szName = json["name"].as<char*>();
+	const char * szName = json[FPSTR(szname)].as<char*>();
 	strncpy(dt.name, szName, IRDATANAME_MAXLEN);
 	dt.token = json["token"];;
 
@@ -227,7 +227,7 @@ String IRController::string_irdata() {
 	for (uint8_t i = 0; i < this->persistdata.GetSize(); i++) {
 		JsonObject object = json.createNestedObject();
 		IRData dt = this->persistdata.GetAt(i);
-		object["name"] = dt.name;
+		object[FPSTR(szname)] = dt.name;
 		object["token"] = dt.token;
 
 	}
@@ -291,9 +291,9 @@ void IRController::setuphandlers(AsyncWebServer& server) {
 	path += String("/send");
 	server.on(path.c_str(), HTTP_GET, [self](AsyncWebServerRequest *request) {
 		DBG_OUTPUT_PORT.println("IR Controller send");
-		if (!request->hasArg("name"))
+		if (!request->hasArg(FPSTR(szname)))
 			return request->send(500, "text/plain", "BAD ARGS");
-		String name = request->arg("name");
+		String name = request->arg(FPSTR(szname));
 		IRData* pData = self->getdata_byname(name);
 		if (!pData)
 			return request->send(500, "text/plain", "NOT EXIST");

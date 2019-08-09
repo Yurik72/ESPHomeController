@@ -53,8 +53,8 @@ void RelayController::loadconfig(JsonObject& json) {
 void RelayController::getdefaultconfig(JsonObject& json) {
 	json[FPSTR(szPinText)]= pin;
 	json["isinvert"]= isinvert;
-	json["service"] = "RelayController";
-	json["name"] = "Relay";
+	json[FPSTR(szservice)] = "RelayController";
+	json[FPSTR(szname)] = "Relay";
 	
 	Relay::getdefaultconfig(json);
 }

@@ -71,8 +71,8 @@ void TimeController::getdefaultconfig(JsonObject& json) {
 	json["dayloffs"]= daylightOffset_sec;
 	json["timeoffs"]= gmtOffset_sec;
 	json["server"]= ntpServer.c_str();
-	json["service"] = "TimeController";
-	json["name"] = "Time";
+	json[FPSTR(szservice)] = "TimeController";
+	json[FPSTR(szname)] = "Time";
 	TimeCtl::getdefaultconfig(json);
 }
 void  TimeController::setup() {

@@ -60,8 +60,8 @@
 
 //DISABLE /ENABLE services Section
 // Importnat due to iram limitation on ESp8266 (virtual function  table)
-//#define RF_SNIFFER
-#define RGB
+#define RF_SNIFFER
+//#define RGB
 
 #ifdef ESP8266
 #define DISABLE_OLED

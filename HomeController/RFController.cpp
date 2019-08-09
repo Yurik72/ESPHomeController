@@ -73,8 +73,8 @@ void RFController::loadconfig(JsonObject& json) {
 void RFController::getdefaultconfig(JsonObject& json) {
 	json[FPSTR(szPinText)] = pin;
 	json["pinsend"] = pinsend;
-	json["service"] = "RFController";
-	json["name"] = "RF";
+	json[FPSTR(szservice)] = "RFController";
+	json[FPSTR(szname)] = "RF";
 	RF::getdefaultconfig(json);
 }
 
@@ -175,7 +175,7 @@ void RFController::load_persist() {
 	JsonArray arr = jsonBuffer.as<JsonArray>();
 	for (int i = 0; i < arr.size(); i++) {
 		RFData dt;
-		const char * szName=arr[i]["name"].as<char*>();
+		const char * szName=arr[i][FPSTR(szname)].as<char*>();
 		strncpy(dt.name, szName, RFDATANAME_MAXLEN);
 		dt.token= arr[i]["token"];;
 		dt.len = arr[i]["len"];;
@@ -203,7 +203,7 @@ RFData RFController::deserializeRFData(String strdata) {
 }
 RFData RFController::deserializeRFData(JsonObject& json) {
 	RFData dt;
-	const char * szName = json["name"].as<char*>();
+	const char * szName = json[FPSTR(szname)].as<char*>();
 	strncpy(dt.name, szName, RFDATANAME_MAXLEN);
 	dt.token = json["token"];;
 	dt.len = json["len"];;
@@ -216,7 +216,7 @@ String RFController::serializeRFData(RFData data) {
 	DynamicJsonDocument jsonBuffer(jsonsize);
 	JsonObject root = jsonBuffer.to<JsonObject>();
 	root["token"] = data.token;
-	root["name"] = data.name;
+	root[FPSTR(szname)] = data.name;
 	root["len"] = data.len;
 	root["protocol"] = data.protocol;
 	root["pulse"] = data.pulse;
@@ -233,7 +233,7 @@ String RFController::string_rfdata() {
 	for (uint8_t i = 0; i < this->persistdata.GetSize(); i++) {
 		JsonObject object = json.createNestedObject();
 		RFData dt = this->persistdata.GetAt(i);
-		object["name"] = dt.name;
+		object[FPSTR(szname)] = dt.name;
 		object["token"] = dt.token;
 		object["len"] = dt.len;
 		object["protocol"] = dt.protocol;
@@ -319,9 +319,9 @@ void RFController::setuphandlers(AsyncWebServer& server) {
 	path += String("/send");
 	server.on(path.c_str(), HTTP_GET, [self](AsyncWebServerRequest *request) {
 		DBG_OUTPUT_PORT.println("RF Controller send");
-		if (!request->hasArg("name"))
+		if (!request->hasArg(FPSTR(szname)))
 			return request->send(500, "text/plain", "BAD ARGS");
-		String name = request->arg("name");
+		String name = request->arg(FPSTR(szname));
 		RFData* pData =self->getdata_byname(name);
 		if(!pData)
 			return request->send(500, "text/plain", "NOT EXIST");

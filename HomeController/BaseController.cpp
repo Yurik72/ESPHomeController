@@ -128,7 +128,7 @@ String ICACHE_FLASH_ATTR Factories::string_controllers(void) {
 	for (int i = 0; i < pctlfactories->GetSize(); i++) {
 		JsonObject object = json.createNestedObject();
 		
-		object["name"] = pctlfactories->GetAt(i)->name;
+		object[FPSTR(szname)] = pctlfactories->GetAt(i)->name;
 	}
 //	JsonObject object = json.createNestedObject();
 

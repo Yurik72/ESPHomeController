@@ -76,8 +76,8 @@ void LDRController::loadconfig(JsonObject& json) {
 }
 void LDRController::getdefaultconfig(JsonObject& json) {
 	json[FPSTR(szPinText)] = pin;
-	json["service"] = "LDRController";
-	json["name"] = "LDR";
+	json[FPSTR(szservice)] = "LDRController";
+	json[FPSTR(szname)] = "LDR";
 	json["cvalmin"]= cvalmin;
 	json["cvalmax"]= cvalmax;
 	json["cfmt"] = cfmt;

@@ -62,9 +62,9 @@ bool  MenuController::deserializestate(String jsonstate, CmdSource src) {
 void MenuController::loadconfig(JsonObject& json) {
 	uint val = 0;
 
-	loadif(pinsda, json, "pinsda");
-	loadif(pinslc, json, "pinslc");
-	loadif(i2caddr, json, "i2caddr");
+	loadif(pinsda, json, FPSTR(szpinsda));
+	loadif(pinslc, json, FPSTR(szpinslc));
+	loadif(i2caddr, json, FPSTR(szi2caddr));
 	/*
 	val = json["pinsda"];
 	if(val)	pinsda = val;
@@ -86,11 +86,11 @@ void MenuController::loadconfig(JsonObject& json) {
 	*/
 }
 void MenuController::getdefaultconfig(JsonObject& json) {
-	json["pinsda"] = pinsda;
-	json["pinslc"] = pinsda;
-	json["i2caddr"]= i2caddr;
-	json["service"] = "MenuController";
-	json["name"] = "Menu";
+	json[FPSTR(szpinsda)] = pinsda;
+	json[FPSTR(szpinslc)] = pinsda;
+	json[FPSTR(szi2caddr)]= i2caddr;
+	json[FPSTR(szservice)] = "MenuController";
+	json[FPSTR(szname)] = "Menu";
 	json["RFController"] = rfController;
 	json["ButtonController"] = buttonController;
 

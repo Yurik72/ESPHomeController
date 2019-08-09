@@ -196,8 +196,8 @@ void RGBStripController::loadconfig(JsonObject& json) {
 void RGBStripController::getdefaultconfig(JsonObject& json) {
 	json[FPSTR(szPinText)]= pin;
 	json["numleds"]= numleds;
-	json["service"] = "RGBStripController";
-	json["name"] = "RGBStrip";
+	json[FPSTR(szservice)] = "RGBStripController";
+	json[FPSTR(szname)] = "RGBStrip";
 	json["issmooth"] = false;
 	json["rgb_startled"] = -1;
 	RGBStrip::getdefaultconfig(json);
@@ -471,11 +471,11 @@ String RGBStripController::string_modes(void) {
 	for (uint8_t i = 0; i < pStripWrapper->getModeCount(); i++) {
 		JsonObject object = json.createNestedObject();
 		object["mode"] = i;
-		object["name"] = pStripWrapper->getModeName(i);
+		object[FPSTR(szname)] = pStripWrapper->getModeName(i);
 	}
 	JsonObject cycleobj = json.createNestedObject();
 	cycleobj["mode"] = this->cyclemode;
-	cycleobj["name"] = F("Cycle modes");
+	cycleobj[FPSTR(szname)] = F("Cycle modes");
 	//JsonObject object = json.createNestedObject();
 	
 	String json_str;

@@ -83,8 +83,8 @@ void ServoHVController::loadconfig(JsonObject& json) {
 }
 void ServoHVController::getdefaultconfig(JsonObject& json) {
 	json[FPSTR(szPinText)] = pin;
-	json["service"] = "ServoHVController";
-	json["name"] = "Servo";
+	json[FPSTR(szservice)] = "ServoHVController";
+	json[FPSTR(szname)] = "Servo";
 	json["pinV"] = pinV;
 	json["pinH"] = pinH;
 	json["minH"]=minH;

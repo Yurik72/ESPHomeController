@@ -75,8 +75,8 @@ void RelayDimController::loadconfig(JsonObject& json) {
 void RelayDimController::getdefaultconfig(JsonObject& json) {
 	json[FPSTR(szPinText)] = pin;
 	json["isinvert"] = isinvert;
-	json["service"] = "RelayDimController";
-	json["name"] = "Relay";
+	json[FPSTR(szservice)] = "RelayDimController";
+	json[FPSTR(szname)] = "Relay";
 	json["issmooth"]=false;
 	RelayDim::getdefaultconfig(json);
 }

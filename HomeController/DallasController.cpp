@@ -56,15 +56,15 @@ bool  DallasController::deserializestate(String jsonstate, CmdSource src) {
 
 }
 void DallasController::loadconfig(JsonObject& json) {
-	i2caddr = json["i2caddr"];
+	i2caddr = json[FPSTR(szi2caddr)];
 	pin=json[FPSTR(szPinText)] ;
 	
 }
 void DallasController::getdefaultconfig(JsonObject& json) {
-	json["i2caddr"] = i2caddr;
+	json[FPSTR(szi2caddr)] = i2caddr;
 	json[FPSTR(szPinText)] = pin;
-	json["service"] = "DallasController";
-	json["name"] = "BME";
+	json[FPSTR(szservice)] = "DallasController";
+	json[FPSTR(szname)] = "BME";
 
 	Dallas::getdefaultconfig(json);
 }

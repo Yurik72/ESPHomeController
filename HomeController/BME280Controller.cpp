@@ -59,14 +59,14 @@ bool  BME280Controller::deserializestate(String jsonstate, CmdSource src) {
 
 }
 void BME280Controller::loadconfig(JsonObject& json) {
-	i2caddr = json["i2caddr"];
+	i2caddr = json[FPSTR(szi2caddr)];
 	uselegacy = json["uselegacy"];
 }
 void BME280Controller::getdefaultconfig(JsonObject& json) {
-	json["i2caddr"]= i2caddr;
+	json[FPSTR(szi2caddr)]= i2caddr;
 	json["uselegacy"]= uselegacy;
-	json["service"] = "BME280Controller";
-	json["name"] = "BME";
+	json[FPSTR(szservice)] = "BME280Controller";
+	json[FPSTR(szname)] = "BME";
 	BME::getdefaultconfig(json);
 }
 void  BME280Controller::setup() {

@@ -75,10 +75,23 @@ static const char szPinText[] PROGMEM = "pin";
 static const char szbrightnessText[] PROGMEM = "brightness";
 static const char szisOnText[] PROGMEM = "isOn";
 static const char szStatusText[] PROGMEM = "Status";
+static const char szi2caddr[] PROGMEM = "i2caddr";
+static const char szpinsda[] PROGMEM = "pinsda";
+static const char szpinslc[] PROGMEM = "pinslc";
+
+static const char szservice[] PROGMEM = "service";
+static const char szname[] PROGMEM = "name";
+
 static const char szParseJsonFailText[] PROGMEM = "parse Json() failed: ";
 
 template<typename T>
 void loadif(T& var, JsonObject& json, char * key) {
+	if (json.containsKey(key)) {
+		var = json[key].as<T>();
+	}
+}
+template<typename T>
+void loadif(T& var, JsonObject& json, const __FlashStringHelper*  key) {
 	if (json.containsKey(key)) {
 		var = json[key].as<T>();
 	}

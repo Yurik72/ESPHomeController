@@ -26,7 +26,7 @@ void RelayBlinkController::getdefaultconfig(JsonObject& json) {
 	RelayController::getdefaultconfig(json);
 	json["mask"] = mask;
 	json["masklen"] = masklen;
-	json["service"] = "RelayBlinkController";
+	json[FPSTR(szservice)] = "RelayBlinkController";
 	json["duration"] = "duration";
 
 }
