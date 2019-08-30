@@ -13,13 +13,9 @@
 #include "Utilities.h"
 #include "RelayController.h"
 #include "RFController.h"
+
 #include "Controllers.h"
 
-//REGISTER_TRIGGER(TimeToRGBStripTrigger)
-//REGISTER_TRIGGER(TimeToRelayTrigger)
-//REGISTER_TRIGGER(LDRToRelay)
-//REGISTER_TRIGGER(LDRToRGBStrip)
-//REGISTER_TRIGGER(RFToRelay)
 
 #ifndef DISABLE_RGB
 REGISTER_TRIGGER_FACTORY(TimeToRGBStripTrigger)
@@ -28,8 +24,16 @@ REGISTER_TRIGGER_FACTORY(TimeToRGBStripTrigger)
 #ifndef ESP8266 
 REGISTER_TRIGGER_FACTORY(LDRToRelay)
 REGISTER_TRIGGER_FACTORY(BMEToOled)
-
+REGISTER_TRIGGER_FACTORY(BMEToRGBMatrix)
+REGISTER_TRIGGER_FACTORY(BMEToThingSpeak)
+#ifndef DISABLE_WEATHERDISPLAY
+REGISTER_TRIGGER_FACTORY(BMEToWeatherDisplay)
+REGISTER_TRIGGER_FACTORY(TimeToWeatherDisplay)
+REGISTER_TRIGGER_FACTORY(WeatherForecastToWeatherDisplay)
+REGISTER_TRIGGER_FACTORY(ButtonToWeatherDisplay)
 #endif
+#endif
+
 #ifndef DISABLE_RGB
 REGISTER_TRIGGER_FACTORY(LDRToRGBStrip)
 #endif
@@ -783,4 +787,187 @@ String BMEToOled::format_doublestr(const char* fmt, double val) {
 	snprintf(buff, sizeof(buff), fmt, val);
 	res = buff;
 	return res;
+}
+
+BMEToRGBMatrix::BMEToRGBMatrix() {
+
+}
+void BMEToRGBMatrix::loadconfig(JsonObject& json) {
+	Trigger::loadconfig(json);
+	JsonArray arr = json["value"].as<JsonArray>();
+
+
+}
+void BMEToRGBMatrix::handleloopsvc(BME280Controller* ps, RGBStripController* pd) {
+	TriggerFromService< BME280Controller, RGBStripController>::handleloopsvc(ps, pd);
+	BMEState l = ps->get_state();
+	RGBState rgbState;
+
+	RGBCMD cmd = SetText;
+	String newtext;
+	switch (this->mode)
+	{
+
+	case temp:
+	
+		newtext = format_str("%.1f C", l.temp);
+		break;
+	case hum:
+		newtext = format_str("H %.0f ", l.hum);
+		break;
+	case pres:
+		newtext = format_str("P %.0f", l.pres);
+		break;
+	default:
+		break;
+
+	}
+	memset(rgbState.text, 0, RGB_TEXTLEN);
+	strncpy(rgbState.text, newtext.c_str(), RGB_TEXTLEN);
+	pd->AddCommand(rgbState, cmd, srcTrigger);
+
+	if (this->mode == pres) {
+		this->mode = temp;
+	}
+	else {
+		this->mode = (DMODE)(this->mode + 1);
+	}
+}
+
+//thing speak
+BMEToThingSpeak::BMEToThingSpeak() {
+	t_ch = 0;
+	h_ch = 0;
+	p_ch = 0;
+}
+void BMEToThingSpeak::loadconfig(JsonObject& json) {
+	Trigger::loadconfig(json);
+	
+	t_ch = json["t_ch"].as<uint8_t>();
+	h_ch = json["h_ch"].as<uint8_t>();
+	p_ch = json["p_ch"].as<uint8_t>();
+	t_ch = constrain(1, MAX_CHANNELS+1, t_ch);
+	h_ch = constrain(1, MAX_CHANNELS+1, h_ch);
+	p_ch = constrain(1, MAX_CHANNELS+1, p_ch);
+
+}
+void BMEToThingSpeak::handleloopsvc(BME280Controller* ps, ThingSpeakController* pd) {
+	TriggerFromService< BME280Controller, ThingSpeakController>::handleloopsvc(ps, pd);
+	BMEState l = ps->get_state();
+	ThingSpeakCMD cmd = TsSend;
+	ThingSpeakState newstate;
+	newstate.data[t_ch-1] = l.temp;
+	newstate.data[h_ch-1] = l.hum;
+	newstate.data[p_ch-1] = l.pres;
+
+	pd->AddCommand(newstate, cmd, srcTrigger);
+}
+
+//weatherDisplay
+
+BMEToWeatherDisplay::BMEToWeatherDisplay() {
+
+}
+void BMEToWeatherDisplay::loadconfig(JsonObject& json) {
+	Trigger::loadconfig(json);
+
+
+
+}
+void BMEToWeatherDisplay::handleloopsvc(BME280Controller* ps, WeatherDisplayController* pd) {
+	TriggerFromService< BME280Controller, WeatherDisplayController>::handleloopsvc(ps, pd);
+	BMEState l = ps->get_state();
+	WeatherDisplayCMD cmd = WDSetCurrentData;
+	WeatherDisplayState newstate;
+	newstate.data. temp = l.temp;
+	newstate.data.pressure = l.pres;
+	newstate.data.humidity = l.hum;
+
+	pd->AddCommand(newstate, cmd, srcTrigger);
+}
+
+TimeToWeatherDisplay::TimeToWeatherDisplay() {
+
+}
+void TimeToWeatherDisplay::loadconfig(JsonObject& json) {
+	Trigger::loadconfig(json);
+
+
+
+}
+void TimeToWeatherDisplay::handleloopsvc(TimeController* ps, WeatherDisplayController* pd) {
+	TriggerFromService< TimeController, WeatherDisplayController>::handleloopsvc(ps, pd);
+	TimeState ts= ps->get_state();
+	WeatherDisplayCMD cmd = WDSetTime;
+	WeatherDisplayState newstate;
+#ifdef ESP8266
+	newstate.now = ts.time;
+#else
+	newstate.now = ts.time;
+	
+#endif
+
+	pd->AddCommand(newstate, cmd, srcTrigger);
+}
+
+WeatherForecastToWeatherDisplay::WeatherForecastToWeatherDisplay() {
+
+}
+void WeatherForecastToWeatherDisplay::loadconfig(JsonObject& json) {
+	Trigger::loadconfig(json);
+
+
+
+}
+void WeatherForecastToWeatherDisplay::handleloopsvc(WeatherClientController* ps, WeatherDisplayController* pd) {
+	TriggerFromService< WeatherClientController, WeatherDisplayController>::handleloopsvc(ps, pd);
+	
+	WeatherDisplayCMD cmd = WDClearForecastData;
+	WeatherDisplayState newstate;
+	
+	pd->AddCommand(newstate, cmd, srcTrigger);
+	cmd = WDFreeze;
+	pd->AddCommand(newstate, cmd, srcTrigger);
+	cmd = WDAddForecastData;
+	for (int i = 0; i < ps->getdata().GetSize(); i++) {
+		//DBG_OUTPUT_PORT.println("Trigger run  ");
+		//DBG_OUTPUT_PORT.println(i);
+		newstate.frecord = ps->getdata()[i];
+		pd->AddCommand(newstate, cmd, srcTrigger);
+	}
+	cmd = WDUnFreeze;
+	pd->AddCommand(newstate, cmd, srcTrigger);
+
+
+}
+
+ButtonToWeatherDisplay::ButtonToWeatherDisplay() {
+
+}
+void ButtonToWeatherDisplay::loadconfig(JsonObject& json) {
+	Trigger::loadconfig(json);
+
+
+
+}
+void ButtonToWeatherDisplay::handleloopsvc(ButtonController* ps, WeatherDisplayController* pd) {
+	TriggerFromService< ButtonController, WeatherDisplayController>::handleloopsvc(ps, pd);
+	ButtonState bs=ps->get_state();
+	/*
+	if (bs.idx=0 && bs.isPressed && bs.changed_at!= lasttriggered) {
+		WeatherDisplayCMD cmd = WDSwitchMode;
+		WeatherDisplayState newstate=pd->get_state();
+		pd->AddCommand(newstate, cmd, srcTrigger);
+		lasttriggered = bs.changed_at;
+	}
+	*/
+	
+	long presstime = ps->get_btn_presstime(idx);
+	if (ps->get_buttonsstate()[idx] == ispressed && presstime != lasttriggered) {
+		WeatherDisplayCMD cmd = WDSwitchMode;
+		WeatherDisplayState newstate = pd->get_state();
+		pd->AddCommand(newstate, cmd, srcTrigger);
+		lasttriggered = presstime;
+	}
+	
 }

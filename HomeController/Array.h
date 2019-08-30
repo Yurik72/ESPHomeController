@@ -29,6 +29,13 @@ class CSimpleArray
        if(dummy)
         delete[] (char*)dummy;
     }
+	void RemoveAll() {
+		if (data_storage)
+			delete[](char*)data_storage;
+		data_storage = NULL;
+		data_size = 0;
+		elements = 0;
+	}
     //void SerializeToStorage(){
     //  SerializeToStorage(ArrayStorage);
     //}

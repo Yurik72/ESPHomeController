@@ -5,17 +5,50 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include "BaseController.h"
+#include "Adafruit_GFX.h"
 #include <WS2812FX.h>
-
+#include <Print.h>
 #include <Ticker.h>
 
 
+#define NEO_MATRIX_TOP         0x00 // Pixel 0 is at top of matrix
+#define NEO_MATRIX_BOTTOM      0x01 // Pixel 0 is at bottom of matrix
+#define NEO_MATRIX_LEFT        0x00 // Pixel 0 is at left of matrix
+#define NEO_MATRIX_RIGHT       0x02 // Pixel 0 is at right of matrix
+#define NEO_MATRIX_CORNER      0x03 // Bitmask for pixel 0 matrix corner
+#define NEO_MATRIX_ROWS        0x00 // Matrix is row major (horizontal)
+#define NEO_MATRIX_COLUMNS     0x04 // Matrix is column major (vertical)
+#define NEO_MATRIX_AXIS        0x04 // Bitmask for row/column layout
+#define NEO_MATRIX_PROGRESSIVE 0x00 // Same pixel order across each line
+#define NEO_MATRIX_ZIGZAG      0x08 // Pixel order reverses between lines
+#define NEO_MATRIX_SEQUENCE    0x08 // Bitmask for pixel line order
 
 class WS2812FX;
 class Ticker;
 class RGBStripCycler;
+class RGBStripFloatText;
+
+class StripMatrix: public  Adafruit_GFX {
+public:
+	StripMatrix (int w, int h, WS2812FX* p,
+		uint8_t matrixType = NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS);
+	virtual void drawPixel(int16_t x, int16_t y, uint16_t color);
+protected:
+	WS2812FX* pstrip;
+	uint8_t type;
+	uint8_t	matrixWidth, matrixHeight;
+	
+	
+	uint16_t
+	(*remapFn)(uint16_t x, uint16_t y);
+	uint32_t passThruColor;
+	boolean  passThruFlag = false;
+	
+};
+
 class StripWrapper {
 public:
+	StripWrapper() { pcyclerfloattext = NULL; }
 	~StripWrapper() {
 		deinit();
 	}
@@ -36,8 +69,13 @@ public:
 	virtual bool isRunning() { return false; }
 	virtual uint8_t getBrightness(void) { return 0; }
 	void set_rgb_startled(int val) { rgb_startled = val; };
+	virtual void setupmatrix(int w, int h, uint8_t matrixType = NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS) {};
+	virtual void print(String text) {};
+	virtual void print_at(int16_t x, String text) {};
+	virtual void printfloat(String text);
 protected:
 	int rgb_startled;
+	RGBStripFloatText* pcyclerfloattext;
 };
 
 class WS2812Wrapper :public StripWrapper {
@@ -61,13 +99,16 @@ public:
 	virtual bool isRunning();
 	virtual void trigger(void) ;
 	virtual uint8_t getBrightness(void);
-
+	virtual void setupmatrix(int w, int h, uint8_t matrixType = NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS) ;
+	virtual void print(String text);
+	virtual void print_at(int16_t x, String text);
 private:
 	WS2812FX* pstrip;
+	StripMatrix* pMatrix;
 	bool useinternaldriver;
 
 };
-
+#define RGB_TEXTLEN 64
 struct RGBState
 {
 	bool isOn=false;
@@ -77,6 +118,8 @@ struct RGBState
 	int wxspeed = 0;
 	int ldrValue = 0;
 	bool isLdr = false;
+	char text[RGB_TEXTLEN];
+	bool isFloatText = false;
 };
 enum RGBCMD :uint {
 	On = BaseOn,
@@ -89,7 +132,9 @@ enum RGBCMD :uint {
 	SetIsLdr  =128,
 	SetRGB	  =1024,
 	SetRestore = 2048,   //should have the same name
-	RgbSaveState = 4096
+	RgbSaveState = 4096,
+	SetText=8192,
+	SetFloatText =16384
 };
 class RGBStripController;
 typedef CManualStateController<RGBStripController, RGBState, RGBCMD> RGBStrip;
@@ -137,6 +182,9 @@ private:
 	bool isEnableSmooth;
 	uint cyclemode;
 	int rgb_startled;   /// indicates from which led rgb  sequence started instead grb
+	bool ismatrix;
+	uint8_t matrixWidth;
+
 };
 DEFINE_CONTROLLER_FACTORY(RGBStripController)
 
@@ -162,6 +210,23 @@ protected:
 	StripWrapper* pStripWrapper;
 };
 
+class RGBStripFloatText
+{
+public:
+	RGBStripFloatText(StripWrapper* pStrip,String text);
+	void start();
+	void stop();
+	void reset();
+	void oncallback();
+	static void callback(RGBStripFloatText* self);
 
+protected:
+	Ticker cycleTicker;
+	uint8_t cycleIndex;
+	uint8_t cyclecount;
+	String txt;
+
+	StripWrapper* pStripWrapper;
+};
 
 #endif

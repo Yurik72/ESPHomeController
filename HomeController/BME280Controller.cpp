@@ -69,11 +69,17 @@ void BME280Controller::getdefaultconfig(JsonObject& json) {
 	json[FPSTR(szname)] = "BME";
 	BME::getdefaultconfig(json);
 }
+#define BME_SCK 13
+#define BME_SDI_MISO 2
+#define BME_SDO_MOSI 5
+#define BME_CS 14
 void  BME280Controller::setup() {
 	if (this->uselegacy) {
 		DBG_OUTPUT_PORT.println("Init Adafruit_BME280");
 		this->pbme = new Adafruit_BME280();
+		//this->pbme=new Adafruit_BME280 (BME_CS, BME_SDO_MOSI, BME_SDI_MISO, BME_SCK); // software SPI
 		if (!this->pbme->begin(this->i2caddr)) {
+		//if (!this->pbme->begin()) {
 			this->isinit = false;
 			DBG_OUTPUT_PORT.println("Failed to init BME280 device");
 		}

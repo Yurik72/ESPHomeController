@@ -134,6 +134,7 @@ void ButtonController::runcore() {
 		if (this->is_down(i) && btnstate[i]!= isdown){  //this->get_state().isDown) {
 			st.isDown = !this->get_state().isDown;
 		    btnstate[i] = isdown;
+			st.changed_at = millis();
 			this->AddCommand(st, SetBtn, srcSelf);
 			this->update_history_state(i, btnstate[i], millis());
 #ifdef BUTTON_DEBUG
@@ -143,6 +144,7 @@ void ButtonController::runcore() {
 
 		if (this->is_pressed(i) && btnstate[i] != ispressed){//!= this->get_state(i).isPressed) {
 			st.isPressed = true;
+			st.changed_at = btnpresstime[i] =millis();
 			btnstate[i] = ispressed;
 			this->AddCommand(st, SetBtn, srcSelf);
 			this->update_history_state(i, btnstate[i], millis());

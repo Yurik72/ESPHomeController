@@ -12,6 +12,18 @@
 #include <Ticker.h>
 
 
+const char szPinText[] PROGMEM = "pin";
+const char szbrightnessText[] PROGMEM = "brightness";
+const char szisOnText[] PROGMEM = "isOn";
+const char szStatusText[] PROGMEM = "Status";
+const char szi2caddr[] PROGMEM = "i2caddr";
+const char szpinsda[] PROGMEM = "pinsda";
+const char szpinslc[] PROGMEM = "pinslc";
+
+const char szservice[] PROGMEM = "service";
+const char szname[] PROGMEM = "name";
+const char szParseJsonFailText[] PROGMEM = "parse Json() failed: ";
+
 bool ICACHE_FLASH_ATTR  writeConfigFS(bool saveConfig) {
 	if (saveConfig) {
 		//FS save

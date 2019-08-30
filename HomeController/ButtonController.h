@@ -18,6 +18,7 @@
 struct ButtonState
 {
 	uint8_t idx = 0;
+	long changed_at = 0;
 	bool isPressed = false;
 	bool isDown = false;
 	bool isLongPressed=false;
@@ -44,17 +45,21 @@ public:
 	virtual void getdefaultconfig(JsonObject& json);
 	virtual void run();
 	virtual void runcore();
+	enumstate* get_buttonsstate() { return btnstate; };
+	bool is_pressed(uint8_t idx);
+	bool is_down(uint8_t idx);
+	long get_btn_presstime(uint8_t idx) { return btnpresstime[idx]; };
 protected:
 	uint8_t pin[MAX_BUTTONS];
 	void update(uint8_t idx);
 	void addhistory(bool bit, uint8_t idx);
 	void update_history_state(uint8_t idx, enumstate state, long ms);
 	void check_update_longhistory(uint8_t idx);
-	bool is_down(uint8_t idx);
-	bool is_pressed(uint8_t idx);
+	
+	
 private:
 	uint16_t btnhistory[MAX_BUTTONS];
-	uint64_t btnpresstime[MAX_BUTTONS];
+	long btnpresstime[MAX_BUTTONS];
 	enumstate  btnstate [MAX_BUTTONS];
 	btn_state_history btn_long_history[MAX_BUTTONS];
 	uint8_t btncount;

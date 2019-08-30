@@ -65,6 +65,9 @@
 
 #ifdef ESP8266
 #define DISABLE_OLED
+#define DISABLE_THINGSPEAK
+#define DISABLE_WEATHER
+#define DISABLE_WEATHERDISPLAY
 #ifdef RF_SNIFFER
 #define DISABLE_RGB
 #define DISABLE_RELAY
@@ -117,7 +120,8 @@ extern bool isAPMode;
 
 
 
-#endif
-
-
+/// spiffs web server
+extern const char szfilesourceroot[] ;
+//extern const char* filestodownload [] ;
 ///Loggger and debugger
+#endif

@@ -10,6 +10,9 @@
 #include "DallasController.h"
 #include "BME280Controller.h"
 #include "OledController.h"
+#include "ThingSpeakClient.h"
+#include "CWeatherDisplay.h"
+#include "ButtonController.h"
 
 #define NEXT_DAY_SEC (1 * 24 * 60 * 60)
 #define SEC_TOLLERANCE 1200  //2 min
@@ -22,6 +25,8 @@ class RelayController;
 class RFController;
 class RelayDimController;
 class BME280Controller;
+class WeatherDisplayController;
+class ButtonController;
 class Trigger {
 public:
 	Trigger() {};
@@ -236,6 +241,96 @@ private:
 	float temp_min;
 	float temp_max;
 };
+
+class BMEToRGBMatrix :public TriggerFromService< BME280Controller, RGBStripController> {
+public:
+	enum DMODE : uint8_t {
+
+		temp = 1,
+		hum = 2,
+		pres = 3
+	};
+	BMEToRGBMatrix();
+
+	virtual void handleloopsvc(BME280Controller* ps, RGBStripController* pd);
+	virtual void loadconfig(JsonObject& json);
+	
+protected:
+	DMODE mode = temp;
+
+};
+class BMEToThingSpeak :public TriggerFromService< BME280Controller, ThingSpeakController> {
+public:
+	enum DMODE : uint8_t {
+
+		temp = 1,
+		hum = 2,
+		pres = 3
+	};
+	BMEToThingSpeak();
+
+	virtual void handleloopsvc(BME280Controller* ps, ThingSpeakController* pd);
+	virtual void loadconfig(JsonObject& json);
+
+protected:
+private:
+	uint8_t t_ch, h_ch, p_ch;
+};
+class BMEToWeatherDisplay :public TriggerFromService< BME280Controller, WeatherDisplayController> {
+public:
+	enum DMODE : uint8_t {
+
+		temp = 1,
+		hum = 2,
+		pres = 3
+	};
+	BMEToWeatherDisplay();
+
+	virtual void handleloopsvc(BME280Controller* ps, WeatherDisplayController* pd);
+	virtual void loadconfig(JsonObject& json);
+
+protected:
+private:
+	uint8_t t_ch, h_ch, p_ch;
+};
+
+class TimeToWeatherDisplay :public TriggerFromService< TimeController, WeatherDisplayController> {
+public:
+
+	TimeToWeatherDisplay();
+
+	virtual void handleloopsvc(TimeController* ps, WeatherDisplayController* pd);
+	virtual void loadconfig(JsonObject& json);
+
+protected:
+private:
+
+};
+class WeatherForecastToWeatherDisplay :public TriggerFromService< WeatherClientController, WeatherDisplayController> {
+public:
+
+	WeatherForecastToWeatherDisplay();
+
+	virtual void handleloopsvc(WeatherClientController* ps, WeatherDisplayController* pd);
+	virtual void loadconfig(JsonObject& json);
+
+protected:
+private:
+
+};
+class ButtonToWeatherDisplay :public TriggerFromService< ButtonController, WeatherDisplayController> {
+public:
+
+	ButtonToWeatherDisplay();
+
+	virtual void handleloopsvc(ButtonController* ps, WeatherDisplayController* pd);
+	virtual void loadconfig(JsonObject& json);
+
+protected:
+private:
+	long lasttriggered = 0;
+	uint8_t idx = 0;
+};
 //DEFINE_TRIGGER_FACTORY(TimeToRGBStripTrigger)
 
 DEFINE_TRIGGER_FACTORY(TimeToRGBStripTrigger)
@@ -246,6 +341,13 @@ DEFINE_TRIGGER_FACTORY(RFToRelay)
 DEFINE_TRIGGER_FACTORY(TimeToRelayDimTrigger)
 DEFINE_TRIGGER_FACTORY(DallasToRGBStrip)
 DEFINE_TRIGGER_FACTORY(BMEToOled)
+DEFINE_TRIGGER_FACTORY(BMEToRGBMatrix)
+DEFINE_TRIGGER_FACTORY(BMEToThingSpeak)
+DEFINE_TRIGGER_FACTORY(BMEToWeatherDisplay)
+DEFINE_TRIGGER_FACTORY(TimeToWeatherDisplay)
+DEFINE_TRIGGER_FACTORY(WeatherForecastToWeatherDisplay)
+DEFINE_TRIGGER_FACTORY(ButtonToWeatherDisplay)
+
 //DEFINE_TRIGGER_FACTORY(LDRToRelay)
 //DEFINE_TRIGGER_FACTORY(LDRToRGBStrip)
 //DEFINE_TRIGGER_FACTORY(RFToRelay)

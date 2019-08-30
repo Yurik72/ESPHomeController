@@ -71,21 +71,27 @@ void configModeCallback(AsyncWiFiManager *myWiFiManager);
 #endif 
 
 
-static const char szPinText[] PROGMEM = "pin";
-static const char szbrightnessText[] PROGMEM = "brightness";
-static const char szisOnText[] PROGMEM = "isOn";
-static const char szStatusText[] PROGMEM = "Status";
-static const char szi2caddr[] PROGMEM = "i2caddr";
-static const char szpinsda[] PROGMEM = "pinsda";
-static const char szpinslc[] PROGMEM = "pinslc";
+extern const char szPinText[] ;
+extern const char szbrightnessText[];
+extern const char szisOnText[];
+extern const char szStatusText[];
+extern const char szi2caddr[];
+extern const char szpinsda[];
+extern const char szpinslc[];
 
-static const char szservice[] PROGMEM = "service";
-static const char szname[] PROGMEM = "name";
+extern const char szservice[];
+extern const char szname[];
 
-static const char szParseJsonFailText[] PROGMEM = "parse Json() failed: ";
+extern const char szParseJsonFailText[];
 
 template<typename T>
 void loadif(T& var, JsonObject& json, char * key) {
+	if (json.containsKey(key)) {
+		var = json[key].as<T>();
+	}
+}
+template<typename T>
+void loadif(T& var, JsonObject& json,const char * key) {
 	if (json.containsKey(key)) {
 		var = json[key].as<T>();
 	}
@@ -97,5 +103,15 @@ void loadif(T& var, JsonObject& json, const __FlashStringHelper*  key) {
 	}
 }
 double map_i_f(float val, uint in_min, uint in_max, float out_min, float out_max);
+
+template<typename T>
+String format_str(const char* fmt, T val) {
+
+	String res;
+	char buff[50];
+	snprintf(buff, sizeof(buff), fmt, val);
+	res = buff;
+	return res;
+}
 
 #endif

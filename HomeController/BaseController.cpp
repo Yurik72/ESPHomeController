@@ -267,8 +267,8 @@ void CBaseController::setup() {
 	//DBG_OUTPUT_PORT.println("CBaseController::setup");
 	
 	if (this->get_coremode()== Core || this->get_coremode()==Both) {
-		//unsigned char tname[50];
-		
+	
+		DBG_OUTPUT_PORT.println("CBaseController::xTaskCreatePinnedToCore");
 		xTaskCreatePinnedToCore(
 			runcoreloop,
 			this->get_name(),
@@ -318,11 +318,13 @@ void runcoreloop(void*param)
 
 	for (;;) {
 
+
 		if (self != NULL ) // &&  self->shouldRun())
 			self->runcore();
-			if(self->get_coremode() == Core  &&  self->shouldRun())
-				self->run();
-		
+		if (self->get_coremode() == Core && self->shouldRun()) {
+			self->run();
+			//DBG_OUTPUT_PORT.println("CBaseController::run from core");
+		}
 	}
 }
 #endif

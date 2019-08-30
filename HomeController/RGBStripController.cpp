@@ -30,8 +30,140 @@ REGISTER_CONTROLLER_FACTORY(RGBStripController)
 
 const size_t bufferSize = JSON_OBJECT_SIZE(40);
 static String rgbModes;
+
+/// Matrix
+#ifdef __AVR__
+#include <avr/pgmspace.h>
+#elif defined(ESP8266)
+#include <pgmspace.h>
+#else
+#ifndef pgm_read_byte
+#define pgm_read_byte(addr) (*(const unsigned char *)(addr))
+#endif
+#endif
+
+#ifdef __AVR
+#include <avr/pgmspace.h>
+#elif defined(ESP8266)
+#include <pgmspace.h>
+#else
+#ifndef PROGMEM
+#define PROGMEM
+#endif
+#endif
+
+static const uint8_t PROGMEM
+gamma5[] = {
+  0x00,0x01,0x02,0x03,0x05,0x07,0x09,0x0b,
+  0x0e,0x11,0x14,0x18,0x1d,0x22,0x28,0x2e,
+  0x36,0x3d,0x46,0x4f,0x59,0x64,0x6f,0x7c,
+  0x89,0x97,0xa6,0xb6,0xc7,0xd9,0xeb,0xff },
+  gamma6[] = {
+	0x00,0x01,0x02,0x03,0x04,0x05,0x06,0x08,
+	0x09,0x0a,0x0b,0x0d,0x0e,0x10,0x12,0x13,
+	0x15,0x17,0x19,0x1b,0x1d,0x20,0x22,0x25,
+	0x27,0x2a,0x2d,0x30,0x33,0x37,0x3a,0x3e,
+	0x41,0x45,0x49,0x4d,0x52,0x56,0x5b,0x5f,
+	0x64,0x69,0x6e,0x74,0x79,0x7f,0x85,0x8b,
+	0x91,0x97,0x9d,0xa4,0xab,0xb2,0xb9,0xc0,
+	0xc7,0xcf,0xd6,0xde,0xe6,0xee,0xf7,0xff };
+
+
+#ifndef _swap_uint16_t
+#define _swap_uint16_t(a, b) { uint16_t t = a; a = b; b = t; }
+#endif
+static uint32_t expandColor(uint16_t color) {
+	return ((uint32_t)pgm_read_byte(&gamma5[color >> 11]) << 16) |
+		((uint32_t)pgm_read_byte(&gamma6[(color >> 5) & 0x3F]) << 8) |
+		pgm_read_byte(&gamma5[color & 0x1F]);
+}
+
+
+StripMatrix::StripMatrix(int w, int h, WS2812FX* p, uint8_t matrixType) :Adafruit_GFX(w, h) {
+
+	type = matrixType;
+	matrixWidth = w;
+	matrixHeight = h;
+	pstrip = p;
+
+	rotation = 0;
+	cursor_y = cursor_x = 0;
+	remapFn = NULL;
+	
+}
+void StripMatrix::drawPixel(int16_t x, int16_t y, uint16_t color) {
+	
+	if ((x < 0) || (y < 0) || (x >= _width) || (y >= _height)) return;
+
+	int16_t t;
+	switch (rotation) {
+	case 1:
+		t = x;
+		x = matrixWidth - 1 - y;
+		y = t;
+		break;
+	case 2:
+		x = matrixWidth - 1 - x;
+		y = matrixHeight - 1 - y;
+		break;
+	case 3:
+		t = x;
+		x = y;
+		y = matrixHeight - 1 - t;
+		break;
+	}
+
+	int tileOffset = 0, pixelOffset;
+
+	if (remapFn) { // Custom X/Y remapping function
+		pixelOffset = (*remapFn)(x, y);
+	}
+	else {      // Standard single matrix or tiled matrices
+
+		uint8_t  corner = type & NEO_MATRIX_CORNER;
+		uint16_t minor, major, majorScale;
+
+		
+
+		// Find pixel number within tile
+		minor = x; // Presume row major to start (will swap later if needed)
+		major = y;
+
+		// Determine corner of entry, flip axes if needed
+		if (corner & NEO_MATRIX_RIGHT)  minor = matrixWidth - 1 - minor;
+		if (corner & NEO_MATRIX_BOTTOM) major = matrixHeight - 1 - major;
+
+		// Determine actual major axis of matrix
+		if ((type & NEO_MATRIX_AXIS) == NEO_MATRIX_ROWS) {
+			majorScale = matrixWidth;
+		}
+		else {
+			_swap_uint16_t(major, minor);
+			majorScale = matrixHeight;
+		}
+
+		// Determine pixel number within tile/matrix
+		if ((type & NEO_MATRIX_SEQUENCE) == NEO_MATRIX_PROGRESSIVE) {
+			// All lines in same order
+			pixelOffset = major * majorScale + minor;
+		}
+		else {
+			// Zigzag; alternate rows change direction.
+			if (major & 1) pixelOffset = (major + 1) * majorScale - 1 - minor;
+			else          pixelOffset = major * majorScale + minor;
+		}
+	}
+
+	pstrip->setPixelColor(/*tileOffset +*/ pixelOffset,
+		passThruFlag ? passThruColor : expandColor(color));
+}
+
+
+///End matrix
+
 WS2812Wrapper::WS2812Wrapper() {
 	pstrip = NULL;
+	pMatrix = NULL;
 	this->useinternaldriver = false;
 	this->rgb_startled = -1;
 }
@@ -114,7 +246,30 @@ uint8_t WS2812Wrapper::getBrightness(void) {
 	return pstrip->getBrightness();
 }
 
+void WS2812Wrapper::setupmatrix(int w, int h, uint8_t matrixType ) {
+	pMatrix = new StripMatrix(w, h, pstrip, matrixType);
+}
+void WS2812Wrapper::print(String text) {
+	if (pMatrix) {
 
+		pMatrix->fillScreen(0);
+		pMatrix->setCursor(0, 0);
+		pMatrix->print(text);
+	}
+};
+void WS2812Wrapper::print_at(int16_t x, String text) {
+	if (pMatrix) {
+		pMatrix->fillScreen(0);
+		pMatrix->setCursor(x, 0);
+		pMatrix->print(text);
+	}
+}
+void StripWrapper::printfloat(String text) {
+	if (pcyclerfloattext)
+		delete pcyclerfloattext;
+	pcyclerfloattext = new RGBStripFloatText(this, text);
+	pcyclerfloattext->start();
+}
 ///// Controller
 RGBStripController::RGBStripController() {
 	this->pStripWrapper = NULL;
@@ -125,6 +280,8 @@ RGBStripController::RGBStripController() {
 	this->isEnableSmooth = true;
 	this->cyclemode = 0;
 	this->rgb_startled = -1;
+	this->ismatrix = false;
+	this->matrixWidth = 0;
 	//rgbModes = "";
 	
 	//this->coreMode = Both;
@@ -150,6 +307,7 @@ String  RGBStripController::serializestate() {
 	root["wxspeed"] = this->get_state().wxspeed;
 	root["isLdr"] = this->get_state().isLdr;
 	root["ldrValue"] = this->get_state().ldrValue;
+	root["text"] = String(this->get_state().text);
 	String json;
 	json.reserve(256);
 	serializeJson(root, json);
@@ -190,8 +348,12 @@ void RGBStripController::loadconfig(JsonObject& json) {
 	pin = json["pin"];
 	numleds = json["numleds"];
 	isEnableSmooth = json["issmooth"];
-	if(json.containsKey("rgb_startled"))
-		rgb_startled= json["rgb_startled"];
+//	if(json.containsKey("rgb_startled"))
+//		rgb_startled= json["rgb_startled"];
+	loadif(rgb_startled, json, "rgb_startled");
+	loadif(ismatrix, json, "ismatrix");
+	loadif(matrixWidth, json, "matrixwidth");
+
 }
 void RGBStripController::getdefaultconfig(JsonObject& json) {
 	json[FPSTR(szPinText)]= pin;
@@ -200,6 +362,8 @@ void RGBStripController::getdefaultconfig(JsonObject& json) {
 	json[FPSTR(szname)] = "RGBStrip";
 	json["issmooth"] = false;
 	json["rgb_startled"] = -1;
+	json["ismatrix"] = false;
+	json["matrixwidth"] = 0;
 	RGBStrip::getdefaultconfig(json);
 }
 void  RGBStripController::setup() {
@@ -210,6 +374,8 @@ void  RGBStripController::setup() {
 #endif
 	pStripWrapper->set_rgb_startled(rgb_startled);
 	pStripWrapper->setup(pin, numleds);
+	if (ismatrix)
+		pStripWrapper->setupmatrix(matrixWidth, numleds / matrixWidth);
 	pStripWrapper->init();
 
 	pStripWrapper->setBrightness(30);
@@ -267,6 +433,14 @@ void RGBStripController::run() {
 		case SetRGB:
 		case SetRestore:
 			newState = cmd.state;
+			break;
+		case SetText:
+			//newState.text = cmd.state.text;
+			strncpy(newState.text, cmd.state.text, RGB_TEXTLEN);
+			break;
+		case SetFloatText:
+			strncpy(newState.text, cmd.state.text, RGB_TEXTLEN);
+			newState.isFloatText = true;
 			break;
 		default:
 			isSet = false;
@@ -378,7 +552,14 @@ void RGBStripController::set_state(RGBState state) {
 			this->mqtt_saturation = saturation;
 		}
 	}
-	
+	if (strlen(state.text) > 0) {
+		if (state.isFloatText) {
+			pStripWrapper->printfloat(state.text);
+		}
+		else {
+			pStripWrapper->print(state.text);
+		}
+	}
 	pStripWrapper->trigger();
 	//CController::set_state(state);
 	//CManualStateController<RGBStripController, RGBState, RGBCMD>::set_state(state);
@@ -607,5 +788,35 @@ void RGBStripCycler::oncallback() {
 	if (cycleIndex >= cyclecount) cycleIndex = 0;
 }
 void RGBStripCycler::callback(RGBStripCycler* self) {
+	self->oncallback();
+}
+
+RGBStripFloatText::RGBStripFloatText(StripWrapper* pStrip, String text) {
+	cycleIndex = 0;
+	cyclecount = text.length();
+
+	txt = text;
+	pStripWrapper = pStrip;
+}
+
+void RGBStripFloatText::start() {
+	this->reset();
+
+	this->oncallback();
+}
+void RGBStripFloatText::stop() {
+	cycleTicker.detach();
+}
+void RGBStripFloatText::reset() {
+	cycleIndex = 0;
+}
+void RGBStripFloatText::oncallback() {
+
+	this->pStripWrapper->print_at(cycleIndex, txt);
+	cycleTicker.once<RGBStripFloatText*>(1.0, RGBStripFloatText::callback, this);
+	cycleIndex++;
+	if (cycleIndex >= cyclecount) cycleIndex = 0;
+}
+void RGBStripFloatText::callback(RGBStripFloatText* self) {
 	self->oncallback();
 }

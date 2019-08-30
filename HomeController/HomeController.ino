@@ -5,7 +5,7 @@
     Created:	28.12.2018 13:18:36
     Author:     Yurik72
 */
-
+#define ESPHOMECONTROLLER
 
 #include <Arduino.h>
 #include "config.h"
@@ -127,42 +127,52 @@ WebServer server(80);
  bool wifidirectconnect();
  void startwifimanager();
 // The setup() function runs once each time the micro-controller starts
-void setup()
-{
-	DBG_OUTPUT_PORT.begin(115200); //setup serial ports
+ void setup()
+ {
+	 DBG_OUTPUT_PORT.begin(115200); //setup serial ports
 
-	
-	// ***************************************************************************
-    // Setup: SPIFFS
-    // ***************************************************************************
-	SPIFFS.begin();
-	//testfs();
-	// ***************************************************************************
-	// Setup: WiFi manager
-	// ***************************************************************************
-	if (!readConfigFS())
-		DBG_OUTPUT_PORT.println("Fail To Load config.json ! ");
+
+	 // ***************************************************************************
+	 // Setup: SPIFFS
+	 // ***************************************************************************
+	 SPIFFS.begin();
+	 //testfs();
+	 // ***************************************************************************
+	 // Setup: WiFi manager
+	 // ***************************************************************************
+	 if (!readConfigFS())
+		 DBG_OUTPUT_PORT.println("Fail To Load config.json ! ");
 #if defined(ESP8266)
-	DBG_OUTPUT_PORT.print("Setup station name ");
-	DBG_OUTPUT_PORT.println(HOSTNAME);
-	wifi_station_set_hostname(const_cast<char*>(HOSTNAME));
+	 DBG_OUTPUT_PORT.print("Setup station name ");
+	 DBG_OUTPUT_PORT.println(HOSTNAME);
+	 wifi_station_set_hostname(const_cast<char*>(HOSTNAME));
 #else
-	WiFi.setHostname(HOSTNAME);
+	 WiFi.setHostname(HOSTNAME);
 #endif
 #if defined(ESP8266)
-	startwifimanager();
+	 startwifimanager();
 #else
-	if(!wifidirectconnect())   //this will decrease sketch size
-		startwifimanager();
+	 if (!wifidirectconnect())   //this will decrease sketch size
+		 startwifimanager();
 #endif
-	//setup mdns
-	DBG_OUTPUT_PORT.print("Starting MDNS  host:");
-	DBG_OUTPUT_PORT.println(HOSTNAME);
-	if (!isAPMode) {
-		if (MDNS.begin(HOSTNAME)) {
-			DBG_OUTPUT_PORT.println("MDNS responder started");
-		}
-	}
+	 //setup mdns
+	 DBG_OUTPUT_PORT.print("Starting MDNS  host:");
+	 DBG_OUTPUT_PORT.println(HOSTNAME);
+	 if (!isAPMode) {
+		 if (MDNS.begin(HOSTNAME)) {
+			 DBG_OUTPUT_PORT.println("MDNS responder started");
+		 }
+	 }
+
+
+#if !defined(ESP8266)
+	 const String FILES[] = {  "/index.html", "/js/bundle.min.js.gz"};//"/filebrowse.html"
+	 if (!isAPMode){
+		 for(int i=0;i<sizeof(FILES)/sizeof(*FILES);i++)
+			check_anddownloadfile(szfilesourceroot, FILES[i]);
+	 //	downloadnotexistingfiles(szfilesourceroot, filestodownload);
+     }
+#endif
 	//if (!isAPMode) {
 		SETUP_FILEHANDLES  ///setup file browser
 	//}
@@ -238,7 +248,7 @@ void onWifiDisconnect() {
 #endif
 void startwifimanager() {
 
-D2	
+
 
 #if defined ASYNC_WEBSERVER
 	DBG_OUTPUT_PORT.println("Setupr DNS ");

@@ -13,4 +13,6 @@ bool isReboot = false;
 bool isAPMode =false;
 
 
+const char szfilesourceroot[] PROGMEM = "https://raw.githubusercontent.com/Yurik72/ESPHomeController/master/data";
+//const char* filestodownload[] = { "/filebrowse.html",'\0' };
 //String globlog;

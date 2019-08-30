@@ -1,5 +1,7 @@
 
+#if defined(ESPHOMECONTROLLER)
 #include "config.h"
+#endif
 #if defined(ESP8266)
 #include <ESPAsyncTCP.h>
 #else
@@ -10,8 +12,13 @@
 #ifdef CUSTOM_WEBASYNCFILEHANDLER
 #include "SPIFStaticWebHandler.h"
 #endif
+#include "HTTPSimpleClient.h"
 
+#if !defined(DBG_OUTPUT_PORT)
+#define DBG_OUTPUT_PORT Serial  
+#endif
 #define server asserver
+
 
 
 #define SETUP_FILEHANDLES   setupself();\
@@ -263,6 +270,7 @@ void handleFileBrowser(AsyncWebServerRequest *request) {
 			}
 			else
 			{
+				DBG_OUTPUT_PORT.println("filebrowse request");
 				request->send(SPIFFS, "/filebrowse.html", "text/html");
 
 				//MyWebServer.isDownloading = true; //need to stop all cloud services from doing anything!  crashes on upload with mqtt...
@@ -290,4 +298,50 @@ void handleJsonSave(AsyncWebServerRequest *request)
 		return request->send(500, szPlaintext, F("JSONSave FAILED"));
 	request->send(200, szPlaintext, "");
 
+}
+void download_savefile(String fileSourceRoot, String destfilename) {
+
+	HTTPSimpleClient client;
+	client.downloadfile(fileSourceRoot, destfilename);
+	//	HTTPClient http;
+
+	//	http.begin(uri); //Specify the URL
+	//	int httpCode = http.GET();
+	/*
+	DBG_OUTPUT_PORT.println(String("download ") + String(destfilename));
+	HTTPSimpleClient client;
+	String filename = destfilename;
+	if (filename.indexOf("/") != 0)
+		filename = "/" + filename;
+	String uri = fileSourceRoot;
+	uri += filename;
+	if (!client.begin(uri)) {
+		DBG_OUTPUT_PORT.println(F("donload file ->Connect failed!"));
+		return;
+	}
+	DBG_OUTPUT_PORT.println(uri);
+	int httpCode = client.GET();
+	DBG_OUTPUT_PORT.println(String("HTTP CODE ") + String(httpCode));
+	File downloadfile = SPIFFS.open(filename, "w");
+	int writeBytes = client.writeToStream(&downloadfile);
+	DBG_OUTPUT_PORT.println(String("Written ") + String(writeBytes));
+	downloadfile.close();
+	*/
+}
+void check_anddownloadfile(String fileSourceRoot, String filename) {
+	
+	if (filename.indexOf("/") != 0)
+		filename = "/" + filename;
+	File file = SPIFFS.open(filename, "r");
+	if (!file || file.size()==0) {
+		file.close();
+			delay(5);
+	   DBG_OUTPUT_PORT.println(String("Download not existing file:") + filename);
+		download_savefile(fileSourceRoot, filename);
+	}
+	else {
+		file.close();
+	}
+
+	
 }
