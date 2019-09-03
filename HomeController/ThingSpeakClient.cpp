@@ -78,7 +78,7 @@ void ThingSpeakController::run() {
 	if (this->commands.GetSize() == 0) {
 		command newcmd;
 		newcmd.mode = TsSend;
-		this->real_send();
+		//this->real_send();
 
 
 		//this->commands.Add(newcmd);
@@ -92,6 +92,9 @@ void ThingSpeakController::run() {
 		ThingSpeakState newState = cmd.state;
 
 		this->set_state(newState);
+		if (cmd.mode == TsSend) {
+			this->real_send();
+		}
 	}
 	ThingSpeak::run();
 }
@@ -129,7 +132,7 @@ void ThingSpeakController::real_send() {
 		client.print("\n\n");
 		client.print(postStr);
 		int startWaitForResponseAt = millis();
-
+		DBG_OUTPUT_PORT.println(postStr);
 		while (client.available() == 0 && millis() - startWaitForResponseAt < 5000)  //new thingspeak rules
 		{
 			delay(100);
@@ -142,8 +145,12 @@ void ThingSpeakController::real_send() {
 
 		}
 
-
+		
 		
 	}
+	else {
+		DBG_OUTPUT_PORT.println("Thing speak can't be reached");
+	}
+
 	client.stop();
 }

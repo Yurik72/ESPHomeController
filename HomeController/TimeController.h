@@ -36,6 +36,13 @@ protected:
 	long  gmtOffset_sec ;
 	int   daylightOffset_sec;
 	String ntpServer;
+private:
+	bool enablesleep;
+	long sleepinterval;
+	long nextsleep;
+	long offsetwakeup;
+	uint8_t sleeptype;
+	uint8_t btnwakeup;
 	///uint pin;
 };
 DEFINE_CONTROLLER_FACTORY(TimeController)

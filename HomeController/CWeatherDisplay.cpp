@@ -13,6 +13,12 @@
 #include "fonts.h"
 #include "time.h"
 
+#ifdef ESP32
+
+#include "driver/gpio.h"
+
+#endif
+
 const uint16_t yellowpalette[]={0x0C23D4,0xFFE0,0x001F};
 const size_t bufferSize = JSON_OBJECT_SIZE(200);
 #ifndef DISABLE_WEATHERDISPLAY
@@ -207,7 +213,12 @@ void WeatherDisplayController::setup(){
      pDisplay9341 =new  Adafruit_ILI9341(pcs, pdc,pmosi, psclk, prst,pmiso);
       pDisplay=static_cast<Adafruit_GFX*>(pDisplay9341);
       pDisplay9341->begin();
-      diagnostic();
+#ifdef ESP32
+	  if (gpio_hold_en((gpio_num_t) prst) != ESP_OK) {
+		  DBG_OUTPUT_PORT.println("rtc_gpio_hold_en error");
+	  }
+#endif
+      //diagnostic();
   }
 
 

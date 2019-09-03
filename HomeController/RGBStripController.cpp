@@ -81,6 +81,7 @@ static uint32_t expandColor(uint16_t color) {
 
 StripMatrix::StripMatrix(int w, int h, WS2812FX* p, uint8_t matrixType) :Adafruit_GFX(w, h) {
 
+	//DBG_OUTPUT_PORT.println(String("Ctor") + String(matrixType));
 	type = matrixType;
 	matrixWidth = w;
 	matrixHeight = h;
@@ -141,7 +142,8 @@ void StripMatrix::drawPixel(int16_t x, int16_t y, uint16_t color) {
 			_swap_uint16_t(major, minor);
 			majorScale = matrixHeight;
 		}
-
+		//YKTEST
+		//DBG_OUTPUT_PORT.println(String("type")+String(type)+String(" width:")+String(matrixWidth)+String("height:")+String(matrixHeight)+ String("majorScale:") + String(majorScale) + String(" minor:") + String(minor) + String(" major:") + String(major));
 		// Determine pixel number within tile/matrix
 		if ((type & NEO_MATRIX_SEQUENCE) == NEO_MATRIX_PROGRESSIVE) {
 			// All lines in same order
@@ -153,7 +155,8 @@ void StripMatrix::drawPixel(int16_t x, int16_t y, uint16_t color) {
 			else          pixelOffset = major * majorScale + minor;
 		}
 	}
-
+	//YKTEST
+	//DBG_OUTPUT_PORT.println(String("Draw x:")+String(x)+String(" y:")+String(y)+String(" offset:")+String(pixelOffset));
 	pstrip->setPixelColor(/*tileOffset +*/ pixelOffset,
 		passThruFlag ? passThruColor : expandColor(color));
 }
@@ -249,12 +252,18 @@ uint8_t WS2812Wrapper::getBrightness(void) {
 void WS2812Wrapper::setupmatrix(int w, int h, uint8_t matrixType ) {
 	pMatrix = new StripMatrix(w, h, pstrip, matrixType);
 }
+uint8_t WS2812Wrapper::setCustomMode(const __FlashStringHelper* name, uint16_t(*p)()) {
+	return pstrip->setCustomMode(name,p);
+}
 void WS2812Wrapper::print(String text) {
 	if (pMatrix) {
-
+		
 		pMatrix->fillScreen(0);
 		pMatrix->setCursor(0, 0);
+		//YKTEST
 		pMatrix->print(text);
+		//DBG_OUTPUT_PORT.println("Start Printing");
+		//pMatrix->print("0");
 	}
 };
 void WS2812Wrapper::print_at(int16_t x, String text) {
@@ -282,6 +291,9 @@ RGBStripController::RGBStripController() {
 	this->rgb_startled = -1;
 	this->ismatrix = false;
 	this->matrixWidth = 0;
+	this->textmode = 0;
+	this->matrixType = NEO_MATRIX_TOP + NEO_MATRIX_LEFT +
+		NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG;
 	//rgbModes = "";
 	
 	//this->coreMode = Both;
@@ -353,6 +365,8 @@ void RGBStripController::loadconfig(JsonObject& json) {
 	loadif(rgb_startled, json, "rgb_startled");
 	loadif(ismatrix, json, "ismatrix");
 	loadif(matrixWidth, json, "matrixwidth");
+	loadif(matrixType, json, "matrixType");
+
 
 }
 void RGBStripController::getdefaultconfig(JsonObject& json) {
@@ -374,8 +388,15 @@ void  RGBStripController::setup() {
 #endif
 	pStripWrapper->set_rgb_startled(rgb_startled);
 	pStripWrapper->setup(pin, numleds);
-	if (ismatrix)
-		pStripWrapper->setupmatrix(matrixWidth, numleds / matrixWidth);
+	if (ismatrix) {
+		//TO DO
+		uint8_t mtype = NEO_MATRIX_TOP + NEO_MATRIX_LEFT +
+			//NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG);
+			NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG;
+
+		pStripWrapper->setupmatrix(matrixWidth, numleds / matrixWidth, mtype);
+		this->textmode = pStripWrapper->setCustomMode(FPSTR_PLATFORM("Show Text"), &RGBStripController::customemodetext);
+	}
 	pStripWrapper->init();
 
 	pStripWrapper->setBrightness(30);
@@ -436,6 +457,7 @@ void RGBStripController::run() {
 			break;
 		case SetText:
 			//newState.text = cmd.state.text;
+			newState.wxmode = textmode;
 			strncpy(newState.text, cmd.state.text, RGB_TEXTLEN);
 			break;
 		case SetFloatText:

@@ -99,7 +99,7 @@ void WeatherClientController::set_state(WeatherState state) {
  
     http.begin(uri); //Specify the URL
     int httpCode = http.GET();                                        //Make the request
-    data.RemoveAll();
+    
     String payload;
     if (httpCode > 0) { //Check for the returning code
  
@@ -119,7 +119,7 @@ void WeatherClientController::set_state(WeatherState state) {
 Serial.println("Start parsing");
    DeserializationError error = deserializeJson(jsonBuffer, payload);
    if (!error) {
-  
+	   data.RemoveAll();
       JsonObject root = jsonBuffer.as<JsonObject>();
       JsonArray jsonardaypart=root["daypart"].as<JsonArray>();
       

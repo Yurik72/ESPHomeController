@@ -403,6 +403,7 @@ CBaseController* Controllers::CreateByName(const char* name) { //to be rewrite b
 	*/
 };
 void Controllers::handleloops() {
+	checkandreconnectWifi();
 	for (int i = 0; i < this->GetSize(); i++) {
 		CBaseController*ctl = this->GetAt(i);
 
@@ -421,8 +422,12 @@ void Controllers::handleloops() {
 			}
 		}
 	}
+
+}
+void Controllers::checkandreconnectWifi() {
 	if (!isAPMode) {
 		if (!WiFi.isConnected()) {
+			this->isWifiConnected = false;
 			if ((this->lastWifiReconnectms + DELAY_MS_RECONNECT) < millis()) {
 				this->lastWifiReconnectms = millis();
 				DBG_OUTPUT_PORT.println("Controllers detect lost wifi");
@@ -432,6 +437,7 @@ void Controllers::handleloops() {
 		}
 		if (isConnectingMode) {
 			if (WiFi.isConnected()) {
+				this->isWifiConnected = true;
 				isConnectingMode = false;
 				DBG_OUTPUT_PORT.println("Wifi Restored connection");
 				mqttReconnectTimer.attach(2, realconnectToMqtt);
@@ -439,7 +445,6 @@ void Controllers::handleloops() {
 		}
 	}
 }
-
 void onstatechanged(CBaseController * ctl)
 {
 
@@ -501,7 +506,7 @@ void publishinitialstate() {
 		onstatechanged(_instance->GetAt(i));
 }
 void onMqttDisconnect(AsyncMqttClientDisconnectReason reason) {
-	if (WiFi.isConnected()) {
+	if (strlen(mqtt_host) > 0 && atoi(mqtt_port) > 0 && WiFi.isConnected()) {
 		DBG_OUTPUT_PORT.println("Connecting to MQTT...");
 		mqttReconnectTimer.attach(2, realconnectToMqtt);
 	}

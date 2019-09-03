@@ -9,6 +9,10 @@
 #endif
 #include "TimeController.h"
 
+#ifdef ESP32
+#include "esp_wifi.h"
+#endif
+
 //const char* ntpServer = "pool.ntp.org";
 //const long  gmtOffset_sec = 7200;
 //const int   daylightOffset_sec = -3600;
@@ -28,7 +32,10 @@ TimeController::TimeController() {
 	this->ntpServer = "pool.ntp.org";
 	this->gmtOffset_sec = 0;
 	this->daylightOffset_sec = 0;
-	
+	this->enablesleep = false;
+	this->sleepinterval = 300000;
+	this->sleeptype = 1;
+	this->btnwakeup = 0;
 }
 String  TimeController::serializestate() {
 
@@ -65,6 +72,12 @@ void TimeController::loadconfig(JsonObject& json) {
 	gmtOffset_sec = json["timeoffs"];
 	daylightOffset_sec = json["dayloffs"];
 	ntpServer = json["server"].as<String>();
+	loadif(enablesleep, json, "enablesleep");
+	loadif(sleepinterval, json, "sleepinterval");
+	loadif(btnwakeup, json, "btnwakeup");
+	
+	offsetwakeup = (sleepinterval / 1000 - 20) * 1000000;
+	
 }
 void TimeController::getdefaultconfig(JsonObject& json) {
 	json["timeoffs"]= gmtOffset_sec;
@@ -90,6 +103,7 @@ void  TimeController::setup() {
 #else
 	configTime(gmtOffset_sec, daylightOffset_sec, ntpServer.c_str());
 #endif
+	this->nextsleep = millis() + this->sleepinterval;
 }
 
 void TimeController::run() {
@@ -140,6 +154,26 @@ void TimeController::run() {
 		//DBG_OUTPUT_PORT.println(getFormattedTime(newState.time));
 		this->set_state(newState);
 	}
+	if (enablesleep) {
+		if (this->nextsleep <= millis()) {
+			this->nextsleep = millis() + this->sleepinterval;
+			 DBG_OUTPUT_PORT.print("Startint  sleep");
+#ifdef ESP32
+			 if (this->sleeptype == 0) {
+				 esp_wifi_set_ps(WIFI_PS_MAX_MODEM);
+			 }
+			 else if (this->sleeptype == 1) {
+				 esp_sleep_enable_timer_wakeup(offsetwakeup);// 1000000 * 30);  //30s
+				 if(this->btnwakeup>0)
+					 esp_sleep_enable_ext0_wakeup((gpio_num_t)btnwakeup, 0);
+				 esp_light_sleep_start();
+			 }
+#endif
+			
+		}
+	}
+	//esp_light_sleep_start();
+	//esp_sleep_enable_timer_wakeup(SleepSecs * uS_TO_S_FACTOR);
 	TimeCtl::run();
 }
 void TimeController::set_state(TimeState state) {

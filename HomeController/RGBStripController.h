@@ -30,8 +30,11 @@ class RGBStripFloatText;
 
 class StripMatrix: public  Adafruit_GFX {
 public:
-	StripMatrix (int w, int h, WS2812FX* p,
-		uint8_t matrixType = NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS);
+	StripMatrix(int w, int h, WS2812FX* p,
+		uint8_t matrixType = NEO_MATRIX_TOP + NEO_MATRIX_LEFT +
+		//NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG);
+		NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG);
+		//NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS);
 	virtual void drawPixel(int16_t x, int16_t y, uint16_t color);
 protected:
 	WS2812FX* pstrip;
@@ -73,6 +76,7 @@ public:
 	virtual void print(String text) {};
 	virtual void print_at(int16_t x, String text) {};
 	virtual void printfloat(String text);
+	virtual uint8_t setCustomMode(const __FlashStringHelper* name, uint16_t(*p)()) {};
 protected:
 	int rgb_startled;
 	RGBStripFloatText* pcyclerfloattext;
@@ -102,6 +106,7 @@ public:
 	virtual void setupmatrix(int w, int h, uint8_t matrixType = NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS) ;
 	virtual void print(String text);
 	virtual void print_at(int16_t x, String text);
+	virtual uint8_t setCustomMode(const __FlashStringHelper* name, uint16_t(*p)()) ;
 private:
 	WS2812FX* pstrip;
 	StripMatrix* pMatrix;
@@ -156,6 +161,7 @@ public:
 	virtual void onmqqtmessage(String topic, String payload);
 	virtual bool onpublishmqttex(String& endkey, String& payload, int topicnr);
 	virtual bool ispersiststate() { return true; }
+	static  uint16_t customemodetext() { return (uint16_t)1000; };
 #if !defined ASYNC_WEBSERVER
 #if defined(ESP8266)
 	virtual void setuphandlers(ESP8266WebServer& server);
@@ -181,9 +187,11 @@ private:
 	RGBStripCycler* pCycle;
 	bool isEnableSmooth;
 	uint cyclemode;
+	uint textmode;
 	int rgb_startled;   /// indicates from which led rgb  sequence started instead grb
 	bool ismatrix;
 	uint8_t matrixWidth;
+	uint8_t matrixType;
 
 };
 DEFINE_CONTROLLER_FACTORY(RGBStripController)

@@ -843,22 +843,26 @@ BMEToThingSpeak::BMEToThingSpeak() {
 void BMEToThingSpeak::loadconfig(JsonObject& json) {
 	Trigger::loadconfig(json);
 	
-	t_ch = json["t_ch"].as<uint8_t>();
-	h_ch = json["h_ch"].as<uint8_t>();
-	p_ch = json["p_ch"].as<uint8_t>();
-	t_ch = constrain(1, MAX_CHANNELS+1, t_ch);
-	h_ch = constrain(1, MAX_CHANNELS+1, h_ch);
-	p_ch = constrain(1, MAX_CHANNELS+1, p_ch);
-
+	//t_ch = json["t_ch"].as<uint8_t>();
+	//h_ch = json["h_ch"].as<uint8_t>();
+	//p_ch = json["p_ch"].as<uint8_t>();
+	loadif(t_ch, json, "t_ch");
+	loadif(h_ch, json, "h_ch");
+	loadif(p_ch, json, "p_ch");
+	//DBG_OUTPUT_PORT.println(String("BMEToThingSpeak t_ch:") + String(t_ch) + String(" h_ch:") + String(h_ch) + String(" p_ch:") + String(p_ch));
+	t_ch = constrain(t_ch,0, MAX_CHANNELS);
+	h_ch = constrain(h_ch,0, MAX_CHANNELS);
+	p_ch = constrain(p_ch,0, MAX_CHANNELS);
+	//DBG_OUTPUT_PORT.println(String("BMEToThingSpeak t_ch:") + String(t_ch)+String(" h_ch:")+ String(h_ch)+String(" p_ch:")+String(p_ch));
 }
 void BMEToThingSpeak::handleloopsvc(BME280Controller* ps, ThingSpeakController* pd) {
 	TriggerFromService< BME280Controller, ThingSpeakController>::handleloopsvc(ps, pd);
 	BMEState l = ps->get_state();
 	ThingSpeakCMD cmd = TsSend;
 	ThingSpeakState newstate;
-	newstate.data[t_ch-1] = l.temp;
-	newstate.data[h_ch-1] = l.hum;
-	newstate.data[p_ch-1] = l.pres;
+	if (t_ch>0) 	newstate.data[t_ch-1] = l.temp;
+	if (h_ch>0)  newstate.data[h_ch-1] = l.hum;
+	if (p_ch>0)  newstate.data[p_ch-1] = l.pres;
 
 	pd->AddCommand(newstate, cmd, srcTrigger);
 }

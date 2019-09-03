@@ -249,7 +249,7 @@ void CBaseController::getdefaultconfig(JsonObject& json) {
 }
 void CBaseController::loadconfigbase(JsonObject& json) {
 	enabled = json["enabled"];
-	interval= json["interval"];
+	interval= json["interval"].as<unsigned long>();
 	this->loadconfig(json);
 }
 #if !defined ASYNC_WEBSERVER
@@ -325,6 +325,8 @@ void runcoreloop(void*param)
 			self->run();
 			//DBG_OUTPUT_PORT.println("CBaseController::run from core");
 		}
+	    // https://github.com/espressif/arduino-esp32/issues/595
+		vTaskDelay(10);
 	}
 }
 #endif
