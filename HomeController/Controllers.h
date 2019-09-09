@@ -42,6 +42,7 @@ public:
 	void connectmqtt();
 	void onWifiDisconnect();
 	bool get_isWifiConnected() { return isWifiConnected; };
+	void set_isneedreconnectwifi(bool val);
 #if !defined ASYNC_WEBSERVER
 #if defined(ESP8266)
 	void setuphandlers(ESP8266WebServer& server);
@@ -55,10 +56,12 @@ public:
 private:
 	void loadconfig();
 	void checkandreconnectWifi();
+	
 	Triggers& triggers;
 	long lastWifiReconnectms;
 	bool isConnectingMode;
 	bool isWifiConnected = true;
+	bool isneedreconnectwifi = true;
 };
 void onstatechanged(CBaseController *);
 #ifdef ENABLE_HOMEBRIDGE

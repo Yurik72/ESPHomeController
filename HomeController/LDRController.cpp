@@ -28,11 +28,11 @@ String  LDRController::serializestate() {
 	root["ldrValue"] = this->get_state().ldrValue;
 
 	if (cvalmin != cvalmax) {
-		float cval = map_i_f(this->get_state().ldrValue, 0, MAX_LDRVAL, cvalmin, cvalmax);
-		root["cValue"] = cval;
+		//float cval = map_i_f(this->get_state().ldrValue, 0, MAX_LDRVAL, cvalmin, cvalmax);
+		root["cValue"] = this->get_state().cvalue;
 		if (cfmt.length()) {
 			char buff[30];
-			snprintf(buff, sizeof(buff), cfmt.c_str(), cval);
+			snprintf(buff, sizeof(buff), cfmt.c_str(), this->get_state().cvalue);
 			root["csValue"] = buff;
 		}
 	}
@@ -112,7 +112,10 @@ void LDRController::run() {
 	LDR::run();
 }
 void LDRController::set_state(LDRState state) {
-
+	if (cvalmin != cvalmax)
+		state.cvalue = map_i_f(state.ldrValue, 0, MAX_LDRVAL, cvalmin, cvalmax);
+	else
+		state.cvalue = state.ldrValue;
 	LDR::set_state(state);
 	
 }

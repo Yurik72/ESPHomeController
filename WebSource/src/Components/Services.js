@@ -1,7 +1,7 @@
 import React from "react";
 import Button from "./Button"
 import Popup from "reactjs-popup";
-import { getHomeUrl, getConfigData, getBaseuri, doFetch } from "./utils"
+import { getHomeUrl, getConfigData, getBaseuri, doFetch, string_chop, encode_chops } from "./utils"
 import { Card, Row, Col } from "./Card"
 import Arrow from "./Arrow"
 
@@ -73,22 +73,45 @@ class Services extends React.Component {
         }
     }
     sendSave() {
-        var url = getBaseuri() + "/jsonsave?";
-        url += "file=services.json";
-        url += "&";
-        url += "data=" + JSON.stringify(this.state.services);
-        console.log(url);
-        return fetch(url, {
-            method: 'GET',
-            mode: 'no-cors',
+        var chunk = 200;
+        var string_data =  JSON.stringify(this.state.services);
+        var arr_data = string_chop(string_data, chunk);
+        var copy_data = [...arr_data];
+        var totallen = encode_chops(arr_data);
+        var index = 0;
+        for (var i = 0; i < arr_data.length; i++) {
 
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        }).then(res => {
+            console.log(arr_data[i]);
+            var url = getBaseuri() + "/jsonsave?";
+            url += "file=services.json";
+            url += "&";
+            url += "data=" + arr_data[i];
+            url += "&";
+            url += "len=" + totallen;
+            url += "&";
+            url += "index=" + index;
+            url += "&";
+            url += "encodedsize=" + arr_data[i].length;
+            url += "&";
+            url += "size=" + copy_data[i].length;
 
-            return res;
-        }).catch(err => err);
+            const executor = (saveuri) => {
+                setTimeout(()=>
+                fetch(saveuri, {
+                    method: 'GET',
+                    mode: 'no-cors',
+
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }).then(res => {
+
+
+                }).catch(err => err),i*50)
+            };
+            executor(url);
+            index += arr_data[i].length;
+        }
 
     }
     cloneservices() {

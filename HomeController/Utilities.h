@@ -79,6 +79,19 @@ extern const char szi2caddr[];
 extern const char szpinsda[];
 extern const char szpinslc[];
 
+extern const char sztimeoffs[];
+extern const char szdayloffs[];
+extern const char szserver[];
+extern const char szenablesleep[];
+extern const char szsleepinterval[];
+extern const char szbtnwakeup[];
+extern const char szsleeptype[];
+extern const char szrestartinterval[];
+extern const char sznumshortsleeps[];
+
+
+
+
 extern const char szservice[];
 extern const char szname[];
 

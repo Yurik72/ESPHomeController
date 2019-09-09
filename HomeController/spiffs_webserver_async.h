@@ -283,20 +283,83 @@ void handleJsonSave(AsyncWebServerRequest *request)
 	if (request->args() == 0)
 		return request->send(500, szPlaintext, F("BAD JsonSave ARGS"));
 
-	String fname = "/" + request->arg((size_t)0);
+	String fname;
+	if (request->hasArg("file")) {
+		fname = "/" + request->arg("file");
+	}
+	else {
+		fname="/" + request->arg((size_t)0);
+	}
 	fname = urldecode(fname);
 
 	DBG_OUTPUT_PORT.println("handleJsonSave: " + fname);
 
-
-	File file = SPIFFS.open(fname, "w");
-	if (file) {
-		file.println(request->arg(1));  //save json data
-		file.close();
+	String data = request->arg(1);
+	if (request->hasArg("data")) {
+		data = request->arg("data");
 	}
-	else  //cant create file
-		return request->send(500, szPlaintext, F("JSONSave FAILED"));
-	request->send(200, szPlaintext, "");
+
+	uint16_t len = data.length();
+	if (request->hasArg("len")) {
+		len =  request->arg("len").toInt();
+	}
+
+	uint16_t size = len;
+	if (request->hasArg("size")) {
+		size = request->arg("size").toInt();
+	}
+	uint16_t encodedsize = size;
+	if (request->hasArg("encodedsize")) {
+		encodedsize = request->arg("encodedsize").toInt();
+	}
+	uint16_t index = 0;
+	if (request->hasArg("index")) {
+		index = request->arg("index").toInt();
+	}
+
+	if (size != data.length()) {
+		DBG_OUTPUT_PORT.println(String("Encoding warning data len") + String(data.length())+String("argument size")+String(size));
+		size = data.length();
+	}
+	if (index == 0) {  //start
+		if (fsUploadFile)
+			fsUploadFile.close();
+		SPIFFS.remove(fname); 
+		fsUploadFile=SPIFFS.open(fname, "w+");
+		uploadpos = 0;
+	}
+	if (!fsUploadFile) {
+		request->send(500, szPlaintext, F("JSONSave FAILED"));
+		return;
+	}
+	DBG_OUTPUT_PORT.println(size);
+	char *buff =new	char[size+1];
+	memset(buff, 0, size + 1);
+	data.toCharArray(buff, size+1);
+	fsUploadFile.write((uint8_t*)buff, size);
+	uploadpos += size;
+
+	delete[] buff;
+
+	if ((index + size) >= len) {  //final
+		fsUploadFile.close();
+	}
+	//SPIFFS.remove(fname);
+	//File file = SPIFFS.open(fname, "w+");
+	//if (file) {
+	//	uint16_t len = request->arg(1).length();
+	
+	//	char buff[len +1];
+//		memset(buff, 0, len + 1);
+//		request->arg(1).toCharArray(buff, len);
+	//	DBG_OUTPUT_PORT.println(buff);
+	//	file.write((uint8_t *)buff, len);
+		//file.println(request->arg(1));  //save json data
+		//file.close();
+	//}
+	//else  //cant create file
+	//	return request->send(500, szPlaintext, F("JSONSave FAILED"));
+	request->send(200, szPlaintext, String(uploadpos));
 
 }
 void download_savefile(String fileSourceRoot, String destfilename) {

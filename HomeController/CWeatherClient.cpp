@@ -67,11 +67,13 @@ void WeatherClientController::run() {
 	if (this->commands.GetSize() == 0) {
 		command newcmd;
 		newcmd.mode = WRefresh;
-		this->read_data();
 
-
-		//this->commands.Add(newcmd);
-		this->AddCommand(newcmd.state, newcmd.mode, srcSelf);
+		if (this->read_data()) {
+			this->AddCommand(newcmd.state, newcmd.mode, srcSelf);
+		}
+		else {
+			this->force_nextruninterval(500);
+		}
 	}
 	command cmd;
 
@@ -95,6 +97,11 @@ void WeatherClientController::set_state(WeatherState state) {
 
 
  bool WeatherClientController::read_data(){
+	 if (!WiFi.isConnected()) {
+		 DBG_OUTPUT_PORT.println("Weather forecast skip and renew due to internet connection");
+		 this->force_nextruninterval(500);
+		 return false;
+	 }
   HTTPSimpleClient http;
  
     http.begin(uri); //Specify the URL
@@ -109,14 +116,18 @@ void WeatherClientController::set_state(WeatherState state) {
       }
  
     else {
+#ifdef	WEATHER_DEBUG
       Serial.println("Error on HTTP request");
+#endif
       return false;
     }
  
     http.end(); //Free the resources
     int capacity = 1024*3;
     DynamicJsonDocument jsonBuffer(capacity);
+#ifdef	WEATHER_DEBUG
 Serial.println("Start parsing");
+#endif
    DeserializationError error = deserializeJson(jsonBuffer, payload);
    if (!error) {
 	   data.RemoveAll();
@@ -159,9 +170,15 @@ Serial.println("Start parsing");
 			data.Add(rec);
 		}
       }
+	 
+	  this->last_load = millis();
+	  return true;
     }
     else{
-	   DBG_OUTPUT_PORT.println(F("Wether Erorr parse json"));
+#ifdef	WEATHER_DEBUG	
+	   DBG_OUTPUT_PORT.println(F("Weather Erorr parse json"));
+	   return false;
+#endif
     }
 
  }

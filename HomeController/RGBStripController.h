@@ -36,6 +36,8 @@ public:
 		NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG);
 		//NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS);
 	virtual void drawPixel(int16_t x, int16_t y, uint16_t color);
+	void setPassThruColor(uint32_t c);
+	void setPassThruColor();
 protected:
 	WS2812FX* pstrip;
 	uint8_t type;
@@ -74,8 +76,9 @@ public:
 	void set_rgb_startled(int val) { rgb_startled = val; };
 	virtual void setupmatrix(int w, int h, uint8_t matrixType = NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS) {};
 	virtual void print(String text) {};
-	virtual void print_at(int16_t x, String text) {};
-	virtual void printfloat(String text);
+	virtual void print_at(uint16_t x, String text) {};
+	virtual void printfloat(String text) {};
+	virtual void resetfloatcycler() {};
 	virtual uint8_t setCustomMode(const __FlashStringHelper* name, uint16_t(*p)()) {};
 protected:
 	int rgb_startled;
@@ -105,7 +108,9 @@ public:
 	virtual uint8_t getBrightness(void);
 	virtual void setupmatrix(int w, int h, uint8_t matrixType = NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS) ;
 	virtual void print(String text);
-	virtual void print_at(int16_t x, String text);
+	virtual void print_at(uint16_t x, String text);
+	virtual void printfloat(String text);
+	virtual void resetfloatcycler();
 	virtual uint8_t setCustomMode(const __FlashStringHelper* name, uint16_t(*p)()) ;
 private:
 	WS2812FX* pstrip;
@@ -124,7 +129,7 @@ struct RGBState
 	int ldrValue = 0;
 	bool isLdr = false;
 	char text[RGB_TEXTLEN];
-	bool isFloatText = false;
+	//bool isFloatText = false;
 };
 enum RGBCMD :uint {
 	On = BaseOn,
@@ -162,6 +167,7 @@ public:
 	virtual bool onpublishmqttex(String& endkey, String& payload, int topicnr);
 	virtual bool ispersiststate() { return true; }
 	static  uint16_t customemodetext() { return (uint16_t)1000; };
+	static  uint16_t customemodefloattext() { return (uint16_t)1000; };
 #if !defined ASYNC_WEBSERVER
 #if defined(ESP8266)
 	virtual void setuphandlers(ESP8266WebServer& server);
@@ -188,6 +194,7 @@ private:
 	bool isEnableSmooth;
 	uint cyclemode;
 	uint textmode;
+	uint textfloatmode;
 	int rgb_startled;   /// indicates from which led rgb  sequence started instead grb
 	bool ismatrix;
 	uint8_t matrixWidth;

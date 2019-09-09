@@ -9,6 +9,7 @@ struct LDRState
 {
 	bool isOn=true;
 	int ldrValue=0;
+	double cvalue;
 };
 enum LDRCMD :uint { Measure, LDRSaveState = 4096 };
 

@@ -10,6 +10,8 @@ class NTPClient;
 struct TimeState
 {
 	time_t time;
+	time_t time_withoffs;
+
 };
 enum TimeCMD { SET };
 class TimeController;
@@ -33,16 +35,25 @@ public :
 	NTPClient* ptimeClient;
 #endif
 protected:
+	void check_restart();
+	bool is_shortwakeup();
+	bool is_shortwakeup_next();
 	long  gmtOffset_sec ;
 	int   daylightOffset_sec;
 	String ntpServer;
 private:
 	bool enablesleep;
-	long sleepinterval;
-	long nextsleep;
-	long offsetwakeup;
+	unsigned long sleepinterval;
+	unsigned long nextsleep;
+	unsigned long offsetwakeup;
+	unsigned long offsetshortwakeup;
+	unsigned long restartinterval;
+	unsigned long nextrestart;
 	uint8_t sleeptype;
 	uint8_t btnwakeup;
+	bool is_sleepstarted;
+	uint8_t numshortsleeps;
+	uint16_t sleepnumber;
 	///uint pin;
 };
 DEFINE_CONTROLLER_FACTORY(TimeController)

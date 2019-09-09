@@ -101,6 +101,7 @@ void ESP32HTTPUpdateServer::setup(WebServer *server, const char * path, const ch
 				Update.printError(Serial);
 			}
 		}
+		vTaskDelay(10);
 	});
     
 }

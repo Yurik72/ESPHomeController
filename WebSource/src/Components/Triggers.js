@@ -2,7 +2,7 @@ import React from "react";
 import RGBTimeRecord from "./RGBTimeRecord"
 import Button from "./Button"
 import Popup from "reactjs-popup";
-import { getBaseuri, doFetch } from "./utils"
+import { getBaseuri, doFetch, string_chop, encode_chops} from "./utils"
 import ColorStatus from "./ColorStatus"
 import ItemSelector from "./ItemSelector"
 import Arrow from "./Arrow"
@@ -114,23 +114,46 @@ class Triggers extends React.Component {
         this.sendSave();
     }
     sendSave() {
-        var url = getBaseuri() + "/jsonsave?";
-        url += "file=triggers.json";
-        url += "&";
-        url += "data=" + JSON.stringify(this.state.triggers);
-        console.log(url);
-        return fetch(url, {
-                method: 'GET',
-                mode: 'no-cors',
-                
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            }).then(res => {
+        var chunk = 200;
+        var string_data = JSON.stringify(this.state.triggers);
+        var arr_data = string_chop(string_data, chunk);
+        var copy_data = [...arr_data];
+        var totallen = encode_chops(arr_data);
+        var index = 0;
+        for (var i = 0; i < arr_data.length; i++) {
 
-                return res;
-            }).catch(err => err);
-       
+            console.log(arr_data[i]);
+            var url = getBaseuri() + "/jsonsave?";
+            url += "file=triggers.json";
+            url += "&";
+            url += "data=" + arr_data[i];
+            url += "&";
+            url += "len=" + totallen;
+            url += "&";
+            url += "index=" + index;
+            url += "&";
+            url += "encodedsize=" + arr_data[i].length;
+            url += "&";
+            url += "size=" + copy_data[i].length;
+
+            const executor = (saveuri) => {
+                setTimeout(() =>
+                    fetch(saveuri, {
+                        method: 'GET',
+                        mode: 'no-cors',
+
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    }).then(res => {
+
+
+                    }).catch(err => err), i * 50)
+            };
+            executor(url);
+            index += arr_data[i].length;
+        }
+
     }
     renderSwitchType(item, idx) {
 
@@ -425,21 +448,23 @@ class Triggers extends React.Component {
                         <h5>Triggers</h5>
                     </div>
                     <div className="col s2">
-                        <Popup trigger={<Button label="Add"/> } position="right center">
+                        <Popup modal trigger={<Button label="Add"/> } position="right center">
                             {close => (
                                 <div>
                                     <div className="row">
-                                        Select a type of trigger
-                             <a className="close" onClick={close}>
+                                        <h5>
+                                            <span> Select a type of trigger</span>
+                                            <a className="close" onClick={close} style={{ float: 'right' }} >
                                             &times;
-                            </a>
+                                            </a>
+                                        </h5>
                                     </div>
                                     <div className="row">
 
                                         <select
                                             onChange={(ev) => this.handleselectchange(ev, close)}
                                             defaultValue="" required style={{ display: 'block' }}>
-                                            <option value="" disabled>select type service below</option>
+                                            <option value="" disabled>Select type trigger below</option>
                                             {this.state.triggerlist.map((item, idx) => {
                                                 return (
                                                     <option value={item} >{item}</option>

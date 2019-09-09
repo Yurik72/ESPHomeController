@@ -5,8 +5,13 @@
 #include "BaseController.h"
 
 #define MAX_CHANNELS 8
+#define MAX_ATTEMPTS 2
 struct ThingSpeakState
 {
+	ThingSpeakState() {
+		for (int i = 0; i < MAX_CHANNELS; i++)
+			data[i] = 0.0;
+	}
 	bool isOn;
 	double data[MAX_CHANNELS] ;
 
@@ -29,7 +34,9 @@ public:
 	virtual void run();
 	virtual void set_state(ThingSpeakState state);
 protected:
-	void real_send();
+	bool real_send();
+	void real_send_attempts();
+	virtual int get_maxcommands() { return 1; }
 private:
 	String apiKey;
 	bool chanelusage[MAX_CHANNELS];

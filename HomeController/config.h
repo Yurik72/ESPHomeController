@@ -45,6 +45,8 @@
 //#define DALLSATRIGGER_DEBUG
 //#define TRIGGER_DEBUG  //debug triggers output enable
 //#define TIMECONTROLLER_DEBUG  //debug timecontroller output enable
+
+//#define TIMECONTROLLER_FULL_DEBUG  //debug timecontroller output enable
 //#define LDRCONTROLLER_DEBUG  //debug ldrcontroller output enable
 //#define BMECONTROLLER_DEBUG    //debug bme280controller output enable
 //#define RF_TRIGGER_DEBUG         //debug rf trigger
@@ -56,6 +58,8 @@
 //#define RGBSTRIP_DEBUG
 //#define MENU_DEBUG
 //#define BUTTON_DEBUG
+//#define THINGSPEAK_DEBUG
+//define WEATHER_DEBUG
 
 
 //DISABLE /ENABLE services Section

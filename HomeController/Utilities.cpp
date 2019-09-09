@@ -20,6 +20,22 @@ const char szi2caddr[] PROGMEM = "i2caddr";
 const char szpinsda[] PROGMEM = "pinsda";
 const char szpinslc[] PROGMEM = "pinslc";
 
+
+
+const char sztimeoffs[] PROGMEM = "timeoffs";
+const char szdayloffs[] PROGMEM = "dayloffs";
+const char szserver[] PROGMEM = "server";
+const char szenablesleep[] PROGMEM = "enablesleep";
+const char szsleepinterval[] PROGMEM = "sleepinterval";
+const char szbtnwakeup[] PROGMEM = "btnwakeup";
+const char szsleeptype[] PROGMEM = "sleeptype";
+const char szrestartinterval[] PROGMEM = "restartinterval";
+const char sznumshortsleeps[] PROGMEM = "numshortsleeps";
+
+
+
+
+
 const char szservice[] PROGMEM = "service";
 const char szname[] PROGMEM = "name";
 const char szParseJsonFailText[] PROGMEM = "parse Json() failed: ";

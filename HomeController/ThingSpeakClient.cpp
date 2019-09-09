@@ -61,6 +61,7 @@ void ThingSpeakController::loadconfig(JsonObject& json) {
 	for (int i = 0; i < arr.size() && i< MAX_CHANNELS; i++) {
 		chanelusage[i] = arr[i].as<bool>();
 	}
+
 }
 void ThingSpeakController::getdefaultconfig(JsonObject& json) {
 
@@ -74,10 +75,13 @@ void  ThingSpeakController::setup() {
 }
 
 void ThingSpeakController::run() {
+#ifdef THINGSPEAK_DEBUG
 	DBG_OUTPUT_PORT.println("ThingSpeakController::run");
+#endif
 	if (this->commands.GetSize() == 0) {
 		command newcmd;
 		newcmd.mode = TsSend;
+		newcmd.state = this->get_state();
 		//this->real_send();
 
 
@@ -93,7 +97,7 @@ void ThingSpeakController::run() {
 
 		this->set_state(newState);
 		if (cmd.mode == TsSend) {
-			this->real_send();
+			this->real_send_attempts();
 		}
 	}
 	ThingSpeak::run();
@@ -106,22 +110,46 @@ void ThingSpeakController::set_state(ThingSpeakState state) {
 	//	digitalWrite(pin, (state.isOn ^ this->isinvert) ? HIGH : LOW);
 
 }
-void ThingSpeakController::real_send() {
-	
+void ThingSpeakController::real_send_attempts() {
+	bool bsuccess = false;
+	for (int i = 0; i < MAX_ATTEMPTS; i++) {
+		if (real_send()) {
+			bsuccess = true;
+			break;
+		}
+	}
+	if (!bsuccess) {
+#ifdef THINGSPEAK_DEBUG
+		DBG_OUTPUT_PORT.println("Thing speak forces next interval");
+#endif
+		this->force_nextruninterval(500);
+	}
+}
+bool ThingSpeakController::real_send() {
+	bool bres = false;
+
 	WiFiClient client;
-	if (WiFi.status() == WL_CONNECTED && client.connect(thingspeakserver, 80))  //   "184.106.153.149" or api.thingspeak.com
+	if (WiFi.isConnected() && client.connect(thingspeakserver, 80))  //   "184.106.153.149" or api.thingspeak.com
 	{
 		String postStr = apiKey;
 		for (int i = 0; i < MAX_CHANNELS; i++) {
+#ifdef THINGSPEAK_DEBUG
+			DBG_OUTPUT_PORT.println(String("Key ") + String(i ));
+#endif
 			if (chanelusage[i]) {
+
 				postStr += "&field" + String(i + 1) + "=";
 				postStr += String(this->get_state().data[i]);
+#ifdef THINGSPEAK_DEBUG
+				DBG_OUTPUT_PORT.println(postStr);
+#endif
 			}
 		}
 
 		postStr += "\r\n\r\n";
+#ifdef THINGSPEAK_DEBUG
 		DBG_OUTPUT_PORT.println(String("Thing speak send:") + postStr);
-
+#endif
 		client.print("POST /update HTTP/1.1\n");
 		client.print("Host: api.thingspeak.com\n");
 		client.print("Connection: close\n");
@@ -132,7 +160,9 @@ void ThingSpeakController::real_send() {
 		client.print("\n\n");
 		client.print(postStr);
 		int startWaitForResponseAt = millis();
+#ifdef THINGSPEAK_DEBUG
 		DBG_OUTPUT_PORT.println(postStr);
+#endif
 		while (client.available() == 0 && millis() - startWaitForResponseAt < 5000)  //new thingspeak rules
 		{
 			delay(100);
@@ -141,16 +171,21 @@ void ThingSpeakController::real_send() {
 
 		}
 		else {
+#ifdef THINGSPEAK_DEBUG
 			DBG_OUTPUT_PORT.println("Data is send but without response");
-
+#endif
 		}
 
-		
+		bres = true;
 		
 	}
 	else {
+#ifdef THINGSPEAK_DEBUG
 		DBG_OUTPUT_PORT.println("Thing speak can't be reached");
+#endif
+		//this->force_nextruninterval(500);
 	}
 
 	client.stop();
+	return bres;
 }

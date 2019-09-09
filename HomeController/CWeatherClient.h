@@ -40,10 +40,11 @@ virtual void set_state(WeatherState state);
 
 const ForecastDataT& getdata(){return  (const ForecastDataT&)data;};
 bool read_data();
-
+unsigned long get_last_load() { return last_load; };
  protected:
  String uri;
  ForecastDataT data;
+ unsigned long last_load = 0;
  
 };
 DEFINE_CONTROLLER_FACTORY(WeatherClientController)

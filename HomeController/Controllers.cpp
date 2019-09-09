@@ -403,15 +403,18 @@ CBaseController* Controllers::CreateByName(const char* name) { //to be rewrite b
 	*/
 };
 void Controllers::handleloops() {
-	checkandreconnectWifi();
+	//checkandreconnectWifi();
 	for (int i = 0; i < this->GetSize(); i++) {
 		CBaseController*ctl = this->GetAt(i);
 
-
+		
 		if (ctl->shouldRun() && (ctl->get_coremode() == NonCore  || ctl->get_coremode()==Both) && ctl->isenabled()) {
+			//if (!this->isWifiConnected)
+			this->checkandreconnectWifi();
 
 			ctl->run();
-
+			//if (!this->isWifiConnected)
+			//	this->checkandreconnectWifi();
 			for (int j = 0;j < this->triggers.GetSize();j++) {
 				Trigger* tr = this->triggers.GetAt(j);
 
@@ -424,23 +427,33 @@ void Controllers::handleloops() {
 	}
 
 }
+void Controllers::set_isneedreconnectwifi(bool val) {
+	this->isneedreconnectwifi = val;
+}
 void Controllers::checkandreconnectWifi() {
-	if (!isAPMode) {
+	if (this->isneedreconnectwifi && !isAPMode) {
 		if (!WiFi.isConnected()) {
 			this->isWifiConnected = false;
 			if ((this->lastWifiReconnectms + DELAY_MS_RECONNECT) < millis()) {
 				this->lastWifiReconnectms = millis();
-				DBG_OUTPUT_PORT.println("Controllers detect lost wifi");
+				//DBG_OUTPUT_PORT.println("Controllers detect lost wifi");
 				WiFi.reconnect();
+				unsigned long delaytime = millis() + 2000;
 				isConnectingMode = true;
+				while (!WiFi.isConnected() && delaytime > millis()) { //let chanse to wifi to be established 
+					delay(200);
+				}
+				DBG_OUTPUT_PORT.println(String("Reconnect result")+String(WiFi.isConnected()));
 			}
 		}
 		if (isConnectingMode) {
 			if (WiFi.isConnected()) {
 				this->isWifiConnected = true;
-				isConnectingMode = false;
-				DBG_OUTPUT_PORT.println("Wifi Restored connection");
-				mqttReconnectTimer.attach(2, realconnectToMqtt);
+				isConnectingMode = false; 
+					
+				//DBG_OUTPUT_PORT.println("Wifi Restored connection");
+				if (strlen(mqtt_host) > 0 && atoi(mqtt_port) > 0)
+					mqttReconnectTimer.attach(2, realconnectToMqtt);
 			}
 		}
 	}
@@ -556,5 +569,5 @@ void realconnectToMqtt() {
 #endif
 
 void Controllers::onWifiDisconnect() {
-	
+	this->isWifiConnected = false;
 }

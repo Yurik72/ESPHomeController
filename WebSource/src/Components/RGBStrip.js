@@ -150,7 +150,7 @@ class RGBStrip extends React.Component {
                                 }}
                             />
                         </Col>
-                        <Col num={1}>
+                        <Col num={6}>
                             <ItemSelector ref={el => this.modeselector = el} label="..." message={"select mode"}
                                 valuekey={"mode"}
                                 textkey={"name"}
@@ -161,6 +161,19 @@ class RGBStrip extends React.Component {
                                     var val = parseInt(selval) || 0;
 
                                     this.internal_setState({ wxmode: val });
+
+                                }}
+                            />
+                        </Col>
+                    </Row>
+                    <Row>
+                        <Col num={6} className="left valign-wrapper">
+                            <label htmlFor="mode" className="input-label">Text</label>
+                            <input type="text" className="input-input" value={this.state.text} name="text"
+                                onChange={ev => {
+                                    var val = parseInt(ev.target.value) || 0;
+
+                                    this.internal_setState({ text: val });
 
                                 }}
                             />

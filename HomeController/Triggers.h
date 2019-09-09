@@ -315,6 +315,7 @@ public:
 	virtual void loadconfig(JsonObject& json);
 
 protected:
+	unsigned long last_load = 0;
 private:
 
 };
@@ -330,6 +331,19 @@ protected:
 private:
 	long lasttriggered = 0;
 	uint8_t idx = 0;
+};
+
+class LDRToThingSpeak :public TriggerFromService< LDRController, ThingSpeakController> {
+public:
+	LDRToThingSpeak();
+
+	virtual void handleloopsvc(LDRController* ps, ThingSpeakController* pd);
+	virtual void loadconfig(JsonObject& json);
+
+protected:
+
+private:
+	uint8_t ch;
 };
 //DEFINE_TRIGGER_FACTORY(TimeToRGBStripTrigger)
 
@@ -347,6 +361,7 @@ DEFINE_TRIGGER_FACTORY(BMEToWeatherDisplay)
 DEFINE_TRIGGER_FACTORY(TimeToWeatherDisplay)
 DEFINE_TRIGGER_FACTORY(WeatherForecastToWeatherDisplay)
 DEFINE_TRIGGER_FACTORY(ButtonToWeatherDisplay)
+DEFINE_TRIGGER_FACTORY(LDRToThingSpeak)
 
 //DEFINE_TRIGGER_FACTORY(LDRToRelay)
 //DEFINE_TRIGGER_FACTORY(LDRToRGBStrip)

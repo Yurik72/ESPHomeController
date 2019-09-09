@@ -384,7 +384,7 @@ void AsyncWiFiManager::setInfo() {
 	DEBUG_WM(F("setInfo"));
 	if (needInfo) {
 		pager = infoAsString();
-		DEBUG_WM(pager);
+		//DEBUG_WM(pager);
 	    wifiStatus = WiFi.status();
 	    needInfo = false;
 	}

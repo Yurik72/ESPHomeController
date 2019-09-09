@@ -26,6 +26,8 @@ REGISTER_TRIGGER_FACTORY(LDRToRelay)
 REGISTER_TRIGGER_FACTORY(BMEToOled)
 REGISTER_TRIGGER_FACTORY(BMEToRGBMatrix)
 REGISTER_TRIGGER_FACTORY(BMEToThingSpeak)
+REGISTER_TRIGGER_FACTORY(LDRToThingSpeak)
+
 #ifndef DISABLE_WEATHERDISPLAY
 REGISTER_TRIGGER_FACTORY(BMEToWeatherDisplay)
 REGISTER_TRIGGER_FACTORY(TimeToWeatherDisplay)
@@ -810,13 +812,13 @@ void BMEToRGBMatrix::handleloopsvc(BME280Controller* ps, RGBStripController* pd)
 
 	case temp:
 	
-		newtext = format_str("%.1f C", l.temp);
+		newtext = format_str("%.1fC", l.temp);
 		break;
 	case hum:
-		newtext = format_str("H %.0f ", l.hum);
+		newtext = format_str("%.0f %%", l.hum);
 		break;
 	case pres:
-		newtext = format_str("P %.0f", l.pres);
+		newtext = format_str("%.0fhP", l.pres);
 		break;
 	default:
 		break;
@@ -857,9 +859,10 @@ void BMEToThingSpeak::loadconfig(JsonObject& json) {
 }
 void BMEToThingSpeak::handleloopsvc(BME280Controller* ps, ThingSpeakController* pd) {
 	TriggerFromService< BME280Controller, ThingSpeakController>::handleloopsvc(ps, pd);
+	
 	BMEState l = ps->get_state();
 	ThingSpeakCMD cmd = TsSend;
-	ThingSpeakState newstate;
+	ThingSpeakState newstate=pd->get_last_commandstate();
 	if (t_ch>0) 	newstate.data[t_ch-1] = l.temp;
 	if (h_ch>0)  newstate.data[h_ch-1] = l.hum;
 	if (p_ch>0)  newstate.data[p_ch-1] = l.pres;
@@ -905,9 +908,9 @@ void TimeToWeatherDisplay::handleloopsvc(TimeController* ps, WeatherDisplayContr
 	WeatherDisplayCMD cmd = WDSetTime;
 	WeatherDisplayState newstate;
 #ifdef ESP8266
-	newstate.now = ts.time;
+	newstate.now = ts.time_withoffs;
 #else
-	newstate.now = ts.time;
+	newstate.now = ts.time_withoffs;
 	
 #endif
 
@@ -925,23 +928,26 @@ void WeatherForecastToWeatherDisplay::loadconfig(JsonObject& json) {
 }
 void WeatherForecastToWeatherDisplay::handleloopsvc(WeatherClientController* ps, WeatherDisplayController* pd) {
 	TriggerFromService< WeatherClientController, WeatherDisplayController>::handleloopsvc(ps, pd);
-	
-	WeatherDisplayCMD cmd = WDClearForecastData;
-	WeatherDisplayState newstate;
-	
-	pd->AddCommand(newstate, cmd, srcTrigger);
-	cmd = WDFreeze;
-	pd->AddCommand(newstate, cmd, srcTrigger);
-	cmd = WDAddForecastData;
-	for (int i = 0; i < ps->getdata().GetSize(); i++) {
-		//DBG_OUTPUT_PORT.println("Trigger run  ");
-		//DBG_OUTPUT_PORT.println(i);
-		newstate.frecord = ps->getdata()[i];
-		pd->AddCommand(newstate, cmd, srcTrigger);
-	}
-	cmd = WDUnFreeze;
-	pd->AddCommand(newstate, cmd, srcTrigger);
 
+	if (this->last_load < ps->get_last_load()) {
+		WeatherDisplayCMD cmd = WDClearForecastData;
+		WeatherDisplayState newstate;
+
+
+		pd->AddCommand(newstate, cmd, srcTrigger);
+		cmd = WDFreeze;
+		pd->AddCommand(newstate, cmd, srcTrigger);
+		cmd = WDAddForecastData;
+		for (int i = 0; i < ps->getdata().GetSize(); i++) {
+			//DBG_OUTPUT_PORT.println("Trigger run  ");
+			//DBG_OUTPUT_PORT.println(i);
+			newstate.frecord = ps->getdata()[i];
+			pd->AddCommand(newstate, cmd, srcTrigger);
+		}
+		cmd = WDUnFreeze;
+		pd->AddCommand(newstate, cmd, srcTrigger);
+		this->last_load = ps->get_last_load();
+	}
 
 }
 
@@ -974,4 +980,31 @@ void ButtonToWeatherDisplay::handleloopsvc(ButtonController* ps, WeatherDisplayC
 		lasttriggered = presstime;
 	}
 	
+}
+
+LDRToThingSpeak::LDRToThingSpeak() {
+	ch = 0;
+}
+void LDRToThingSpeak::loadconfig(JsonObject& json) {
+	Trigger::loadconfig(json);
+	loadif(ch, json, "ch");
+
+	ch = constrain(ch, 0, MAX_CHANNELS);
+
+
+}
+void LDRToThingSpeak::handleloopsvc(LDRController* ps, ThingSpeakController* pd) {
+	TriggerFromService< LDRController, ThingSpeakController>::handleloopsvc(ps, pd);
+	
+	LDRState l = ps->get_state();
+
+
+	ThingSpeakCMD cmd = TsSend;
+	ThingSpeakState newstate = pd->get_last_commandstate();
+	if (ch > 0) 	newstate.data[ch - 1] = l.cvalue;
+
+
+	pd->AddCommand(newstate, cmd, srcTrigger);
+
+
 }

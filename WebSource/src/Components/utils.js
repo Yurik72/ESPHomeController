@@ -1,6 +1,6 @@
 
 
-var HomeURL = 'http://192.168.0.41'
+var HomeURL = 'http://192.168.88.22'
 //var HomeURL = 'http://192.168.88.96'
 
 var i = 0;
@@ -82,3 +82,18 @@ export function map(value, istart, istop, ostart, ostop) {
 export function mapInt(value, istart, istop, ostart, ostop) {
     return parseInt(map(value, istart, istop, ostart, ostop),10);
 };
+
+export function string_chop(str, size) {
+    if (str == null) return [];
+    str = String(str);
+    size = ~~size;
+    return size > 0 ? str.match(new RegExp('.{1,' + size + '}', 'g')) : [str];
+}
+export function encode_chops(arr) {
+    var total = 0;
+    for (var i = 0; i < arr.length; i++) {
+        arr[i] = encodeURI(arr[i]);
+        total += arr[i].length;
+    }
+    return total;
+}

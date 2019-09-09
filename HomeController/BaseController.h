@@ -27,7 +27,7 @@ void runcoreloop(void*param);
 #if defined ASYNC_WEBSERVER
 #include <ESPAsyncWebServer.h>
 #endif
-
+#define CONTROLLER_MAX_COMMANDS 99
 class CBaseController;
 
 class ControllerFactory
@@ -203,7 +203,7 @@ public:
 
 	bool shouldRun() { return shouldRun(millis()); };
 	void runned(unsigned long time);
-
+	void force_nextruninterval(unsigned long forceinterval);
 	// Default is to mark it runned "now"
 	void runned() { runned(millis()); }
 	virtual void run();
@@ -244,7 +244,7 @@ public:
 	void oncallback();
 #endif
 protected:
-	
+
 	char name[MAXLEN_NAME];
 	unsigned long interval;
 	CoreMode coreMode;
@@ -258,6 +258,7 @@ private:
 	unsigned long last_run;
 	// Scheduled run in Ms (MUST BE CACHED) 
 	unsigned long _cached_next_run;
+	bool isforcedinterval;
 	bool enabled;
 	
 
@@ -288,7 +289,12 @@ public:
 	virtual int AddCommand(P state, M mode, CmdSource src) {
 
 		command cmd = { mode,state };
-
+		while (commands.GetSize() >= get_maxcommands()) {
+			command todel;
+			commands.Dequeue(&todel);
+			//this->storestate(todel.state);
+			//DBG_OUTPUT_PORT.println("Command ignored");
+		}
 		commands.Add(cmd);
 		if (this->ispersiststate() && (src == srcState || src == srcMQTT)) {
 			command savecmd = {(M) BaseSaveState, state };
@@ -325,12 +331,19 @@ public:
 	const P& get_state() {
 		return state;
 	}
+	const P& get_last_commandstate() {
+		if(commands.GetSize()==0)
+			return state;
+		return commands.GetAt(commands.GetSize() - 1).state;
+	}
 	virtual bool loadstate() {
 		return this->deserializestate(readfile(this->get_filename_state().c_str()), srcRestore);
 	}
 	void set_handler_statechange(func_onstatechange f) { handler_statechange = f; };
 	void add_eventshandler_statechange(func_onstatechange f) { events.Add(f); };
 protected:
+	virtual int get_maxcommands() { return CONTROLLER_MAX_COMMANDS; }
+	void storestate(P state) { this->state = state; };
 	CSimpleArray<command> commands;
 	P state;
 	func_onstatechange   handler_statechange;

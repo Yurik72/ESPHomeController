@@ -50,14 +50,16 @@ class ItemSelector extends React.Component {
        
         return (
 
-            <Popup trigger={<Button className="left btn-small" label={label + (currentitem ? currentitem:"")} />} position="right center">
+            <Popup modal trigger={<Button className="left btn-small" label={label + (currentitem ? currentitem:"")} />} position="right center">
                 {close => (
                     <div>
                         <Row>
-                            {message}
+                            <h5>
+                                <span>{message}</span>
                              <a className="close" onClick={close}>
                                 
-                            </a>
+                                </a>
+                            </h5>
                         </Row>
                         <Row>
 

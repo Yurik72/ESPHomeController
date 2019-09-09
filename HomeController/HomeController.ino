@@ -237,12 +237,13 @@ bool wifidirectconnect() {
 }
 #if defined(ESP8266)
 void onWifiDisconnect(const WiFiEventStationModeDisconnected& event) {
-	DBG_OUTPUT_PORT.println("WiFi On Disconnect.");
+	//DBG_OUTPUT_PORT.println("WiFi On Disconnect.");
 
 }
 #else
 void onWifiDisconnect() {
-	DBG_OUTPUT_PORT.println("WiFi On Disconnect.");
+	//DBG_OUTPUT_PORT.println("WiFi On Disconnect.");
+	controllers.onWifiDisconnect();
 }
 
 #endif

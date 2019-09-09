@@ -166,6 +166,7 @@ CBaseController::CBaseController() {
 	this->bodyindex = 0;
 	this->interval = 1000;
 	this->priority = 1;
+	this->isforcedinterval = false;
 	
 #if defined(ESP8266)
 	this->pTicker = NULL;;
@@ -202,6 +203,10 @@ void CBaseController::savestate() {
 	
 }
 
+void CBaseController::force_nextruninterval(unsigned long forceinterval) {
+	_cached_next_run = millis() + forceinterval;
+	this->isforcedinterval = true;
+}
 bool CBaseController::shouldRun(unsigned long time) {
 	// If the "sign" bit is set the signed difference would be negative
 	bool time_remaining = (time - _cached_next_run) & 0x80000000;
@@ -214,7 +219,9 @@ void CBaseController::runned(unsigned long time) {
 	last_run = time;
 
 	// Cache next run
-	_cached_next_run = last_run + interval;
+	if(!this->isforcedinterval)
+		_cached_next_run = last_run + interval;
+	this->isforcedinterval = false;
 }
 void CBaseController::run() {
 

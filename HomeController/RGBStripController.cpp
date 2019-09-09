@@ -92,6 +92,15 @@ StripMatrix::StripMatrix(int w, int h, WS2812FX* p, uint8_t matrixType) :Adafrui
 	remapFn = NULL;
 	
 }
+void StripMatrix::setPassThruColor(uint32_t c) {
+	passThruColor = c;
+	passThruFlag = true;
+}
+
+// Call without a value to reset (disable passthrough)
+void StripMatrix::setPassThruColor(void) {
+	passThruFlag = false;
+}
 void StripMatrix::drawPixel(int16_t x, int16_t y, uint16_t color) {
 	
 	if ((x < 0) || (y < 0) || (x >= _width) || (y >= _height)) return;
@@ -257,27 +266,37 @@ uint8_t WS2812Wrapper::setCustomMode(const __FlashStringHelper* name, uint16_t(*
 }
 void WS2812Wrapper::print(String text) {
 	if (pMatrix) {
-		
+		pMatrix->setPassThruColor();
 		pMatrix->fillScreen(0);
 		pMatrix->setCursor(0, 0);
+		pMatrix->setPassThruColor(pstrip->getColor());
 		//YKTEST
 		pMatrix->print(text);
 		//DBG_OUTPUT_PORT.println("Start Printing");
 		//pMatrix->print("0");
 	}
 };
-void WS2812Wrapper::print_at(int16_t x, String text) {
+void WS2812Wrapper::print_at(uint16_t x, String text) {
 	if (pMatrix) {
+		
+		pMatrix->setPassThruColor();
 		pMatrix->fillScreen(0);
 		pMatrix->setCursor(x, 0);
+		pMatrix->setPassThruColor(pstrip->getColor());
 		pMatrix->print(text);
 	}
 }
-void StripWrapper::printfloat(String text) {
-	if (pcyclerfloattext)
-		delete pcyclerfloattext;
+void WS2812Wrapper::printfloat(String text) {
+	resetfloatcycler();
 	pcyclerfloattext = new RGBStripFloatText(this, text);
 	pcyclerfloattext->start();
+}
+void WS2812Wrapper::resetfloatcycler() {
+	if (pcyclerfloattext) {
+		pcyclerfloattext->stop();
+		delete pcyclerfloattext;
+		pcyclerfloattext = NULL;
+	}
 }
 ///// Controller
 RGBStripController::RGBStripController() {
@@ -292,6 +311,7 @@ RGBStripController::RGBStripController() {
 	this->ismatrix = false;
 	this->matrixWidth = 0;
 	this->textmode = 0;
+	this->textfloatmode = 0;
 	this->matrixType = NEO_MATRIX_TOP + NEO_MATRIX_LEFT +
 		NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG;
 	//rgbModes = "";
@@ -396,6 +416,7 @@ void  RGBStripController::setup() {
 
 		pStripWrapper->setupmatrix(matrixWidth, numleds / matrixWidth, mtype);
 		this->textmode = pStripWrapper->setCustomMode(FPSTR_PLATFORM("Show Text"), &RGBStripController::customemodetext);
+		this->textfloatmode = pStripWrapper->setCustomMode(FPSTR_PLATFORM("Show Float Text"), &RGBStripController::customemodefloattext);
 	}
 	pStripWrapper->init();
 
@@ -462,7 +483,8 @@ void RGBStripController::run() {
 			break;
 		case SetFloatText:
 			strncpy(newState.text, cmd.state.text, RGB_TEXTLEN);
-			newState.isFloatText = true;
+			//newState.isFloatText = true;
+			newState.wxmode = textfloatmode;
 			break;
 		default:
 			isSet = false;
@@ -541,6 +563,9 @@ void RGBStripController::set_state(RGBState state) {
 #endif
 				this->pCycle->stop();
 			}
+			if (oldState.wxmode == this->textfloatmode) {
+				pStripWrapper->resetfloatcycler();
+			}
 			if (pStripWrapper->isRunning())pStripWrapper->stop();
 
 			if (state.wxmode == this->cyclemode) {
@@ -575,10 +600,10 @@ void RGBStripController::set_state(RGBState state) {
 		}
 	}
 	if (strlen(state.text) > 0) {
-		if (state.isFloatText) {
+		if (state.wxmode== textfloatmode) {
 			pStripWrapper->printfloat(state.text);
 		}
-		else {
+		else if  (state.wxmode == textmode) {
 			pStripWrapper->print(state.text);
 		}
 	}
@@ -815,6 +840,7 @@ void RGBStripCycler::callback(RGBStripCycler* self) {
 
 RGBStripFloatText::RGBStripFloatText(StripWrapper* pStrip, String text) {
 	cycleIndex = 0;
+	//DBG_OUTPUT_PORT.println(String("ctor RGBStripFloatText :") + text);
 	cyclecount = text.length();
 
 	txt = text;
@@ -833,7 +859,7 @@ void RGBStripFloatText::reset() {
 	cycleIndex = 0;
 }
 void RGBStripFloatText::oncallback() {
-
+	//DBG_OUTPUT_PORT.println(String("Float Text")+ String(cycleIndex));
 	this->pStripWrapper->print_at(cycleIndex, txt);
 	cycleTicker.once<RGBStripFloatText*>(1.0, RGBStripFloatText::callback, this);
 	cycleIndex++;

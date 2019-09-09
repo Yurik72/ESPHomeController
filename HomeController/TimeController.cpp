@@ -8,7 +8,7 @@
 
 #endif
 #include "TimeController.h"
-
+#include "Controllers.h"
 #ifdef ESP32
 #include "esp_wifi.h"
 #endif
@@ -36,6 +36,13 @@ TimeController::TimeController() {
 	this->sleepinterval = 300000;
 	this->sleeptype = 1;
 	this->btnwakeup = 0;
+	this->is_sleepstarted = false;
+	this->restartinterval = 0;
+	this->nextrestart = 0;
+	this->numshortsleeps = 0;
+	this->sleepnumber = 0;
+	this->offsetshortwakeup = 0;
+	this->offsetwakeup = 0;
 }
 String  TimeController::serializestate() {
 
@@ -69,27 +76,41 @@ bool  TimeController::deserializestate(String jsonstate, CmdSource src) {
 }
 void TimeController::loadconfig(JsonObject& json) {
 	//pin = json["pin"];
-	gmtOffset_sec = json["timeoffs"];
-	daylightOffset_sec = json["dayloffs"];
-	ntpServer = json["server"].as<String>();
-	loadif(enablesleep, json, "enablesleep");
-	loadif(sleepinterval, json, "sleepinterval");
-	loadif(btnwakeup, json, "btnwakeup");
+	gmtOffset_sec = json[FPSTR(sztimeoffs)];
+	daylightOffset_sec = json[FPSTR(szdayloffs)];
+	ntpServer = json[FPSTR(szserver)].as<String>();
+	loadif(enablesleep, json, FPSTR(szenablesleep));
+	loadif(sleepinterval, json, FPSTR(szsleepinterval));
+	loadif(btnwakeup, json, FPSTR(szbtnwakeup));
+	loadif(sleeptype, json, FPSTR(szsleeptype));
+	loadif(restartinterval, json, FPSTR(szrestartinterval));
+	loadif(numshortsleeps, json, FPSTR(sznumshortsleeps));
+	
 	
 	offsetwakeup = (sleepinterval / 1000 - 20) * 1000000;
+	offsetshortwakeup= (sleepinterval / 1000 - 3) * 1000000;
 	
 }
 void TimeController::getdefaultconfig(JsonObject& json) {
-	json["timeoffs"]= gmtOffset_sec;
-	json["dayloffs"]= daylightOffset_sec;
-	json["timeoffs"]= gmtOffset_sec;
-	json["server"]= ntpServer.c_str();
+	json[FPSTR(sztimeoffs)]= gmtOffset_sec;
+	json[FPSTR(szdayloffs)]= daylightOffset_sec;
+	
+	json[FPSTR(szenablesleep)] = enablesleep;
+	json[FPSTR(szsleepinterval)] = sleepinterval;
+	json[FPSTR(szbtnwakeup)] = btnwakeup;
+	json[FPSTR(szsleeptype)] = sleeptype;
+	json[FPSTR(szrestartinterval)] = restartinterval;
+	json[FPSTR(sznumshortsleeps)] = numshortsleeps;
+	
+	json[FPSTR(szserver)]= ntpServer.c_str();
+
+
 	json[FPSTR(szservice)] = "TimeController";
 	json[FPSTR(szname)] = "Time";
 	TimeCtl::getdefaultconfig(json);
 }
 void  TimeController::setup() {
-#if defined TIMECONTROLLER_DEBUG
+#if defined TIMECONTROLLER_FULL_DEBUG
 	DBG_OUTPUT_PORT.println("TimeController::setup");
 	DBG_OUTPUT_PORT.print("gmtOffset");
 	DBG_OUTPUT_PORT.println(gmtOffset_sec);
@@ -108,7 +129,7 @@ void  TimeController::setup() {
 
 void TimeController::run() {
 	
-#if defined TIMECONTROLLER_DEBUG
+#if defined TIMECONTROLLER_FULL_DEBUG
 	DBG_OUTPUT_PORT.println(" TimeController::run");
 #endif
 	if (this->commands.GetSize() == 0) {
@@ -122,7 +143,7 @@ void TimeController::run() {
 		struct tm timeinfo;
 		if (getLocalTime(&timeinfo)) {
 			newcmd.state.time = mklocaltime(&timeinfo,this->get_gmtoffset());
-#if defined TIMECONTROLLER_DEBUG
+#if defined TIMECONTROLLER_FULL_DEBUG
 			DBG_OUTPUT_PORT.print("time by getLocalTime");
 			DBG_OUTPUT_PORT.println(asctime(&timeinfo));
 
@@ -130,11 +151,16 @@ void TimeController::run() {
 		}
 
 #endif
+		newcmd.state.time_withoffs = newcmd.state.time;
+#ifdef ESP32
+		newcmd.state.time_withoffs+= gmtOffset_sec;
+		newcmd.state.time_withoffs -= daylightOffset_sec;
+#endif
 		//this->commands.Add(newcmd);
 		newcmd.mode = SET;
 		this->AddCommand(newcmd.state, newcmd.mode, srcSelf);
 
-#if defined TIMECONTROLLER_DEBUG
+#if defined TIMECONTROLLER_FULL_DEBUG
 		DBG_OUTPUT_PORT.print("Time ctl run ");
 		DBG_OUTPUT_PORT.println(newcmd.state.time);
 		DBG_OUTPUT_PORT.println(getFormattedTime(newcmd.state.time));
@@ -154,19 +180,40 @@ void TimeController::run() {
 		//DBG_OUTPUT_PORT.println(getFormattedTime(newState.time));
 		this->set_state(newState);
 	}
+	check_restart();
 	if (enablesleep) {
 		if (this->nextsleep <= millis()) {
 			this->nextsleep = millis() + this->sleepinterval;
-			 DBG_OUTPUT_PORT.print("Startint  sleep");
+#if defined TIMECONTROLLER_DEBUG
+			 DBG_OUTPUT_PORT.println("Startint  sleep");
+#endif
 #ifdef ESP32
 			 if (this->sleeptype == 0) {
 				 esp_wifi_set_ps(WIFI_PS_MAX_MODEM);
 			 }
 			 else if (this->sleeptype == 1) {
-				 esp_sleep_enable_timer_wakeup(offsetwakeup);// 1000000 * 30);  //30s
-				 if(this->btnwakeup>0)
-					 esp_sleep_enable_ext0_wakeup((gpio_num_t)btnwakeup, 0);
-				 esp_light_sleep_start();
+				 if (this->is_sleepstarted && !is_shortwakeup() && !WiFi.isConnected()) { //give more chanse to other services to reach internet
+					 this->is_sleepstarted = false;
+					 this->nextsleep = millis() + 3000;
+#if defined TIMECONTROLLER_DEBUG
+					 DBG_OUTPUT_PORT.println("continue wake up due to wifi disconnect");
+#endif
+				 }
+				 else {
+					 
+					 esp_sleep_enable_timer_wakeup(is_shortwakeup_next()? offsetshortwakeup: offsetwakeup);// 1000000 * 30);  //30s
+					 Controllers::getInstance()->set_isneedreconnectwifi(!is_shortwakeup_next());
+#if defined TIMECONTROLLER_DEBUG
+					 if(is_shortwakeup())
+						DBG_OUTPUT_PORT.println("short wake up");
+#endif
+					 if (this->btnwakeup > 0)
+						 esp_sleep_enable_ext0_wakeup((gpio_num_t)btnwakeup, 0);
+					 this->sleepnumber++;
+					 this->is_sleepstarted = true;
+
+					 esp_light_sleep_start();
+				 }
 			 }
 #endif
 			
@@ -175,6 +222,24 @@ void TimeController::run() {
 	//esp_light_sleep_start();
 	//esp_sleep_enable_timer_wakeup(SleepSecs * uS_TO_S_FACTOR);
 	TimeCtl::run();
+}
+bool TimeController::is_shortwakeup() {
+	if (this->numshortsleeps == 0)
+		return false;
+	return (this->sleepnumber % this->numshortsleeps) > 0;
+}
+bool TimeController::is_shortwakeup_next() {
+	if (this->numshortsleeps == 0)
+		return false;
+	return ((this->sleepnumber+1) % this->numshortsleeps) > 0;
+}
+void TimeController::check_restart() {
+	if (this->restartinterval > 0) {
+		if (this->nextrestart == 0)
+			this->nextrestart = millis() + this->restartinterval;
+		if (this->nextrestart <= millis())
+			isReboot = true;
+	}
 }
 void TimeController::set_state(TimeState state) {
 
