@@ -78,7 +78,7 @@ class Services extends React.Component {
         var arr_data = string_chop(string_data, chunk);
         var copy_data = [...arr_data];
         var totallen = encode_chops(arr_data);
-        var index = 0;
+      //  var index = 0;
         for (var i = 0; i < arr_data.length; i++) {
 
             console.log(arr_data[i]);
@@ -87,9 +87,9 @@ class Services extends React.Component {
             url += "&";
             url += "data=" + arr_data[i];
             url += "&";
-            url += "len=" + totallen;
+            url += "len=" + string_data.length;//totallen;
             url += "&";
-            url += "index=" + index;
+            url += "index=" + i*chunk;
             url += "&";
             url += "encodedsize=" + arr_data[i].length;
             url += "&";
@@ -110,7 +110,7 @@ class Services extends React.Component {
                 }).catch(err => err),i*50)
             };
             executor(url);
-            index += arr_data[i].length;
+           // index += arr_data[i].length;
         }
 
     }
@@ -198,17 +198,17 @@ class Services extends React.Component {
                         />
                     </Col>
                     <Col num={2}>
-                        <Popup trigger={<Button label="Add" />} position="right center" contentStyle={{width:"300px"}}>
+                        <Popup modal trigger={<Button label="Add" />} position="right center" contentStyle={{width:"300px"}}>
                             {close => (
                                 <div >
-                                    <Row className="valign-wrapper popup-header">
-                                        <Col num={10} className="left"> 
-                                            <p>Select service</p>
-                                        </Col>
-                                        <Col num={1} className="right">
-                                            <a className="close" onClick={close}> X </a>
-                                        </Col>
-                                    </Row>
+                                    <div className="row">
+                                        <h5>
+                                            <span> Select service below</span>
+                                            <a className="close" onClick={close} style={{ float: 'right' }} >
+                                                &times;
+                                            </a>
+                                        </h5>
+                                    </div>
                                     <Row  className="valign-wrapper">
 
                                         <select

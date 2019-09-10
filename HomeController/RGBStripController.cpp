@@ -377,27 +377,27 @@ bool  RGBStripController::deserializestate(String jsonstate, CmdSource src) {
 }
 void RGBStripController::loadconfig(JsonObject& json) {
 	RGBStrip::loadconfig(json);
-	pin = json["pin"];
-	numleds = json["numleds"];
-	isEnableSmooth = json["issmooth"];
+	pin = json[FPSTR(szPinText)];
+	numleds = json[FPSTR(sznumleds)];
+	isEnableSmooth = json[FPSTR(szissmooth)];
 //	if(json.containsKey("rgb_startled"))
 //		rgb_startled= json["rgb_startled"];
-	loadif(rgb_startled, json, "rgb_startled");
-	loadif(ismatrix, json, "ismatrix");
-	loadif(matrixWidth, json, "matrixwidth");
-	loadif(matrixType, json, "matrixType");
+	loadif(rgb_startled, json, FPSTR(szrgb_startled));
+	loadif(ismatrix, json, FPSTR(szismatrix));
+	loadif(matrixWidth, json, FPSTR(szmatrixwidth));
+	loadif(matrixType, json, FPSTR(szmatrixType));
 
 
 }
 void RGBStripController::getdefaultconfig(JsonObject& json) {
 	json[FPSTR(szPinText)]= pin;
-	json["numleds"]= numleds;
+	json[FPSTR(sznumleds)]= numleds;
 	json[FPSTR(szservice)] = "RGBStripController";
 	json[FPSTR(szname)] = "RGBStrip";
-	json["issmooth"] = false;
-	json["rgb_startled"] = -1;
-	json["ismatrix"] = false;
-	json["matrixwidth"] = 0;
+	json[FPSTR(szissmooth)] = false;
+	json[FPSTR(szrgb_startled)] = -1;
+	json[FPSTR(szismatrix)] = false;
+	json[FPSTR(szmatrixwidth)] = 0;
 	RGBStrip::getdefaultconfig(json);
 }
 void  RGBStripController::setup() {

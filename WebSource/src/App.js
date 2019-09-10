@@ -9,6 +9,7 @@ import Relay from "./Components/Relay";
 import RelayDim from "./Components/RelayDim";
 import Services from "./Components/Services";
 import LDR from "./Components/LDR"
+import ThingSpeak from "./Components/ThingSpeak"
 import LogView from "./Components/LogView"
 import { getHomeUrl, getConfigData, getBaseuri, doFetch } from "./Components/utils"
 
@@ -102,7 +103,8 @@ class App extends Component {
                 return (props => <IRCtl  {...props} compprops={svc} />);
             case "DallasController":
                 return (props => <DallasCtl {...props} compprops={svc} />);
-
+            case "ThingSpeakController":
+                return (props => <ThingSpeak {...props} compprops={svc} />);
             default:
                 return (props =><div></div>);
                 break;

@@ -119,7 +119,7 @@ class Triggers extends React.Component {
         var arr_data = string_chop(string_data, chunk);
         var copy_data = [...arr_data];
         var totallen = encode_chops(arr_data);
-        var index = 0;
+       // var index = 0;
         for (var i = 0; i < arr_data.length; i++) {
 
             console.log(arr_data[i]);
@@ -128,9 +128,9 @@ class Triggers extends React.Component {
             url += "&";
             url += "data=" + arr_data[i];
             url += "&";
-            url += "len=" + totallen;
+            url += "len=" + string_data.length;//totallen;
             url += "&";
-            url += "index=" + index;
+            url += "index=" + i * chunk;
             url += "&";
             url += "encodedsize=" + arr_data[i].length;
             url += "&";
@@ -151,7 +151,7 @@ class Triggers extends React.Component {
                     }).catch(err => err), i * 50)
             };
             executor(url);
-            index += arr_data[i].length;
+           // index += arr_data[i].length;
         }
 
     }
@@ -167,7 +167,94 @@ class Triggers extends React.Component {
             return this.renderRF(item, idx, "rfrelay");
         if (item.type === 'DallasToRGBStrip')
             return this.renderDallasRGB(item, idx, "dallas");
+        if (item.type === 'BMEToThingSpeak')
+            return this.renderBMEToThingSpeak(item, idx, "BMEToThingSpeak");
+        if (item.type === 'LDRToThingSpeak')
+            return this.renderLDRToThingSpeak(item, idx, "LDRToThingSpeak");
     }
+    renderLDRToThingSpeak(trigger, tidx, rftype) {
+        if (!trigger.value) {
+            trigger.value = [];
+        }
+        //const { item, name, onchange, idx } = props;
+        return (
+            <>
+
+                <Row className="blue-grey lighten-5 valign-wrapper" >
+                    <Col num={2}>
+                        LDR values
+                    </Col>
+                    <Col num={2}>
+
+                        <label htmlFor={"ch"} className="input-label">LDR channel</label><br />
+
+                        <input
+                            id={"ch"}
+                            name={"ch"}
+
+                            value={trigger.ch}
+                            onChange={(ev) => this.assigntotrigger(tidx, (it) => { it.ch = ev.target.value; })}
+                        />
+                    </Col>
+
+                </Row>
+            </>
+        )
+
+    }
+
+    renderBMEToThingSpeak(trigger, tidx, rftype) {
+        if (!trigger.value) {
+            trigger.value = [];
+        }
+        //const { item, name, onchange, idx } = props;
+        return (
+            <>
+
+                <Row className="blue-grey lighten-5 valign-wrapper" >
+                    <Col num={2}>
+                        Temperature values
+                    </Col>
+                    <Col num={2}>
+
+                        <label htmlFor={"t_ch"} className="input-label">Temperature channel</label><br />
+
+                        <input
+                            id={"t_ch"}
+                            name={"t_ch"}
+
+                            value={trigger.t_ch}
+                            onChange={(ev) => this.assigntotrigger(tidx, (it) => { it.t_ch = ev.target.value; })}
+                        />
+                    </Col>
+                    <Col num={2}>
+                        <label htmlFor={"h_ch"} className="input-label">Humidity channel</label><br />
+
+                        <input
+                            id={"h_ch"}
+                            name={"h_ch"}
+
+                            value={trigger.h_ch}
+                            onChange={(ev) => this.assigntotrigger(tidx, (it) => { it.h_ch = ev.target.value; })}
+                        />
+                    </Col>
+                    <Col num={2}>
+                        <label htmlFor={"p_ch"} className="input-label">Pressure channel</label><br />
+
+                        <input
+                            id={"p_ch"}
+                            name={"p_ch"}
+
+                            value={trigger.p_ch}
+                            onChange={(ev) => this.assigntotrigger(tidx, (it) => { it.p_ch = ev.target.value; })}
+                        />
+                    </Col>
+                </Row>
+            </>
+        )
+
+    }
+
     renderDallasRGB(trigger, tidx, rftype) {
         if (!trigger.value) {
             trigger.value = [18.0, 30.0];
@@ -342,7 +429,8 @@ class Triggers extends React.Component {
         this.setState({ triggers });
     }
     addValueRecord(trindex, rtype) {
-       // console.debug("addTimeRecord" + trindex);
+       // console.debug("addTimeRecord" + rindex);
+        rtype = rtype.toLowerCase();
         let triggers = [...this.state.triggers]; //all new copy
         let item = { ...triggers[trindex] }; //edited item
         if (!item.value || !Array.isArray(item.value))
@@ -361,8 +449,17 @@ class Triggers extends React.Component {
         if (rtype === "timerelaydim") {
             values.push({ "isOn": true, "isLdr": true, "time": 0, "bg": 1 });
         }
-        
+        if (rtype === "bmetothingspeak") {
+            item.t_ch = 0;
+            item.h_ch = 0;
+            item.p_ch = 0;
+        }
+        if (rtype === "ldrtothingspeak") {
+            item.ch = 0;
+        }
+
         item.value = values; //back values
+
         triggers[trindex] = item;   //back item  
         
         this.setState({ triggers });
@@ -415,6 +512,22 @@ class Triggers extends React.Component {
                 if (item.service === "DallasController") acc.push(item.name);
                 return acc;
             }, []);
+        if (triggertype === "BMEToThingSpeak")
+            return this.state.services.reduce((acc, item) => {
+                if (item.service === "BME280Controller") acc.push(item.name);
+                return acc;
+            }, []);
+        if (triggertype === "LDRToThingSpeak")
+            return this.state.services.reduce((acc, item) => {
+                if (item.service === "LDRController") acc.push(item.name);
+                return acc;
+            }, []);
+        if (triggertype === "BMEToRGBMatrix")
+            return this.state.services.reduce((acc, item) => {
+                if (item.service === "BME280Controller") acc.push(item.name);
+                return acc;
+            }, []);
+
         return [];
     }
 
@@ -430,6 +543,12 @@ class Triggers extends React.Component {
                 (sitem.service === "RelayDimController" && triggertype === "TimeToRelayDimTrigger")
                 ||
                 (sitem.service === "RGBStripController" && triggertype === "DallasToRGBStrip")
+                ||
+                (sitem.service === "ThingSpeakController" && triggertype === "BMEToThingSpeak")
+                ||
+                (sitem.service === "ThingSpeakController" && triggertype === "LDRToThingSpeak")
+                ||
+                (sitem.service === "RGBStripController" && triggertype === "BMEToRGBMatrix")
             )
                 acc.push(sitem.name);
             return acc;

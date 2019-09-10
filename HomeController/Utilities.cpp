@@ -32,7 +32,13 @@ const char szsleeptype[] PROGMEM = "sleeptype";
 const char szrestartinterval[] PROGMEM = "restartinterval";
 const char sznumshortsleeps[] PROGMEM = "numshortsleeps";
 
-
+const char sznumleds[] PROGMEM = "numleds";
+const char szissmooth[] PROGMEM = "issmooth";
+const char szrgb_startled[] PROGMEM = "rgb_startled";
+const char szismatrix[] PROGMEM = "ismatrix";
+const char szmatrixwidth[] PROGMEM = "matrixwidth";
+const char szmatrixType[] PROGMEM = "matrixType";
+const char szapiKey[] PROGMEM = "apiKey";
 
 
 

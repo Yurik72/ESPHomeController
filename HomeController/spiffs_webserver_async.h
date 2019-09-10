@@ -340,9 +340,10 @@ void handleJsonSave(AsyncWebServerRequest *request)
 	uploadpos += size;
 
 	delete[] buff;
-
+	//DBG_OUTPUT_PORT.println(String("index:") + String(index)+ String(" size:") + String(size)+String(" len:") + String(len));
 	if ((index + size) >= len) {  //final
 		fsUploadFile.close();
+		//DBG_OUTPUT_PORT.println("JSon Save final");
 	}
 	//SPIFFS.remove(fname);
 	//File file = SPIFFS.open(fname, "w+");

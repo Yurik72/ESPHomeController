@@ -89,6 +89,15 @@ extern const char szsleeptype[];
 extern const char szrestartinterval[];
 extern const char sznumshortsleeps[];
 
+extern const char sznumleds[];
+extern const char szissmooth[];
+extern const char szrgb_startled[];
+extern const char szismatrix[];
+extern const char szmatrixwidth[];
+extern const char szmatrixType[];
+
+extern const char szapiKey[];
+
 
 
 

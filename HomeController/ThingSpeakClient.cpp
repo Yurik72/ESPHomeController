@@ -24,8 +24,10 @@ String  ThingSpeakController::serializestate() {
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	JsonObject root = jsonBuffer.to<JsonObject>();
 	root[FPSTR(szisOnText)] = this->get_state().isOn;
+	JsonArray channeldata = root.createNestedArray("data");
 	for (int i = 0; i < MAX_CHANNELS; i++) {
-		root[String(i)] = this->get_state().data[i];
+		channeldata.add(this->get_state().data[i]);
+		//root[String(i)] = this->get_state().data[i];
 	}
 
 	String json;
@@ -56,7 +58,7 @@ bool  ThingSpeakController::deserializestate(String jsonstate, CmdSource src) {
 }
 void ThingSpeakController::loadconfig(JsonObject& json) {
 	ThingSpeak::loadconfig(json);
-	apiKey = json["apiKey"].as<String>();
+	apiKey = json[FPSTR(szapiKey)].as<String>();
 	JsonArray arr = json["value"].as<JsonArray>();
 	for (int i = 0; i < arr.size() && i< MAX_CHANNELS; i++) {
 		chanelusage[i] = arr[i].as<bool>();
@@ -67,7 +69,8 @@ void ThingSpeakController::getdefaultconfig(JsonObject& json) {
 
 	json[FPSTR(szservice)] = "ThingSpeakController";
 	json[FPSTR(szname)] = "ThingSpeak";
-
+	json[FPSTR(szapiKey)] = "";
+	json["value"] = "[0,0,0,0,0,0,0,0]";
 	ThingSpeak::getdefaultconfig(json);
 }
 void  ThingSpeakController::setup() {
