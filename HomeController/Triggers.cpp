@@ -287,7 +287,7 @@ bool CBaseTimeTrigger<TM>::istimetotrigger(time_t time, time_t currentTime) {
 }
 template<typename TM>
 void CBaseTimeTrigger<TM>::handleloop(CBaseController*pBase, Controllers* pctlss) {
-	
+
 #ifdef	TRIGGER_DEBUG
 	DBG_OUTPUT_PORT.println("Trigger handle loop");
 
@@ -802,6 +802,7 @@ void BMEToRGBMatrix::loadconfig(JsonObject& json) {
 }
 void BMEToRGBMatrix::handleloopsvc(BME280Controller* ps, RGBStripController* pd) {
 	TriggerFromService< BME280Controller, RGBStripController>::handleloopsvc(ps, pd);
+
 	BMEState l = ps->get_state();
 	RGBState rgbState;
 
@@ -995,7 +996,7 @@ void LDRToThingSpeak::loadconfig(JsonObject& json) {
 }
 void LDRToThingSpeak::handleloopsvc(LDRController* ps, ThingSpeakController* pd) {
 	TriggerFromService< LDRController, ThingSpeakController>::handleloopsvc(ps, pd);
-	
+
 	LDRState l = ps->get_state();
 
 

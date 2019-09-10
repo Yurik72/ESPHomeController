@@ -17,7 +17,9 @@ const size_t bufferSize = JSON_OBJECT_SIZE(20);
 
 ThingSpeakController::ThingSpeakController() {
 
-	
+	for (int i = 0; i < MAX_CHANNELS; i++) {
+		chanelusage[i] = false;
+	}
 }
 String  ThingSpeakController::serializestate() {
 
@@ -58,10 +60,12 @@ bool  ThingSpeakController::deserializestate(String jsonstate, CmdSource src) {
 }
 void ThingSpeakController::loadconfig(JsonObject& json) {
 	ThingSpeak::loadconfig(json);
+	
 	apiKey = json[FPSTR(szapiKey)].as<String>();
 	JsonArray arr = json["value"].as<JsonArray>();
+	
 	for (int i = 0; i < arr.size() && i< MAX_CHANNELS; i++) {
-		chanelusage[i] = arr[i].as<bool>();
+		chanelusage[i] = arr[i].as<int>()!=0;
 	}
 
 }
@@ -130,7 +134,15 @@ void ThingSpeakController::real_send_attempts() {
 }
 bool ThingSpeakController::real_send() {
 	bool bres = false;
-
+	bool channel_exist = false;
+	for (int i = 0; i < MAX_CHANNELS; i++) {
+		if (chanelusage[i]) {
+			channel_exist = true;
+			break;
+		}
+	}
+	if (!channel_exist)
+		return true;
 	WiFiClient client;
 	if (WiFi.isConnected() && client.connect(thingspeakserver, 80))  //   "184.106.153.149" or api.thingspeak.com
 	{
@@ -153,6 +165,7 @@ bool ThingSpeakController::real_send() {
 #ifdef THINGSPEAK_DEBUG
 		DBG_OUTPUT_PORT.println(String("Thing speak send:") + postStr);
 #endif
+		
 		client.print("POST /update HTTP/1.1\n");
 		client.print("Host: api.thingspeak.com\n");
 		client.print("Connection: close\n");

@@ -193,7 +193,7 @@ class Triggers extends React.Component {
                             name={"ch"}
 
                             value={trigger.ch}
-                            onChange={(ev) => this.assigntotrigger(tidx, (it) => { it.ch = ev.target.value; })}
+                            onChange={(ev) => this.assigntotrigger(tidx, (it) => { it.ch = parseInt(ev.target.value); })}
                         />
                     </Col>
 
@@ -224,7 +224,7 @@ class Triggers extends React.Component {
                             name={"t_ch"}
 
                             value={trigger.t_ch}
-                            onChange={(ev) => this.assigntotrigger(tidx, (it) => { it.t_ch = ev.target.value; })}
+                            onChange={(ev) => this.assigntotrigger(tidx, (it) => { it.t_ch = parseInt(ev.target.value); })}
                         />
                     </Col>
                     <Col num={2}>
@@ -235,7 +235,7 @@ class Triggers extends React.Component {
                             name={"h_ch"}
 
                             value={trigger.h_ch}
-                            onChange={(ev) => this.assigntotrigger(tidx, (it) => { it.h_ch = ev.target.value; })}
+                            onChange={(ev) => this.assigntotrigger(tidx, (it) => { it.h_ch = parseInt(ev.target.value); })}
                         />
                     </Col>
                     <Col num={2}>
@@ -246,7 +246,7 @@ class Triggers extends React.Component {
                             name={"p_ch"}
 
                             value={trigger.p_ch}
-                            onChange={(ev) => this.assigntotrigger(tidx, (it) => { it.p_ch = ev.target.value; })}
+                            onChange={(ev) => this.assigntotrigger(tidx, (it) => { it.p_ch = parseInt(ev.target.value); })}
                         />
                     </Col>
                 </Row>

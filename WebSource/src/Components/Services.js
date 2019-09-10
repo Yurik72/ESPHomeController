@@ -4,6 +4,7 @@ import Popup from "reactjs-popup";
 import { getHomeUrl, getConfigData, getBaseuri, doFetch, string_chop, encode_chops } from "./utils"
 import { Card, Row, Col } from "./Card"
 import Arrow from "./Arrow"
+import { isNumber } from "util";
 
 const RunState = (props) => {
 
@@ -31,7 +32,24 @@ class Services extends React.Component {
             
             let item = { ...services[idx] }; //edited item
 
-            item[event.target.name] = event.target.value;
+            var res_val = event.target.value;
+
+            //console.log(JSON.parse(res_val));
+            if (!isNaN(parseInt(res_val))) {
+                res_val = parseInt(res_val);
+            } //else if (Array.isArray(JSON.parse(res_val))) {
+               // res_val = JSON.parse(res_val);
+            //}
+            try {
+                var test = JSON.parse(res_val);
+                if (Array.isArray(test))
+                    res_val = test;
+
+            } catch (e) {
+                //alert(e); // error in the above string (in this case, yes)!
+            }
+            item[event.target.name] = res_val;
+            //console.log(item);
             //alert(JSON.stringify(item));
             services[idx] = item;
 
@@ -166,7 +184,7 @@ class Services extends React.Component {
                                     <label for={key} className="input-label">{key}</label>
                                 </Col>
                                 <Col num={4} className="left">
-                                    <input type="text" id={sidx + key} name={key} value={item[key]}
+                                    <input type="text" id={sidx + key} name={key} value={Array.isArray(item[key]) ? JSON.stringify(item[key]) : item[key]}
                                         onChange={this.handleChange(sidx)}
                                         
                                     />

@@ -121,11 +121,14 @@ private:
 #define RGB_TEXTLEN 64
 struct RGBState
 {
+	RGBState() {
+		text[0] = '\0';
+	}
 	bool isOn=false;
 	int brightness = 0;
 	int wxmode = 0;
 	uint32_t color = 0;
-	int wxspeed = 0;
+	int wxspeed = 100;
 	int ldrValue = 0;
 	bool isLdr = false;
 	char text[RGB_TEXTLEN];
@@ -228,7 +231,7 @@ protected:
 class RGBStripFloatText
 {
 public:
-	RGBStripFloatText(StripWrapper* pStrip,String text);
+	RGBStripFloatText(StripWrapper* pStrip,String text,double interval=1.0);
 	void start();
 	void stop();
 	void reset();
@@ -240,7 +243,7 @@ protected:
 	uint8_t cycleIndex;
 	uint8_t cyclecount;
 	String txt;
-
+	double delay_interval;
 	StripWrapper* pStripWrapper;
 };
 

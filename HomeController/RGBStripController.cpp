@@ -287,8 +287,9 @@ void WS2812Wrapper::print_at(uint16_t x, String text) {
 	}
 }
 void WS2812Wrapper::printfloat(String text) {
+	
 	resetfloatcycler();
-	pcyclerfloattext = new RGBStripFloatText(this, text);
+	pcyclerfloattext = new RGBStripFloatText(this, text, pstrip->getSpeed()/100);
 	pcyclerfloattext->start();
 }
 void WS2812Wrapper::resetfloatcycler() {
@@ -369,6 +370,10 @@ bool  RGBStripController::deserializestate(String jsonstate, CmdSource src) {
 	newState.wxspeed = root["wxspeed"];
 	newState.isLdr = root["isLdr"];
 	newState.ldrValue = root["ldrValue"];
+	//newState.ldrValue = root["ldrValue"];
+	String txt = root["text"].as<String>();
+	if(txt.length()>0)
+		strncpy(newState.text, txt.c_str(), RGB_TEXTLEN);
 	//this->set_state(newState);
 	this->AddCommand(newState, SetRGB, src);
 	
@@ -440,7 +445,7 @@ void RGBStripController::run() {
 	command cmd;
 
 	pStripWrapper->service();
-	yield();
+//	yield();
 	bool isSet = true;
 	if (this->isEnableSmooth && pSmooth->isActive())
 		return;   ///ignore 
@@ -479,12 +484,16 @@ void RGBStripController::run() {
 		case SetText:
 			//newState.text = cmd.state.text;
 			newState.wxmode = textmode;
-			strncpy(newState.text, cmd.state.text, RGB_TEXTLEN);
+			if(strlen(cmd.state.text)>0)
+				strncpy(newState.text, cmd.state.text, RGB_TEXTLEN);
 			break;
 		case SetFloatText:
-			strncpy(newState.text, cmd.state.text, RGB_TEXTLEN);
+
+			if (strlen(cmd.state.text)>0)
+				strncpy(newState.text, cmd.state.text, RGB_TEXTLEN);
 			//newState.isFloatText = true;
 			newState.wxmode = textfloatmode;
+			
 			break;
 		default:
 			isSet = false;
@@ -589,7 +598,8 @@ void RGBStripController::set_state(RGBState state) {
 		}
 		if (oldState.color != state.color)
 			pStripWrapper->setColor(REDVALUE(state.color), GREENVALUE(state.color), BLUEVALUE(state.color));
-
+		if (oldState.wxspeed != state.wxspeed)
+			pStripWrapper->setSpeed(state.wxspeed);
 		if ((oldState.color != state.color) || (oldState.brightness != state.brightness)) {
 			double intensity = 0.0;
 			double hue = 0.0;
@@ -599,6 +609,7 @@ void RGBStripController::set_state(RGBState state) {
 			this->mqtt_saturation = saturation;
 		}
 	}
+	
 	if (strlen(state.text) > 0) {
 		if (state.wxmode== textfloatmode) {
 			pStripWrapper->printfloat(state.text);
@@ -838,12 +849,14 @@ void RGBStripCycler::callback(RGBStripCycler* self) {
 	self->oncallback();
 }
 
-RGBStripFloatText::RGBStripFloatText(StripWrapper* pStrip, String text) {
+RGBStripFloatText::RGBStripFloatText(StripWrapper* pStrip, String text, double interval) {
 	cycleIndex = 0;
-	//DBG_OUTPUT_PORT.println(String("ctor RGBStripFloatText :") + text);
+	
 	cyclecount = text.length();
 
 	txt = text;
+	//DBG_OUTPUT_PORT.println(txt);
+	delay_interval = interval;
 	pStripWrapper = pStrip;
 }
 
@@ -859,9 +872,9 @@ void RGBStripFloatText::reset() {
 	cycleIndex = 0;
 }
 void RGBStripFloatText::oncallback() {
-	//DBG_OUTPUT_PORT.println(String("Float Text")+ String(cycleIndex));
+	
 	this->pStripWrapper->print_at(cycleIndex, txt);
-	cycleTicker.once<RGBStripFloatText*>(1.0, RGBStripFloatText::callback, this);
+	cycleTicker.once<RGBStripFloatText*>(delay_interval, RGBStripFloatText::callback, this);
 	cycleIndex++;
 	if (cycleIndex >= cyclecount) cycleIndex = 0;
 }
