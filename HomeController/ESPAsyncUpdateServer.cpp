@@ -73,6 +73,7 @@ void ESPAsyncHTTPUpdateServer::setup(AsyncWebServer& server, const char * path, 
 				Update.printError(Serial);
 			}
 		}
+		vTaskDelay(20);
 	});
 
 

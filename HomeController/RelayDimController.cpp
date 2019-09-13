@@ -93,7 +93,7 @@ void  RelayDimController::setup() {
 	digitalWrite(pin, this->isinvert ? HIGH : LOW);
 #endif
 #ifdef ESP32
-	ledcSetup(channel, PWM_FREQ, PWM_BIT);
+	ledcSetup(channel, DIM_FREQ, DIM_RESOLUTION);
 	ledcAttachPin(pin, channel);
 	pinMode(pin, OUTPUT);
 #endif
@@ -142,10 +142,10 @@ void RelayDimController::run() {
 void RelayDimController::setBrightness(uint8_t br) {
 	
 #ifdef ESP8266
-	analogWrite(pin, CALC_VAL(br, isinvert));
+	analogWrite(pin, DIMCALC_VAL(br, isinvert));
 #endif
 #ifdef ESP32
-	ledcWrite(channel, CALC_VAL(br, isinvert));
+	ledcWrite(channel, DIMCALC_VAL(br, isinvert));
 #endif
 }
 int RelayDimController::getLDRBrightness(int brigtness, int ldrval) {

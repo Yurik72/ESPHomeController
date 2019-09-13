@@ -12,8 +12,12 @@
 #define DIM_MAX_PULSE_WIDTH      2500     // the longest pulse sent to a servo 
 #define DIM_MAX_FROM_BITS(bits)  0x1<<bits 
 
+#define DIM_FREQ 5000
+#define DIM_RESOLUTION 8
 
 #define CALC_VAL(val,invert) map(constrain(((!invert)?val:(DIM_MAX_VAL-val)),0,DIM_MAX_VAL),DIM_MIN_VAL,DIM_MAX_VAL,DIM_MIN_PULSE_WIDTH,DIM_MAX_FROM_BITS(PWM_BIT))
+
+#define DIMCALC_VAL(val,invert) constrain(((!invert)?val:(DIM_MAX_VAL-val)),DIM_MIN_VAL,DIM_MAX_VAL)
 
 struct RelayDimState
 {

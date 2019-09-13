@@ -124,7 +124,7 @@ void  TimeController::setup() {
 #else
 	configTime(gmtOffset_sec, daylightOffset_sec, ntpServer.c_str());
 #endif
-	this->nextsleep = millis() + this->sleepinterval;
+	this->nextsleep = millis() + 300000; //5 min to give a chanse to update//this->sleepinterval;
 }
 
 void TimeController::run() {
@@ -213,6 +213,7 @@ void TimeController::run() {
 					 this->is_sleepstarted = true;
 
 					 esp_light_sleep_start();
+					 delay(500);
 				 }
 			 }
 #endif

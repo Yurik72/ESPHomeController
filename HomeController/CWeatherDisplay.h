@@ -42,6 +42,12 @@
 #define SD_SCK 35
 #define F_CS 34
 
+#define BR_MIN_VAL 0
+#define BR_MAX_VAL 0xFF
+#define BR_FREQ 5000
+#define BR_RESOLUTION 8
+#define BRCALC_VAL(val,invert) constrain(((!invert)?val:(BR_MAX_VAL-val)),BR_MIN_VAL,BR_MAX_VAL)
+
 struct ForecastData{
   double temp=0;
   uint16_t condition;
@@ -76,6 +82,7 @@ struct WeatherDisplayState
 	time_t now;
 	WeatherData data;
 	ForeceastRecord frecord;
+	uint8_t brigthness = 200;
 };
 enum WeatherDisplayCMD {
 	WDRefreshAll = 2,
@@ -88,7 +95,8 @@ enum WeatherDisplayCMD {
 	WDFreeze=256,
 	WDUnFreeze=512,
 	WDSwitchMode=1024,
-	WDRestore = 2048
+	WDRestore = 2048,
+	WDSetBrigthness = 4096
 };
 //const String WDAY_NAMES[] = {"SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"};
 const String MONTH_NAMES[] = {"JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"};
@@ -144,6 +152,8 @@ void draw_weatherdata();
 void draw_time();
 void diagnostic();
 void refreshTime();
+void setBrightness(uint8_t br);
+
 String format_date(time_t time);
 Adafruit_ST7735* pDisplay7735;
 Adafruit_ILI9341* pDisplay9341;
@@ -172,7 +182,12 @@ uint8_t pdc = TFTILI_DC;
 uint8_t psclk = TFTILI_SCLK;
 uint8_t pmosi = TFTILI_MOSI;
 uint8_t pmiso = TFTILI_MISO;
+uint8_t pbr = 0;
+uint8_t brigthness = 200;
 time_t disp_time;
+#ifdef ESP32
+int br_channel = 0;;
+#endif
 };
 
 DEFINE_CONTROLLER_FACTORY(WeatherDisplayController)

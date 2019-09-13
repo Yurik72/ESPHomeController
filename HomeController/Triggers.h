@@ -248,7 +248,11 @@ public:
 
 		temp = 1,
 		hum = 2,
-		pres = 3
+		pres = 3,
+		all = 4,
+		//all_color_random=5,
+		all_color_colorwheel = 5,
+		max = 6
 	};
 	BMEToRGBMatrix();
 
@@ -257,16 +261,13 @@ public:
 	
 protected:
 	DMODE mode = temp;
-
+	String get_temp_text(double val);
+	String get_humidity_text(double val);
+	String get_pressure_text(double val);
 };
 class BMEToThingSpeak :public TriggerFromService< BME280Controller, ThingSpeakController> {
 public:
-	enum DMODE : uint8_t {
 
-		temp = 1,
-		hum = 2,
-		pres = 3
-	};
 	BMEToThingSpeak();
 
 	virtual void handleloopsvc(BME280Controller* ps, ThingSpeakController* pd);

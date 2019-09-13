@@ -800,6 +800,15 @@ void BMEToRGBMatrix::loadconfig(JsonObject& json) {
 
 
 }
+String BMEToRGBMatrix::get_temp_text(double val) {
+	return format_str("%.1fC", val);
+}
+String BMEToRGBMatrix::get_humidity_text(double val) {
+	return  format_str("%.0f %%", val);
+}
+String BMEToRGBMatrix::get_pressure_text(double val) {
+	return format_str("%.0fhP", val);
+}
 void BMEToRGBMatrix::handleloopsvc(BME280Controller* ps, RGBStripController* pd) {
 	TriggerFromService< BME280Controller, RGBStripController>::handleloopsvc(ps, pd);
 
@@ -807,20 +816,33 @@ void BMEToRGBMatrix::handleloopsvc(BME280Controller* ps, RGBStripController* pd)
 	RGBState rgbState;
 
 	RGBCMD cmd = SetText;
+	rgbState.cmode = current;
 	String newtext;
+	//this->mode = all;
 	switch (this->mode)
 	{
 
 	case temp:
 	
-		newtext = format_str("%.1fC", l.temp);
+		newtext = get_temp_text( l.temp);
 		break;
 	case hum:
-		newtext = format_str("%.0f %%", l.hum);
+		newtext = get_humidity_text(l.hum);
 		break;
 	case pres:
-		newtext = format_str("%.0fhP", l.pres);
+		newtext = get_pressure_text(l.pres);
 		break;
+	case all:
+	//case all_color_random:
+	case all_color_colorwheel:
+		newtext = get_temp_text(l.temp)+" "+ get_humidity_text(l.hum)+ " "+ get_pressure_text(l.pres);
+		cmd = SetFloatText; 
+//		if(this->mode== all_color_random)
+//			rgbState.cmode = randomchar;
+		if (this->mode == all_color_colorwheel)
+			rgbState.cmode = color_wheel;
+		break;
+
 	default:
 		break;
 
@@ -828,12 +850,9 @@ void BMEToRGBMatrix::handleloopsvc(BME280Controller* ps, RGBStripController* pd)
 	memset(rgbState.text, 0, RGB_TEXTLEN);
 	strncpy(rgbState.text, newtext.c_str(), RGB_TEXTLEN);
 	pd->AddCommand(rgbState, cmd, srcTrigger);
-
-	if (this->mode == pres) {
+	this->mode = (DMODE)(this->mode + 1);
+	if (this->mode == max) {
 		this->mode = temp;
-	}
-	else {
-		this->mode = (DMODE)(this->mode + 1);
 	}
 }
 

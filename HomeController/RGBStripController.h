@@ -27,10 +27,15 @@ class WS2812FX;
 class Ticker;
 class RGBStripCycler;
 class RGBStripFloatText;
+class StripWrapper;
+enum CURSOR_CHARMODE {
+	PERCHAR = 0,
+	PERPIXEL=1
+};
 
 class StripMatrix: public  Adafruit_GFX {
 public:
-	StripMatrix(int w, int h, WS2812FX* p,
+	StripMatrix(int w, int h, WS2812FX* p, StripWrapper* pw,
 		uint8_t matrixType = NEO_MATRIX_TOP + NEO_MATRIX_LEFT +
 		//NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG);
 		NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG);
@@ -38,8 +43,14 @@ public:
 	virtual void drawPixel(int16_t x, int16_t y, uint16_t color);
 	void setPassThruColor(uint32_t c);
 	void setPassThruColor();
+	void startprint();
+	void endprint();
+	virtual size_t write(uint8_t c);
+	bool setCustomMode(bool val) { isCustomWrite_mode = val; };
+	bool setCursorMode(CURSOR_CHARMODE val) { cursormode = val; };
 protected:
 	WS2812FX* pstrip;
+	StripWrapper* pwrapper;
 	uint8_t type;
 	uint8_t	matrixWidth, matrixHeight;
 	
@@ -48,15 +59,25 @@ protected:
 	(*remapFn)(uint16_t x, uint16_t y);
 	uint32_t passThruColor;
 	boolean  passThruFlag = false;
-	
+private:
+	uint16_t charcounter;
+	uint8_t charbytecounter;
+	bool isCustomWrite_mode;
+	CURSOR_CHARMODE cursormode;
 };
+enum COLOR_MODE : uint8_t {
 
+	current = 0,
+	randomchar = 2,
+	color_wheel=3
+};
 class StripWrapper {
 public:
-	StripWrapper() { pcyclerfloattext = NULL; }
+	StripWrapper() { pcyclerfloattext = NULL; cmode = current; }
 	~StripWrapper() {
 		deinit();
 	}
+
 	virtual void setup(int pin,int numleds) = 0;
 	virtual void init(void)=0;
 	virtual void deinit(void) {};
@@ -76,13 +97,19 @@ public:
 	void set_rgb_startled(int val) { rgb_startled = val; };
 	virtual void setupmatrix(int w, int h, uint8_t matrixType = NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS) {};
 	virtual void print(String text) {};
-	virtual void print_at(uint16_t x, String text) {};
+	virtual void print_at(int16_t x, String text) {};
 	virtual void printfloat(String text) {};
 	virtual void resetfloatcycler() {};
 	virtual uint8_t setCustomMode(const __FlashStringHelper* name, uint16_t(*p)()) {};
+	virtual void setTextColor(uint16_t c) {};
+	void setColorMatrixMode(COLOR_MODE m) { cmode = m; };
+	virtual uint32_t color_wheel(uint8_t pos) {};
+	COLOR_MODE getColorMatrixMode() { return cmode; };
 protected:
 	int rgb_startled;
 	RGBStripFloatText* pcyclerfloattext;
+private:
+	COLOR_MODE cmode;
 };
 
 class WS2812Wrapper :public StripWrapper {
@@ -108,21 +135,24 @@ public:
 	virtual uint8_t getBrightness(void);
 	virtual void setupmatrix(int w, int h, uint8_t matrixType = NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS) ;
 	virtual void print(String text);
-	virtual void print_at(uint16_t x, String text);
+	virtual void print_at(int16_t x, String text);
 	virtual void printfloat(String text);
 	virtual void resetfloatcycler();
 	virtual uint8_t setCustomMode(const __FlashStringHelper* name, uint16_t(*p)()) ;
+	virtual void setTextColor(uint16_t c) ;
+	virtual uint32_t color_wheel(uint8_t pos);
 private:
 	WS2812FX* pstrip;
 	StripMatrix* pMatrix;
 	bool useinternaldriver;
 
 };
-#define RGB_TEXTLEN 64
+#define RGB_TEXTLEN 32
 struct RGBState
 {
 	RGBState() {
-		text[0] = '\0';
+		//text[0] = '\0';
+		memset(text, 0, RGB_TEXTLEN + 1);
 	}
 	bool isOn=false;
 	int brightness = 0;
@@ -131,7 +161,8 @@ struct RGBState
 	int wxspeed = 100;
 	int ldrValue = 0;
 	bool isLdr = false;
-	char text[RGB_TEXTLEN];
+	char text[RGB_TEXTLEN+1];
+	COLOR_MODE cmode = current;
 	//bool isFloatText = false;
 };
 enum RGBCMD :uint {
@@ -147,7 +178,8 @@ enum RGBCMD :uint {
 	SetRestore = 2048,   //should have the same name
 	RgbSaveState = 4096,
 	SetText=8192,
-	SetFloatText =16384
+	SetFloatText =16384,
+	SetMatrixColorMode=32768
 };
 class RGBStripController;
 typedef CManualStateController<RGBStripController, RGBState, RGBCMD> RGBStrip;
@@ -227,11 +259,15 @@ protected:
 
 	StripWrapper* pStripWrapper;
 };
-
+enum FLOAT_DIRECTION :boolean{
+	left=0,
+	right=1
+};
 class RGBStripFloatText
 {
+	
 public:
-	RGBStripFloatText(StripWrapper* pStrip,String text,double interval=1.0);
+	RGBStripFloatText(StripWrapper* pStrip,String text,uint8_t matrixwidth=32,double interval=1.0);
 	void start();
 	void stop();
 	void reset();
@@ -240,11 +276,17 @@ public:
 
 protected:
 	Ticker cycleTicker;
-	uint8_t cycleIndex;
-	uint8_t cyclecount;
+	uint16_t cycleIndex;
+
+	uint16_t cyclecount;
+	uint16_t minorcycleIndex;
 	String txt;
-	double delay_interval;
+	float delay_interval;
+	uint8_t mwidth;
 	StripWrapper* pStripWrapper;
+	FLOAT_DIRECTION direction;
+	uint8_t charwidth;
+	uint16_t textlen;
 };
 
 #endif

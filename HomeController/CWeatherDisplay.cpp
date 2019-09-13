@@ -41,7 +41,8 @@ String  WeatherDisplayController::serializestate() {
 	JsonObject root = jsonBuffer.to<JsonObject>();
 	root[FPSTR(szisOnText)] = this->get_state().isOn;
 
-
+	root["brigthness"] = this->get_state().brigthness;
+	root["time"] = this->get_state().now;
 	String json;
 
 	serializeJson(root, json);
@@ -61,9 +62,11 @@ bool  WeatherDisplayController::deserializestate(String jsonstate, CmdSource src
 	JsonObject root = jsonBuffer.as<JsonObject>();
 	WeatherDisplayState newState;
 	newState.isOn = root[FPSTR(szisOnText)];
+	newState.brigthness= root["brigthness"];
+	
 
 
-
+	this->AddCommand(newState, WDRefreshAll, src);
 	//this->set_state(newState);
 	return true;
 
@@ -76,14 +79,20 @@ void WeatherDisplayController::loadconfig(JsonObject& json) {
 	loadif(psclk, json, "psclk");
 	loadif(pmosi, json, "pmosi");
 	loadif(pmiso, json, "pmiso");
-
-
+	loadif(pbr, json, "pbr");
 
 }
 void WeatherDisplayController::getdefaultconfig(JsonObject& json) {
 
 	json[FPSTR(szservice)] = "WeatherDisplayClientController";
 	json[FPSTR(szname)] = "WeatherDisplay";
+	json["pcs"] = pcs;
+	json["prst"] = prst;
+	json["pdc"] = pdc;
+	json["psclk"] = psclk;
+	json["pmosi"] = pmosi;
+	json["pmiso"] = pmiso;
+	json["pbr"] = pbr;
 
 	WeatherDisplay::getdefaultconfig(json);
 }
@@ -106,6 +115,7 @@ void WeatherDisplayController::run() {
 		bool bforecast = false;
 		bool bInfo = false;
 		bool bAllClear = false;
+		bool bsetBrighthess = false;
 		if (this->baseprocesscommands(cmd))
 			continue;
 		WeatherDisplayState newState = get_state();
@@ -122,6 +132,8 @@ void WeatherDisplayController::run() {
 				break;
 			case WDRefreshAll:
 				btime = bforecast = bweather = (dispMode == MainWether);
+				if (pbr > 0)
+					bsetBrighthess = true;
 				newState = cmd.state;
 				
 				break;
@@ -158,6 +170,11 @@ void WeatherDisplayController::run() {
 				getforecastdata().Add(cmd.state.frecord);
 				bforecast = dispMode == MainWether;
 				break;
+			case WDSetBrigthness:
+				if (pbr > 0) {
+					bsetBrighthess = true;
+				}
+				break;
 			default:
 				break;
 		}
@@ -184,6 +201,8 @@ void WeatherDisplayController::run() {
 				}
 			}
 		}
+		if(bsetBrighthess)
+			this->setBrightness(this->get_state().brigthness);
 	}
 	WeatherDisplay::run();
 }
@@ -218,6 +237,19 @@ void WeatherDisplayController::setup(){
 		  DBG_OUTPUT_PORT.println("rtc_gpio_hold_en error");
 	  }
 #endif
+	  if (pbr > 0) {
+#ifdef ESP8266
+		  pinMode(pbr, OUTPUT);
+		  digitalWrite(pbr,  LOW);
+#endif
+#ifdef ESP32
+		  ledcSetup(br_channel, BR_FREQ, BR_RESOLUTION);
+		  ledcAttachPin(pbr, br_channel);
+		  pinMode(pbr, OUTPUT);
+		  ledcWrite(br_channel, BRCALC_VAL(0, false));
+#endif
+		  this->setBrightness(brigthness);
+	  }
       //diagnostic();
   }
 
@@ -226,6 +258,16 @@ void WeatherDisplayController::setup(){
   this->adjustRotation();
   cleardisplay();
   WeatherDisplay::setup();
+}
+void WeatherDisplayController::setBrightness(uint8_t br) {
+
+#ifdef ESP8266
+	analogWrite(pin, BRCALC_VAL(br, false));
+#endif
+#ifdef ESP32
+	ledcWrite(br_channel, BRCALC_VAL(br, false));
+#endif
+	brigthness = br;
 }
 void WeatherDisplayController::cleardisplay() {
 	pDisplay->fillRect(0, 0, pDisplay->width(), pDisplay->height(), ST7735_BLACK);
