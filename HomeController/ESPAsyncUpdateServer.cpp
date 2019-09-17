@@ -73,7 +73,11 @@ void ESPAsyncHTTPUpdateServer::setup(AsyncWebServer& server, const char * path, 
 				Update.printError(Serial);
 			}
 		}
+#ifdef ESP32
 		vTaskDelay(20);
+#else
+		delay(10);
+#endif
 	});
 
 

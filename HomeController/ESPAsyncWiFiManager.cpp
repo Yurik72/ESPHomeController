@@ -208,8 +208,18 @@ boolean AsyncWiFiManager::autoConnect(char const *apName, char const *apPassword
 
   // attempt to connect; should it fail, fall back to AP
   WiFi.mode(WIFI_STA);
- 
-  if (connectWifi("", "") == WL_CONNECTED)   {
+#if defined(ESP8266)
+  WiFi.hostname(apName);
+
+#else
+  
+  WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
+  if (!WiFi.setHostname(apName)) {
+	  DEBUG_WM("Host name is not set");
+  }
+
+#endif
+  if (connectWifi("", "", apName) == WL_CONNECTED)   {
     DEBUG_WM(F("IP Address:"));
     DEBUG_WM(WiFi.localIP());
     //connected
@@ -353,7 +363,7 @@ void AsyncWiFiManager::startConfigPortalModeless(char const *apName, char const 
   DEBUG_WM("SET AP STA");
 
   // try to connect
-  if (connectWifi("", "") == WL_CONNECTED)   {
+  if (connectWifi("", "", apName) == WL_CONNECTED)   {
     DEBUG_WM(F("IP Address:"));
     DEBUG_WM(WiFi.localIP());
     //connected
@@ -409,7 +419,7 @@ void AsyncWiFiManager::criticalLoop(){
 	  DEBUG_WM(F("Connecting to new AP"));
 
 	  // using user-provided  _ssid, _pass in place of system-stored ssid and pass
-	  if (connectWifi(_ssid, _pass) != WL_CONNECTED) {
+	  if (connectWifi(_ssid, _pass, _apName) != WL_CONNECTED) {
 		DEBUG_WM(F("Failed to connect."));
 	  } else {
 		//connected
@@ -485,7 +495,7 @@ boolean  AsyncWiFiManager::startConfigPortal(char const *apName, char const *apP
       DEBUG_WM(F("Connecting to new AP"));
 
       // using user-provided  _ssid, _pass in place of system-stored ssid and pass
-      if (connectWifi(_ssid, _pass) != WL_CONNECTED) {
+      if (connectWifi(_ssid, _pass, apName) != WL_CONNECTED) {
         DEBUG_WM(F("Failed to connect."));
       } else {
         //connected
@@ -522,9 +532,9 @@ boolean  AsyncWiFiManager::startConfigPortal(char const *apName, char const *apP
 }
 
 
-int AsyncWiFiManager::connectWifi(String ssid, String pass) {
+int AsyncWiFiManager::connectWifi(String ssid, String pass, String hostName) {
   DEBUG_WM(F("Connecting as wifi client..."));
-
+  hostName.toLowerCase();
   // check if we've got static_ip settings, if we do, use those.
   if (_sta_static_ip) {
     DEBUG_WM(F("Custom STA IP/GW/Subnet/DNS"));
@@ -546,6 +556,13 @@ int AsyncWiFiManager::connectWifi(String ssid, String pass) {
   #else
     WiFi.disconnect(false);
   #endif
+	//https://github.com/espressif/arduino-esp32/issues/2537
+#if defined(ESP8266)
+	WiFi.hostname(hostName.c_str());
+	
+#else
+	WiFi.setHostname(hostName.c_str());
+#endif
 
     WiFi.begin(ssid.c_str(), pass.c_str());
   } else {
@@ -559,11 +576,28 @@ int AsyncWiFiManager::connectWifi(String ssid, String pass) {
 #else
       WiFi.disconnect(false);
 #endif
+#if defined(ESP8266)
+	  WiFi.hostname(hostName.c_str());
 
+#else
+	  WiFi.setHostname(hostName.c_str());
+#endif
       WiFi.begin();
     } else {
+#if defined(ESP8266)
+		WiFi.hostname(hostName.c_str());
+
+#else
+		WiFi.config(INADDR_NONE, INADDR_NONE, INADDR_NONE);
+		if (!WiFi.setHostname(hostName.c_str())) {
+			DEBUG_WM("Host name is not set");
+		}
+
+#endif
+	  //DEBUG_WM(hostName);
       DEBUG_WM("Try to connect with saved credentials");
       WiFi.begin();
+	  
     }
   }
 

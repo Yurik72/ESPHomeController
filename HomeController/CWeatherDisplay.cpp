@@ -12,6 +12,7 @@
 #include "weathericons.h"
 #include "fonts.h"
 #include "time.h"
+#include "Wire.h"
 
 #ifdef ESP32
 
@@ -80,6 +81,8 @@ void WeatherDisplayController::loadconfig(JsonObject& json) {
 	loadif(pmosi, json, "pmosi");
 	loadif(pmiso, json, "pmiso");
 	loadif(pbr, json, "pbr");
+	loadif(dac_i2c, json, "dac_i2c");
+	
 
 }
 void WeatherDisplayController::getdefaultconfig(JsonObject& json) {
@@ -93,6 +96,7 @@ void WeatherDisplayController::getdefaultconfig(JsonObject& json) {
 	json["pmosi"] = pmosi;
 	json["pmiso"] = pmiso;
 	json["pbr"] = pbr;
+	json["dac_i2c"] = dac_i2c;
 
 	WeatherDisplay::getdefaultconfig(json);
 }
@@ -171,7 +175,7 @@ void WeatherDisplayController::run() {
 				bforecast = dispMode == MainWether;
 				break;
 			case WDSetBrigthness:
-				if (pbr > 0) {
+				if (pbr > 0 || dac_i2c>0) {
 					bsetBrighthess = true;
 				}
 				break;
@@ -260,14 +264,24 @@ void WeatherDisplayController::setup(){
   WeatherDisplay::setup();
 }
 void WeatherDisplayController::setBrightness(uint8_t br) {
-
+	if (pbr > 0) {
 #ifdef ESP8266
-	analogWrite(pin, BRCALC_VAL(br, false));
+		analogWrite(pbr, BRCALC_VAL(br, false));
 #endif
 #ifdef ESP32
-	ledcWrite(br_channel, BRCALC_VAL(br, false));
+		ledcWrite(br_channel, BRCALC_VAL(br, false));
 #endif
+	}
+	if (dac_i2c > 0) {
+		Wire.beginTransmission(dac_i2c); //start transmit
+		Wire.write(0x40); // Switch  DAC
+		Wire.write(br); // value
+		Wire.endTransmission(); // end
+
+	}
+
 	brigthness = br;
+
 }
 void WeatherDisplayController::cleardisplay() {
 	pDisplay->fillRect(0, 0, pDisplay->width(), pDisplay->height(), ST7735_BLACK);

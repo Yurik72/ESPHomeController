@@ -11,6 +11,8 @@
 #include "Controllers.h"
 #ifdef ESP32
 #include "esp_wifi.h"
+#include "esp_bt_main.h"
+//#include "esp_bt.h"
 #endif
 
 //const char* ntpServer = "pool.ntp.org";
@@ -211,10 +213,17 @@ void TimeController::run() {
 						 esp_sleep_enable_ext0_wakeup((gpio_num_t)btnwakeup, 0);
 					 this->sleepnumber++;
 					 this->is_sleepstarted = true;
-
+					
+					 delay(20);
 					 esp_light_sleep_start();
 					 delay(500);
 				 }
+			 }
+			 else if (this->sleeptype == 2) {
+				 DBG_OUTPUT_PORT.println("Starting modem sleep ");
+				 esp_bluedroid_disable();
+				// esp_bt_controller_disable();
+				 esp_wifi_stop();
 			 }
 #endif
 			

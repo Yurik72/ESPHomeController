@@ -28,6 +28,7 @@
 #include <ESP8266mDNS.h>
 #else
 #include <ESPmDNS.h>
+//#include <ESPAsyncDNSServer.h>
 #endif
 
 #include <WiFiClient.h>
@@ -135,7 +136,16 @@ WebServer server(80);
 	 // ***************************************************************************
 	 // Setup: SPIFFS
 	 // ***************************************************************************
-	 SPIFFS.begin();
+#if defined(ESP8266)
+	 if (SPIFFS.begin()) {
+		 SPIFFS.format();
+	 }
+#else
+	 if (!SPIFFS.begin(true)) {
+		 DBG_OUTPUT_PORT.print("SPIFFS Mount failed");
+	 }
+#endif
+
 	 //testfs();
 	 // ***************************************************************************
 	 // Setup: WiFi manager
@@ -161,12 +171,14 @@ WebServer server(80);
 	 if (!isAPMode) {
 		 if (MDNS.begin(HOSTNAME)) {
 			 DBG_OUTPUT_PORT.println("MDNS responder started");
+			 MDNS.addService("_http", "_tcp", 80);
 		 }
+
 	 }
 
 
 #if !defined(ESP8266)
-	 const String FILES[] = {  "/index.html", "/js/bundle.min.js.gz"};//"/filebrowse.html"
+	 const String FILES[] = {  "/index.html", "/js/bundle.min.js.gz","/filebrowse.html" };//"/filebrowse.html"
 	 if (!isAPMode){
 		 for(int i=0;i<sizeof(FILES)/sizeof(*FILES);i++)
 			check_anddownloadfile(szfilesourceroot, FILES[i]);
@@ -224,6 +236,7 @@ void loop()
 		ESP.restart();
 		return;
 	}
+	
 #if! defined ASYNC_WEBSERVER
 	server.handleClient();   ///handle income http request
 #endif
@@ -361,6 +374,7 @@ void startwifimanager() {
 	else {
 		pwifiManager->cleanParameters();
 	}
+	
 }
 
 // gets called when WiFiManager enters configuration mode

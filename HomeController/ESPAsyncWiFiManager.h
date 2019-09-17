@@ -213,7 +213,7 @@ private:
   //void          setEEPROMString(int start, int len, String string);
 
   int           status = WL_IDLE_STATUS;
-  int           connectWifi(String ssid, String pass);
+  int           connectWifi(String ssid, String pass,String hostName);
   uint8_t       waitForConnectResult();
   void          setInfo();
 

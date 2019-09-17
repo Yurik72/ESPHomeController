@@ -93,9 +93,16 @@ void  RelayDimController::setup() {
 	digitalWrite(pin, this->isinvert ? HIGH : LOW);
 #endif
 #ifdef ESP32
+//	if (gpio_hold_en((gpio_num_t)pin) != ESP_OK) {
+//		DBG_OUTPUT_PORT.println("rtc_gpio_hold_en error");
+//	}
 	ledcSetup(channel, DIM_FREQ, DIM_RESOLUTION);
 	ledcAttachPin(pin, channel);
 	pinMode(pin, OUTPUT);
+	setBrightness(100);
+//	if (gpio_hold_en((gpio_num_t)pin) != ESP_OK) {
+//		DBG_OUTPUT_PORT.println("rtc_gpio_hold_en error");
+//	}
 #endif
 }
 

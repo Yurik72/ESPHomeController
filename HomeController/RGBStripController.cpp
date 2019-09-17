@@ -93,7 +93,14 @@ StripMatrix::StripMatrix(int w, int h, WS2812FX* p, StripWrapper* pw, uint8_t ma
 	charcounter = 0;
 	charbytecounter = 0;
 	isCustomWrite_mode = true;
-	
+	_in_offset_x = 0;
+	_in_offset_y = 0;
+}
+void  StripMatrix::set_inoffset_x(int16_t val) {
+	_in_offset_x = val;
+}
+void  StripMatrix::set_inoffset_y(int16_t val) {
+	_in_offset_y = val;
 }
 void StripMatrix::setPassThruColor(uint32_t c) {
 	passThruColor = c;
@@ -181,7 +188,7 @@ void StripMatrix::endprint() {
 
 size_t StripMatrix::write(uint8_t c) {
 	charcounter++;
-	if (charbytecounter = 0xFF)
+	if (charbytecounter == 0xFF)
 		charbytecounter = 0;
 	else
 		charbytecounter++;
@@ -193,9 +200,9 @@ size_t StripMatrix::write(uint8_t c) {
 		setPassThruColor(pwrapper->color_wheel(charbytecounter));
 		//setPassThruColor(RED) {
 	}
-//	DBG_OUTPUT_PORT.println(String("char") + String(c) + String(" cursor_x:") + String(cursor_x)+ String(" cursor_y:") + String(cursor_y));
+	//DBG_OUTPUT_PORT.println(String("char") + String(c) + String(" cursor_x:") + String(cursor_x)+ String(" cursor_y:") + String(cursor_y));
 	size_t res= Adafruit_GFX::write(c);
-//	DBG_OUTPUT_PORT.println(String("After") + String(" cursor_x:") + String(cursor_x) + String(" cursor_y:") + String(cursor_y));
+	//DBG_OUTPUT_PORT.println(String("After") + String(" cursor_x:") + String(cursor_x) + String(" cursor_y:") + String(cursor_y));
 	return res;
 }
 ///End matrix
@@ -295,7 +302,7 @@ void WS2812Wrapper::print(String text) {
 	this->print_at(0, text);
 };
 void WS2812Wrapper::print_at(int16_t x, String text) {
-	DBG_OUTPUT_PORT.println(String("Print_at:") + text);
+	//DBG_OUTPUT_PORT.println(String("Print_at:") + text);
 	if (pMatrix) {
 		//DBG_OUTPUT_PORT.println(String("Print_at")+text);
 
@@ -911,7 +918,7 @@ RGBStripFloatText::RGBStripFloatText(StripWrapper* pStrip, String text, uint8_t 
 	
 	if(delay_interval==0.0)
 		delay_interval = 0.5;
-	delay_interval = 1.0;
+	delay_interval = 0.1;
 	pStripWrapper = pStrip;
 	direction = right;
 	cycleIndex = 0;
@@ -936,14 +943,19 @@ void RGBStripFloatText::reset() {
 void RGBStripFloatText::oncallback() {
 	
 	uint16_t char_onscreen = mwidth / charwidth;
-	uint8_t space = 2;
+	uint8_t space = 1;
 	String txtspace;
 	for (int i = 0; i < space; i++)
 		txtspace += " ";
 	if (direction == right) {
 		uint16_t char_offset = cycleIndex / charwidth;
 		int16_t posx = minorcycleIndex;
-		String txt_toprint = txt;
+		posx -= charwidth; 
+		//draw piece of the first char 
+		//char_offset++;
+		posx -= charwidth;
+		//
+		String txt_toprint = " "+txt;  //leading space always 
 		if (char_offset > space) {
 			uint16_t char_to_add = char_offset - space;
 			uint16_t from = textlen - char_to_add;
@@ -955,13 +967,15 @@ void RGBStripFloatText::oncallback() {
 			txt_toprint = txt_toprint.substring(from, to) + txtspace + txt_toprint;
 		}
 		else {
-			posx = minorcycleIndex + char_offset * charwidth;
+			posx += char_offset * charwidth;
 		}
 		//DBG_OUTPUT_PORT.println(txt_toprint);
 		//DBG_OUTPUT_PORT.println(txt_toprint.substring(0, char_onscreen));
 		//DBG_OUTPUT_PORT.println(String("minor:") + String(minorcycleIndex) +String("posx:") + String(posx) + String(" charofset:") + String(char_offset) + String(" charonscreen:") + String(char_onscreen));
 		//DBG_OUTPUT_PORT.println(String("delay:") + String(delay_interval));
 		this->pStripWrapper->print_at(posx, txt_toprint.substring(0, char_onscreen+2));
+		pStripWrapper->trigger();
+		//this->pStripWrapper->print_at(posx, String("0"));// txt_toprint.substring(0, char_onscreen + 2));
 		
 	}
 	else { //TODO

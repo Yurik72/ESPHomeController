@@ -83,6 +83,7 @@ struct WeatherDisplayState
 	WeatherData data;
 	ForeceastRecord frecord;
 	uint8_t brigthness = 200;
+	
 };
 enum WeatherDisplayCMD {
 	WDRefreshAll = 2,
@@ -183,6 +184,8 @@ uint8_t psclk = TFTILI_SCLK;
 uint8_t pmosi = TFTILI_MOSI;
 uint8_t pmiso = TFTILI_MISO;
 uint8_t pbr = 0;
+uint8_t dac_i2c = 0;
+
 uint8_t brigthness = 200;
 time_t disp_time;
 #ifdef ESP32

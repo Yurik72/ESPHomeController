@@ -21,6 +21,8 @@ import DallasCtl from "./Components/DallasCtl"
 import RFCtl from "./Components/RFCtl"
 import ServoHV from "./Components/ServoHV"
 import IRCtl from "./Components/IRCtl"
+import WeatherDisplay from "./Components/WeatherDisplay"
+
 const styles = {
     fontFamily: "sans-serif",
     textAlign: "center",
@@ -105,6 +107,8 @@ class App extends Component {
                 return (props => <DallasCtl {...props} compprops={svc} />);
             case "ThingSpeakController":
                 return (props => <ThingSpeak {...props} compprops={svc} />);
+            case "WeatherDisplayController":
+                return (props => <WeatherDisplay  {...props} compprops={svc} />);
             default:
                 return (props =><div></div>);
                 break;

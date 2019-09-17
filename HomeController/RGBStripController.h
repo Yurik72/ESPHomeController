@@ -48,6 +48,8 @@ public:
 	virtual size_t write(uint8_t c);
 	bool setCustomMode(bool val) { isCustomWrite_mode = val; };
 	bool setCursorMode(CURSOR_CHARMODE val) { cursormode = val; };
+	void  set_inoffset_x(int16_t val);
+	void  set_inoffset_y(int16_t val);
 protected:
 	WS2812FX* pstrip;
 	StripWrapper* pwrapper;
@@ -64,6 +66,8 @@ private:
 	uint8_t charbytecounter;
 	bool isCustomWrite_mode;
 	CURSOR_CHARMODE cursormode;
+	int16_t _in_offset_x;
+	int16_t _in_offset_y;
 };
 enum COLOR_MODE : uint8_t {
 
