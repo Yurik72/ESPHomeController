@@ -398,3 +398,34 @@ void configModeCallback(AsyncWiFiManager *myWiFiManager) {
 double map_i_f(float val, uint in_min, uint in_max, float out_min, float out_max) {
 	return (val - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
+
+
+
+
+
+uint32_t calcTempColorSimple(float temp, float temp_min, float temp_max) {
+	uint32_t res = 0;
+	if (temp <= temp_min) {
+		res = Color(0, 0, 255);
+	}
+	else if (temp >= temp_max) {
+		res = Color(255, 0, 0);
+	}
+	else {
+		float mid = (temp_max + temp_min) / 2.0;
+		if (temp < mid) {
+			res = Color(
+				0,
+				map((uint32_t)(temp * 100.0), (uint32_t)(temp_min * 100.0), (uint32_t)(mid * 100.0), 0, 255),
+				map((uint32_t)(temp * 100.0), (uint32_t)(temp_min * 100.0), (uint32_t)(mid * 100.0), 255, 0));
+		}
+		else {
+			res = Color(
+				map((uint32_t)(temp * 100.0), (uint32_t)(mid * 100.0), (uint32_t)(temp_max * 100.0), 0, 255),
+				map((uint32_t)(temp * 100.0), (uint32_t)(mid * 100.0), (uint32_t)(temp_max * 100.0), 255, 0),
+				0);
+		}
+	}
+
+	return res;
+}

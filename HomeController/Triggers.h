@@ -216,7 +216,7 @@ public:
 	virtual void loadconfig(JsonObject& json);
 protected:
 	uint32_t calcColor(float temp);
-	uint32_t calcColorSimple(float temp);
+	
 private:
 	float temp_min ;
 	float temp_max ;

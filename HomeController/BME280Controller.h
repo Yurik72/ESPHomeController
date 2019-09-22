@@ -41,6 +41,8 @@ protected:
 	uint8_t i2caddr;
 	bool uselegacy;
 	bool isinit;
+	double temp_corr;
+	double hum_corr;
 	Adafruit_BME280* pbme;
 };
 DEFINE_CONTROLLER_FACTORY(BME280Controller)

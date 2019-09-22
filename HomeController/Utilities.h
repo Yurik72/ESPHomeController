@@ -135,5 +135,5 @@ String format_str(const char* fmt, T val) {
 	res = buff;
 	return res;
 }
-
+uint32_t calcTempColorSimple(float temp, float temp_min, float temp_max);
 #endif

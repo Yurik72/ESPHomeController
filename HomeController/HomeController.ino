@@ -137,7 +137,7 @@ WebServer server(80);
 	 // Setup: SPIFFS
 	 // ***************************************************************************
 #if defined(ESP8266)
-	 if (SPIFFS.begin()) {
+	 if (!SPIFFS.begin()) {
 		 SPIFFS.format();
 	 }
 #else

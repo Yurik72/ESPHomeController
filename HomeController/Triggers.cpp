@@ -631,7 +631,7 @@ void DallasToRGBStrip::handleloopsvc(DallasController* ps, RGBStripController* p
 	pd->AddCommand(rState, cmd, srcTrigger);
 }
 uint32_t DallasToRGBStrip::calcColor(float temp) {
-	return calcColorSimple(temp);
+	return calcTempColorSimple(temp, temp_min, temp_max);
 	uint32_t res = 0;
 	int idx = map((uint32_t)temp, (uint32_t)temp_min, (uint32_t)temp_max, 0, 9);
 	if (idx == 0) {
@@ -670,32 +670,7 @@ uint32_t DallasToRGBStrip::calcColor(float temp) {
 	
 	return res;
 }
-uint32_t DallasToRGBStrip::calcColorSimple(float temp) {
-	uint32_t res = 0;
-	if (temp <= temp_min) {
-		res = Color(0, 0, 255);
-	}
-	else if (temp >= temp_max) {
-		res = Color(255, 0, 0);
-	}
-	else {
-		float mid = (temp_max + temp_min) / 2.0;
-		if (temp < mid) {
-			res= Color(
-				0,
-				map((uint32_t)(temp * 100.0), (uint32_t)(temp_min * 100.0), (uint32_t)(mid * 100.0), 0, 255),
-				map((uint32_t)(temp * 100.0), (uint32_t)(temp_min * 100.0), (uint32_t)(mid * 100.0),255,0));
-		}
-		else {
-			res = Color(
-				map((uint32_t)(temp * 100.0),  (uint32_t)(mid * 100.0), (uint32_t)(temp_max * 100.0), 0, 255),
-				map((uint32_t)(temp * 100.0),  (uint32_t)(mid * 100.0), (uint32_t)(temp_max * 100.0), 255, 0),
-				0);
-		}
-	}
 
-		return res;
-}
 void DallasToRGBStrip::loadconfig(JsonObject& json) {
 	Trigger::loadconfig(json);
 	JsonArray arr = json["value"].as<JsonArray>();
@@ -813,10 +788,11 @@ void BMEToRGBMatrix::handleloopsvc(BME280Controller* ps, RGBStripController* pd)
 	TriggerFromService< BME280Controller, RGBStripController>::handleloopsvc(ps, pd);
 
 	BMEState l = ps->get_state();
-	RGBState rgbState;
+	RGBState rgbState= pd->get_state();
 
 	RGBCMD cmd = SetText;
 	rgbState.cmode = current;
+	bool isSetColor=false;
 	String newtext;
 	//this->mode = all;
 	switch (this->mode)
@@ -825,12 +801,18 @@ void BMEToRGBMatrix::handleloopsvc(BME280Controller* ps, RGBStripController* pd)
 	case temp:
 	
 		newtext = get_temp_text( l.temp);
+		rgbState.color = calcTempColorSimple(l.temp, 0.0, 25.0);
+		isSetColor = true;
 		break;
 	case hum:
 		newtext = get_humidity_text(l.hum);
+		rgbState.color = 0x0000FF;
+		isSetColor = true;
 		break;
 	case pres:
 		newtext = get_pressure_text(l.pres);
+		rgbState.color = 0x00FFFF;
+		isSetColor = true;
 		break;
 	case all:
 	//case all_color_random:
@@ -847,6 +829,8 @@ void BMEToRGBMatrix::handleloopsvc(BME280Controller* ps, RGBStripController* pd)
 		break;
 
 	}
+	if(isSetColor)
+		pd->AddCommand(rgbState, SetColor, srcTrigger);
 	memset(rgbState.text, 0, RGB_TEXTLEN);
 	strncpy(rgbState.text, newtext.c_str(), RGB_TEXTLEN);
 	pd->AddCommand(rgbState, cmd, srcTrigger);

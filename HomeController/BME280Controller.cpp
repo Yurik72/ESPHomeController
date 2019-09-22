@@ -22,6 +22,8 @@ BME280Controller::BME280Controller() {
 	this->uselegacy = true;
 	this->pbme = NULL;
 	this->isinit = false;
+	this->temp_corr = 0.0;
+	this->hum_corr = 0.0;
 }
 String  BME280Controller::serializestate() {
 
@@ -61,12 +63,16 @@ bool  BME280Controller::deserializestate(String jsonstate, CmdSource src) {
 void BME280Controller::loadconfig(JsonObject& json) {
 	i2caddr = json[FPSTR(szi2caddr)];
 	uselegacy = json["uselegacy"];
+	loadif(temp_corr, json, "temp_corr");
+	loadif(hum_corr, json, "hum_corr");
 }
 void BME280Controller::getdefaultconfig(JsonObject& json) {
 	json[FPSTR(szi2caddr)]= i2caddr;
 	json["uselegacy"]= uselegacy;
 	json[FPSTR(szservice)] = "BME280Controller";
 	json[FPSTR(szname)] = "BME";
+	json["temp_corr"] = 0.0;
+	json["hum_corr"] = 0.0;
 	BME::getdefaultconfig(json);
 }
 #define BME_SCK 13
@@ -158,7 +164,8 @@ void BME280Controller::meassure(BMEState& state) {
 		
 		this->directmeassure(state);
 	}
-
+	state.temp += temp_corr;
+	state.hum += hum_corr;
 }
 
 void BME280Controller::directmeassure(BMEState& state) {
