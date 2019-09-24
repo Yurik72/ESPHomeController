@@ -144,7 +144,13 @@ String format_str(const char* fmt, T val) {
 uint32_t calcTempColorSimple(float temp, float temp_min, float temp_max);
 
 JsonObject getRootObject(DynamicJsonDocument buf);
+#ifdef ESP32
 bool get_json_bool(JsonObject obj, const char* name);
 double get_json_double(JsonObject obj, const char* name);
+#else
+
+bool get_json_bool(JsonObject obj, const __FlashStringHelper* name);
+double get_json_double(JsonObject obj, const __FlashStringHelper* name);
+#endif
 
 #endif
