@@ -26,9 +26,9 @@ String  DallasController::serializestate() {
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	JsonObject root = jsonBuffer.to<JsonObject>();
 	root[FPSTR(szisOnText)] = this->get_state().isOn;
-	root["temp"] = this->get_state().temp;
-	root["hum"] = this->get_state().hum;
-	root["pres"] = this->get_state().pres;
+	root[FPSTR(sztemp)] = this->get_state().temp;
+	root[FPSTR(szhum)] = this->get_state().hum;
+	root[FPSTR(szpres)] = this->get_state().pres;
 	String json;
 
 	serializeJson(root, json);
@@ -42,13 +42,15 @@ bool  DallasController::deserializestate(String jsonstate, CmdSource src) {
 	if (error) {
 		DBG_OUTPUT_PORT.print(FPSTR(szParseJsonFailText));
 		DBG_OUTPUT_PORT.println(this->get_name());
-		DBG_OUTPUT_PORT.println(error.c_str());
+//		DBG_OUTPUT_PORT.println(error.c_str());
 		return false;
 	}
-	JsonObject root = jsonBuffer.as<JsonObject>();
+
+	JsonObject root = jsonBuffer.as<JsonObject>(); // test decrease program size
+	//JsonObject root = getRootObject(jsonBuffer);
 	DallasState newState;
-	newState.isOn = root[FPSTR(szisOnText)];
-	newState.temp = root["temp"];
+	newState.isOn = get_json_bool(root,FPSTR(szisOnText));// root[FPSTR(szisOnText)];
+	newState.temp = get_json_double(root, FPSTR(sztemp));// root[FPSTR(sztemp)];
 
 	this->AddCommand(newState, DlSet, src);
 	//this->set_state(newState);

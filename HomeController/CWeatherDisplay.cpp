@@ -10,6 +10,9 @@
 #endif
 
 #include "weathericons.h"
+
+#define CUT_SEVENSEGMENTSFONT_LASTC   //to cut font
+
 #include "fonts.h"
 #include "time.h"
 #include "Wire.h"
@@ -42,7 +45,7 @@ String  WeatherDisplayController::serializestate() {
 	JsonObject root = jsonBuffer.to<JsonObject>();
 	root[FPSTR(szisOnText)] = this->get_state().isOn;
 
-	root["brigthness"] = this->get_state().brigthness;
+	root[FPSTR(szbrightnessText)] = this->get_state().brigthness;
 	root["time"] = this->get_state().now;
 	String json;
 
@@ -62,8 +65,8 @@ bool  WeatherDisplayController::deserializestate(String jsonstate, CmdSource src
 	}
 	JsonObject root = jsonBuffer.as<JsonObject>();
 	WeatherDisplayState newState;
-	newState.isOn = root[FPSTR(szisOnText)];
-	newState.brigthness= root["brigthness"];
+	newState.isOn = get_json_bool(root, FPSTR(szisOnText));// root[FPSTR(szisOnText)];
+	newState.brigthness= root[FPSTR(szbrightnessText)];
 	
 
 
@@ -475,6 +478,10 @@ void WeatherDisplayController::drawSSchar(uint16_t x, uint16_t y,uint8_t ch,uint
   int16_t w=SS_WIDTH/8;
   int16_t h=SS_HEIGHT;
   uint8_t digit=ch-32;
+#ifdef CUT_SEVENSEGMENTSFONT_LASTC
+  if (digit > 'C')
+	  digit = 0;
+#endif
   uint8_t rowlen=w;
 
   uint8_t offs=SS_DATAOFFS;

@@ -40,6 +40,9 @@ const char szmatrixwidth[] PROGMEM = "matrixwidth";
 const char szmatrixType[] PROGMEM = "matrixType";
 const char szapiKey[] PROGMEM = "apiKey";
 
+const char sztemp[] PROGMEM = "temp";;
+const char szhum[] PROGMEM = "hum";;
+const char szpres[] PROGMEM = "pres";;
 
 
 const char szservice[] PROGMEM = "service";
@@ -428,4 +431,17 @@ uint32_t calcTempColorSimple(float temp, float temp_min, float temp_max) {
 	}
 
 	return res;
+}
+
+JsonObject getRootObject(DynamicJsonDocument buf) {
+
+	return buf.as<JsonObject>();
+}
+bool get_json_bool(JsonObject obj, const char* name) {
+	bool b=obj[name];
+	return b;
+}
+double get_json_double(JsonObject obj, const char* name) {
+	double d= obj[name];
+	return d;
 }

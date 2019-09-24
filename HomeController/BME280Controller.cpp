@@ -30,9 +30,9 @@ String  BME280Controller::serializestate() {
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	JsonObject root = jsonBuffer.to<JsonObject>();
 	root[FPSTR(szisOnText)] = this->get_state().isOn;
-	root["temp"] = this->get_state().temp;
-	root["hum"] = this->get_state().hum;
-	root["pres"] = this->get_state().pres;
+	root[FPSTR(sztemp)] = this->get_state().temp;
+	root[FPSTR(szhum)] = this->get_state().hum;
+	root[FPSTR(szpres)] = this->get_state().pres;
 	String json;
 
 	serializeJson(root, json);
@@ -52,9 +52,9 @@ bool  BME280Controller::deserializestate(String jsonstate, CmdSource src) {
 	JsonObject root = jsonBuffer.as<JsonObject>();
 	BMEState newState;
 	newState.isOn = root[FPSTR(szisOnText)];
-	newState.temp = root["temp"];
-	newState.hum = root["hum"];
-	newState.pres = root["pres"];
+	newState.temp = root[FPSTR(sztemp)];
+	newState.hum = root[FPSTR(szhum)];
+	newState.pres = root[FPSTR(szpres)];
 	this->AddCommand(newState, BMESet, src);
 	//this->set_state(newState);
 	return true;

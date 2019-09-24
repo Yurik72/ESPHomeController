@@ -339,6 +339,7 @@ void runcoreloop(void*param)
 #endif
 
 
+
 /*
 template<class T, typename P, typename M>
 int CController<T,P,M>::AddCommand(P state, M mode, CmdSource src)

@@ -815,6 +815,8 @@ void BMEToRGBMatrix::handleloopsvc(BME280Controller* ps, RGBStripController* pd)
 		isSetColor = true;
 		break;
 	case all:
+		rgbState.color = 0x34e1eb;
+		isSetColor = true;
 	//case all_color_random:
 	case all_color_colorwheel:
 		newtext = get_temp_text(l.temp)+" "+ get_humidity_text(l.hum)+ " "+ get_pressure_text(l.pres);

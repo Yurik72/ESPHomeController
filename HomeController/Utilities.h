@@ -104,6 +104,12 @@ extern const char szapiKey[];
 extern const char szservice[];
 extern const char szname[];
 
+extern const char sztemp[];
+extern const char szhum[];
+extern const char szpres[];
+
+
+
 extern const char szParseJsonFailText[];
 
 template<typename T>
@@ -136,4 +142,9 @@ String format_str(const char* fmt, T val) {
 	return res;
 }
 uint32_t calcTempColorSimple(float temp, float temp_min, float temp_max);
+
+JsonObject getRootObject(DynamicJsonDocument buf);
+bool get_json_bool(JsonObject obj, const char* name);
+double get_json_double(JsonObject obj, const char* name);
+
 #endif
