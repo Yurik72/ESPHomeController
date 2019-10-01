@@ -145,13 +145,15 @@ WebServer server(80);
 		 DBG_OUTPUT_PORT.print("SPIFFS Mount failed");
 	 }
 #endif
-
+	 
 	 //testfs();
 	 // ***************************************************************************
 	 // Setup: WiFi manager
 	 // ***************************************************************************
-	 if (!readConfigFS())
+	 if (!readConfigFS()) {
 		 DBG_OUTPUT_PORT.println("Fail To Load config.json ! ");
+		 SPIFFS.format();  //compatibility with prev version
+	 }
 #if defined(ESP8266)
 	 DBG_OUTPUT_PORT.print("Setup station name ");
 	 DBG_OUTPUT_PORT.println(HOSTNAME);

@@ -403,7 +403,7 @@ bool  RGBStripController::deserializestate(String jsonstate, CmdSource src) {
 	}
 	JsonObject root = jsonBuffer.as<JsonObject>();
 	RGBState newState = this->get_state();
-	newState.isOn = root[FPSTR(szisOnText)];
+	newState.isOn = get_json_bool(root, FPSTR(szisOnText));// root[FPSTR(szisOnText)];
 	newState.brightness = root[FPSTR(szbrightnessText)];
 	newState.color = root["color"];
 	newState.wxmode = root["wxmode"];

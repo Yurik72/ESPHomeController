@@ -65,7 +65,7 @@ bool  WeatherDisplayController::deserializestate(String jsonstate, CmdSource src
 	}
 	JsonObject root = jsonBuffer.as<JsonObject>();
 	WeatherDisplayState newState;
-	newState.isOn = get_json_bool(root, FPSTR(szisOnText));// root[FPSTR(szisOnText)];
+	newState.isOn = root[FPSTR(szisOnText)];//get_json_bool(root, FPSTR(szisOnText));//
 	newState.brigthness= root[FPSTR(szbrightnessText)];
 	
 

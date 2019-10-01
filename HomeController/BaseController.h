@@ -93,7 +93,7 @@ public:
 */
 
 #ifdef ESP32
-#define FPSTR_PLATFORM(s) reinterpret_cast<const __FlashStringHelper *>(({static const char __c[] PROGMEM = (s); &__c[0];}))
+#define FPSTR_PLATFORM(s) FPSTR(s) //reinterpret_cast<const __FlashStringHelper *>(({static const char __c[] PROGMEM = (s); &__c[0];}))
 #else
 #define FPSTR_PLATFORM(s) FPSTR(s)
 #endif

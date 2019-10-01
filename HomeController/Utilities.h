@@ -147,6 +147,8 @@ JsonObject getRootObject(DynamicJsonDocument buf);
 #ifdef ESP32
 bool get_json_bool(JsonObject obj, const char* name);
 double get_json_double(JsonObject obj, const char* name);
+bool get_json_bool(JsonObject obj, const __FlashStringHelper* name);
+double get_json_double(JsonObject obj, const __FlashStringHelper* name);
 #else
 
 bool get_json_bool(JsonObject obj, const __FlashStringHelper* name);

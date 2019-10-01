@@ -83,7 +83,7 @@ void Controllers::setup() {
 void Controllers::loadconfig() {
 	String filename = "/services.json";
 	//int capacity = JSON_ARRAY_SIZE(5) + 5 * JSON_OBJECT_SIZE(70);
-	int capacity = JSON_ARRAY_SIZE(5) + 2 * JSON_OBJECT_SIZE(4) + 262;
+	int capacity = JSON_ARRAY_SIZE(8) + 2 * JSON_OBJECT_SIZE(8) + 262;
 	if (SPIFFS.exists(filename)) {
 		//file exists, reading and loading
 		DBG_OUTPUT_PORT.println("Read services configuration: ");
@@ -91,7 +91,7 @@ void Controllers::loadconfig() {
 		if (configFile) {
 			DynamicJsonDocument jsonBuffer(capacity);
 			//const char* jsonchar = "[{\"service\":\"RelayController\",\"name\":\"Relay\",\"enabled\":true,\"interval\":100},{\"service\":\"TimeController\",\"name\":\"Time\",\"enabled\":true,\"interval\":1000}]";
-
+			//DBG_OUTPUT_PORT.println(configFile.readString());
 			DeserializationError error = deserializeJson(jsonBuffer,configFile.readString());
 			
 			if (!error) {

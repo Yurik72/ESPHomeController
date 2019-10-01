@@ -446,6 +446,14 @@ double get_json_double(JsonObject obj, const char* name) {
 	double d= obj[name];
 	return d;
 }
+bool get_json_bool(JsonObject obj, const __FlashStringHelper* name) {
+	bool b = obj[name];
+	return b;
+}
+double get_json_double(JsonObject obj, const __FlashStringHelper* name) {
+	double d = obj[name];
+	return d;
+}
 #else
 bool get_json_bool(JsonObject obj, const __FlashStringHelper* name) {
 	bool b = obj[name];
