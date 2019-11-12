@@ -4,7 +4,7 @@
 #include "BaseController.h"
 #include "RelayBlinkController.h"
 
-//REGISTER_CONTROLLER(RelayBlinkController)
+REGISTER_CONTROLLER_FACTORY(RelayBlinkController)
 const size_t bufferSize = JSON_OBJECT_SIZE(20);
 
 RelayBlinkController::RelayBlinkController() {

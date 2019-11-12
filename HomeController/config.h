@@ -65,7 +65,8 @@
 //DISABLE /ENABLE services Section
 // Importnat due to iram limitation on ESp8266 (virtual function  table)
 //#define RF_SNIFFER
-#define RGB
+//#define RGB
+#define RF_RELAY
 
 #ifdef ESP8266
 #define DISABLE_OLED
@@ -83,6 +84,12 @@
 #define DISABLE_IR
 #define DISABLE_RF
 #define DISABLE_BUTTON
+#endif
+
+#ifdef RF_RELAY
+#define DISABLE_MENU
+#define DISABLE_IR
+#define DISABLE_RGB
 #endif
 
 #endif
@@ -114,7 +121,7 @@ extern bool isReboot;
 extern bool isAPMode;
 //extern  String globlog;
 
-#define VERSION "0.9"
+#define VERSION "0.91"
 #if defined ASYNC_WEBSERVER
 #define ASYNC "\"true\""
 #else

@@ -42,10 +42,13 @@ REGISTER_TRIGGER_FACTORY(LDRToRGBStrip)
 #ifndef DISABLE_RELAY
 REGISTER_TRIGGER_FACTORY(RFToRelay)
 REGISTER_TRIGGER_FACTORY(TimeToRelayDimTrigger)
+REGISTER_TRIGGER_FACTORY(TimeToRelayTrigger)
+REGISTER_TRIGGER_FACTORY(ButtonToRelay)
 #endif
 
+#ifndef DISABLE_RGB
 REGISTER_TRIGGER_FACTORY(DallasToRGBStrip)
-
+#endif 
 void Triggers::setup() {
 	this->loadconfig();
 	
@@ -1012,5 +1015,30 @@ void LDRToThingSpeak::handleloopsvc(LDRController* ps, ThingSpeakController* pd)
 
 	pd->AddCommand(newstate, cmd, srcTrigger);
 
+
+}
+
+ButtonToRelay::ButtonToRelay() {
+
+}
+void ButtonToRelay::loadconfig(JsonObject& json) {
+	Trigger::loadconfig(json);
+
+
+
+}
+void ButtonToRelay::handleloopsvc(ButtonController* ps, RelayController* pd) {
+	TriggerFromService< ButtonController, RelayController>::handleloopsvc(ps, pd);
+	ButtonState bs = ps->get_state();
+
+
+	long presstime = ps->get_btn_presstime(idx);
+	if (ps->get_buttonsstate()[idx] == ispressed && presstime != lasttriggered) {
+		RelayState newState = pd->get_state();
+		RelayCMD cmd = Set;
+
+			newState.isOn = !newState.isOn;
+		pd->AddCommand(newState, cmd, srcTrigger);
+	}
 
 }

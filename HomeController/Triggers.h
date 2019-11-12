@@ -346,6 +346,20 @@ protected:
 private:
 	uint8_t ch;
 };
+
+class ButtonToRelay :public TriggerFromService< ButtonController, RelayController> {
+public:
+
+	ButtonToRelay();
+
+	virtual void handleloopsvc(ButtonController* ps, RelayController* pd);
+	virtual void loadconfig(JsonObject& json);
+
+protected:
+private:
+	long lasttriggered = 0;
+	uint8_t idx = 0;
+};
 //DEFINE_TRIGGER_FACTORY(TimeToRGBStripTrigger)
 
 DEFINE_TRIGGER_FACTORY(TimeToRGBStripTrigger)
@@ -363,6 +377,7 @@ DEFINE_TRIGGER_FACTORY(TimeToWeatherDisplay)
 DEFINE_TRIGGER_FACTORY(WeatherForecastToWeatherDisplay)
 DEFINE_TRIGGER_FACTORY(ButtonToWeatherDisplay)
 DEFINE_TRIGGER_FACTORY(LDRToThingSpeak)
+DEFINE_TRIGGER_FACTORY(ButtonToRelay)
 
 //DEFINE_TRIGGER_FACTORY(LDRToRelay)
 //DEFINE_TRIGGER_FACTORY(LDRToRGBStrip)
