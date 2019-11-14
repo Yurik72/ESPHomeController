@@ -209,6 +209,11 @@ public:
 	virtual void run();
 	virtual void runcore();
 	bool isenabled() { return enabled; }
+	virtual void set_monitor_state(uint channel,bool isOn, long mask = 0b10, uint masklen = 2, uint duration = 100);
+	void report_monitor_state(uint channel, bool isOn, long mask = 0b10, uint masklen = 2, uint duration = 100);
+	void report_monitor_on(uint channel);
+	void report_monitor_off(uint channel);
+	void report_monitor_shortblink(uint channel);
 #if !defined ASYNC_WEBSERVER
 #if defined(ESP8266)
 	virtual void setuphandlers(ESP8266WebServer& server);
@@ -250,6 +255,7 @@ protected:
 	CoreMode coreMode;
 	short core;
 	short priority;
+	int repch = -1;
 #if defined(ESP8266)
 	Ticker* pTicker;
 #endif
@@ -260,6 +266,7 @@ private:
 	unsigned long _cached_next_run;
 	bool isforcedinterval;
 	bool enabled;
+	bool statemon;
 	
 
 #if !defined(ESP8266)

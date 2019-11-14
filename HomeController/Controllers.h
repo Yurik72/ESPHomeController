@@ -43,6 +43,7 @@ public:
 	void onWifiDisconnect();
 	bool get_isWifiConnected() { return isWifiConnected; };
 	void set_isneedreconnectwifi(bool val);
+	void set_monitor_state(uint channel, bool isOn, long mask = 0b10, uint masklen = 2, uint duration = 100);
 #if !defined ASYNC_WEBSERVER
 #if defined(ESP8266)
 	void setuphandlers(ESP8266WebServer& server);
@@ -62,6 +63,7 @@ private:
 	bool isConnectingMode;
 	bool isWifiConnected = true;
 	bool isneedreconnectwifi = true;
+	CBaseController* pMonitor=NULL;
 };
 void onstatechanged(CBaseController *);
 #ifdef ENABLE_HOMEBRIDGE

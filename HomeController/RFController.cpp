@@ -81,6 +81,10 @@ void RFController::getdefaultconfig(JsonObject& json) {
 void  RFController::setup() {
 	RF::setup();
 	this->pSwitch = new RCSwitch();
+#ifdef	RFCONTROLLER_DEBUG
+	DBG_OUTPUT_PORT.println("RFController::setup()");
+	DBG_OUTPUT_PORT.println(this->pin);
+#endif
 	this->pSwitch->enableReceive(this->pin);
 	//pinMode(pin, INPUT);
 	//digitalWrite(pin, LOW);

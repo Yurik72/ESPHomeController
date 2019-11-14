@@ -7,9 +7,9 @@
 
 
 //REGISTER_CONTROLLER(BME280Controller)
-
+#ifndef DISABLE_DALLAS
 REGISTER_CONTROLLER_FACTORY(DallasController)
-
+#endif
 
 //BME280ControllerFactory* ff = new BME280ControllerFactory();
 

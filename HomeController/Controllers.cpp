@@ -112,7 +112,9 @@ void Controllers::loadconfig() {
 						JsonObject json = arr[i];
 						controller->loadconfigbase(json);
 						this->Add(controller);
-
+						if (controller->statemon) {
+							this->pMonitor = controller;
+						}
 						
 
 						DBG_OUTPUT_PORT.print("Controllers added:");
@@ -426,6 +428,13 @@ void Controllers::handleloops() {
 		}
 	}
 
+}
+void Controllers::set_monitor_state(uint channel, bool isOn, long mask, uint masklen, uint duration) {
+	//DBG_OUTPUT_PORT.println("Controllers set_monitor_state");
+	if (pMonitor) {
+		//DBG_OUTPUT_PORT.println("send to monitor");
+		pMonitor->set_monitor_state(channel, isOn, mask, masklen, duration);
+	}
 }
 void Controllers::set_isneedreconnectwifi(bool val) {
 	this->isneedreconnectwifi = val;

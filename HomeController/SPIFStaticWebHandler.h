@@ -21,7 +21,8 @@ private:
 	bool _getFile(AsyncWebServerRequest *request) {
 		// Remove the found uri
 		String path = request->url().substring(_uri.length());
-
+		//Serial.println("_getFile");
+		//Serial.println(request->url());
 		// We can skip the file check and look for default if request is to the root of a directory or that request path ends with '/'
 		bool canSkipFileCheck = (_isDir && path.length() == 0) || (path.length() && path[path.length() - 1] == '/');
 
@@ -45,12 +46,15 @@ private:
 	bool _fileExists(AsyncWebServerRequest *request, const String& path) {
 		bool fileFound = false;
 		bool gzipFound = false;
-
+		//Serial.println("_fileExists");
+		//Serial.println(path);
 		String gzip = path + ".gz";
 		if (_isAlwaysGzipIfExists) {
+			//Serial.println("_isAlwaysGzipIfExists");
 			request->_tempFile = _fs.open(gzip, "r");
 			gzipFound = SPIFILE_IS_REAL(request->_tempFile);
 			if (!gzipFound) {
+				//Serial.println("!gzipFound");
 				request->_tempFile = _fs.open(path, "r");
 				fileFound = SPIFILE_IS_REAL(request->_tempFile);
 			}
@@ -92,13 +96,13 @@ private:
 		}
 		///YK
 
-		//Serial.println(request->url());
+		
 	   
 	   
-	    //Serial.println(gzip);
 
-	   // Serial.println(gzipFound);
-	   
+
+	    //Serial.println(gzipFound);
+		//Serial.println(found);
 		return found;
 	};
 	uint8_t _countBits(const uint8_t value) const 
@@ -167,6 +171,8 @@ public:
 	};
 	virtual void handleRequest(AsyncWebServerRequest *request) override final {
 		// Get the filename from request->_tempObject and free it
+		//Serial.println("handleRequest");
+		//Serial.println(request->url());
 		String filename = String((char*)request->_tempObject);
 		free(request->_tempObject);
 		request->_tempObject = NULL;

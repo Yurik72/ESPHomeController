@@ -13,7 +13,7 @@
 #endif
 
 //REGISTER_CONTROLLER(RelayDimController)
-#ifndef DISABLE_RELAY
+#ifndef DISABLE_RELAYDIM
 REGISTER_CONTROLLER_FACTORY(RelayDimController)
 #endif
 const size_t bufferSize = JSON_OBJECT_SIZE(20);

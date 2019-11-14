@@ -1,10 +1,11 @@
+
 #include "BaseController.h"
 
 #include "config.h"
 #if defined ASYNC_WEBSERVER
 #include <ESPAsyncWebServer.h>
 #endif
-
+#include "Controllers.h"
 #if defined(ESP8266)
 #include <Ticker.h>
 #endif
@@ -167,6 +168,7 @@ CBaseController::CBaseController() {
 	this->interval = 1000;
 	this->priority = 1;
 	this->isforcedinterval = false;
+	this->statemon = false;
 	
 #if defined(ESP8266)
 	this->pTicker = NULL;;
@@ -196,13 +198,27 @@ String CBaseController::get_filename_state() {
 	return file;
 }
 void CBaseController::savestate() {
-	DBG_OUTPUT_PORT.println("savestate");
-	DBG_OUTPUT_PORT.println(this->get_filename_state().c_str());
+	//DBG_OUTPUT_PORT.println("savestate");
+	//DBG_OUTPUT_PORT.println(this->get_filename_state().c_str());
 	savefile(this->get_filename_state().c_str(), this->serializestate());
 
 	
 }
+void CBaseController::set_monitor_state(uint channel, bool isOn, long mask , uint masklen, uint duration) {
 
+}
+void CBaseController::report_monitor_state(uint channel, bool isOn, long mask, uint masklen, uint duration) {
+	Controllers::getInstance()->set_monitor_state(channel, isOn, mask, masklen, duration);
+}
+void CBaseController::report_monitor_on(uint channel) {
+	this->report_monitor_state(channel, true, 0b11, 2, 1000);
+}
+void CBaseController::report_monitor_off(uint channel) {
+	this->report_monitor_state(channel, false);
+}
+void CBaseController::report_monitor_shortblink(uint channel) {
+	this->report_monitor_state(channel, true, 0b10, 2, 500);
+}
 void CBaseController::force_nextruninterval(unsigned long forceinterval) {
 	_cached_next_run = millis() + forceinterval;
 	this->isforcedinterval = true;
@@ -256,6 +272,9 @@ void CBaseController::getdefaultconfig(JsonObject& json) {
 }
 void CBaseController::loadconfigbase(JsonObject& json) {
 	enabled = json["enabled"];
+	statemon= json["statemon"];
+	loadif(repch, json, "repch");
+
 	interval= json["interval"].as<unsigned long>();
 	this->loadconfig(json);
 }

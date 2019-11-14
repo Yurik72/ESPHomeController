@@ -98,7 +98,13 @@ void RelayController::set_state(RelayState state) {
 	Relay::set_state(state);
 
 	digitalWrite(pin, (state.isOn ^ this->isinvert)?HIGH:LOW);
-
+	if (this->repch >=0) {
+		DBG_OUTPUT_PORT.println("Report to channel");
+		if (state.isOn )
+			this->report_monitor_on(this->repch);
+		else
+			this->report_monitor_off(this->repch);
+	}
 }
 
 bool RelayController::onpublishmqtt(String& endkey, String& payload) {

@@ -41,12 +41,15 @@ REGISTER_TRIGGER_FACTORY(LDRToRGBStrip)
 #endif
 #ifndef DISABLE_RELAY
 REGISTER_TRIGGER_FACTORY(RFToRelay)
-REGISTER_TRIGGER_FACTORY(TimeToRelayDimTrigger)
+
 REGISTER_TRIGGER_FACTORY(TimeToRelayTrigger)
 REGISTER_TRIGGER_FACTORY(ButtonToRelay)
 #endif
+#ifndef DISABLE_RELAYDIM
+REGISTER_TRIGGER_FACTORY(TimeToRelayDimTrigger)
+#endif
 
-#ifndef DISABLE_RGB
+#ifndef DISABLE_DALLAS
 REGISTER_TRIGGER_FACTORY(DallasToRGBStrip)
 #endif 
 void Triggers::setup() {
@@ -1039,6 +1042,7 @@ void ButtonToRelay::handleloopsvc(ButtonController* ps, RelayController* pd) {
 
 			newState.isOn = !newState.isOn;
 		pd->AddCommand(newState, cmd, srcTrigger);
+		lasttriggered = presstime;
 	}
 
 }

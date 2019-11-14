@@ -8,6 +8,7 @@
 struct RelayState
 {
 	bool isOn=false;
+	
 };
 enum RelayCMD {
 	RelayOn=BaseOn,
