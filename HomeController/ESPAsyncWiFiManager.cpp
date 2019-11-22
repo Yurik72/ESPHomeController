@@ -285,25 +285,40 @@ void AsyncWiFiManager::scan()
   if (wifiSSIDscan)
   {
     int n = WiFi.scanNetworks();
+	
     DEBUG_WM(F("Scan done"));
+	DEBUG_WM(String(WiFi.scanNetworks()) +String(F("Netwokr found")));
     if (n == 0) {
       DEBUG_WM(F("No networks found"));
+	  wifiSSIDCount = 0;
       // page += F("No networks found. Refresh to scan again.");
-    } else {
+    }
+	else if (n < 0) {
+		DEBUG_WM(F("Scan network return negative value"));
+		n = 0;
+		wifiSSIDCount = 0;
+	}
+	else {
 
 
       if (wifiSSIDscan)
       {
+		 
         /* WE SHOULD MOVE THIS IN PLACE ATOMICALLY */
+		 
         if (wifiSSIDs) delete [] wifiSSIDs;
+		
+		DEBUG_WM(n);
         wifiSSIDs = new WiFiResult[n];
+		
         wifiSSIDCount = n;
 
         if (n>0)
         shouldscan=false;
-
+		
         for (int i=0;i<n;i++)
         {
+			DEBUG_WM(i);
           wifiSSIDs[i].duplicate=false;
 
 #if defined(ESP8266)
@@ -312,7 +327,7 @@ void AsyncWiFiManager::scan()
           bool res=WiFi.getNetworkInfo(i, wifiSSIDs[i].SSID, wifiSSIDs[i].encryptionType, wifiSSIDs[i].RSSI, wifiSSIDs[i].BSSID, wifiSSIDs[i].channel);
 #endif
         }
-
+		DEBUG_WM(F("getNetworkInfo done"));
 
         // RSSI SORT
 

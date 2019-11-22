@@ -28,6 +28,7 @@ class Ticker;
 class RGBStripCycler;
 class RGBStripFloatText;
 class StripWrapper;
+class RGBStripEffect;
 enum CURSOR_CHARMODE {
 	PERCHAR = 0,
 	PERPIXEL=1
@@ -99,6 +100,7 @@ public:
 	virtual bool isRunning() { return false; }
 	virtual uint8_t getBrightness(void) { return 0; }
 	void set_rgb_startled(int val) { rgb_startled = val; };
+	int get_rgb_startled() { return rgb_startled; };
 	virtual void setupmatrix(int w, int h, uint8_t matrixType = NEO_MATRIX_TOP + NEO_MATRIX_LEFT + NEO_MATRIX_ROWS) {};
 	virtual void print(String text) {};
 	virtual void print_at(int16_t x, String text) {};
@@ -109,6 +111,8 @@ public:
 	void setColorMatrixMode(COLOR_MODE m) { cmode = m; };
 	virtual uint32_t color_wheel(uint8_t pos) {};
 	COLOR_MODE getColorMatrixMode() { return cmode; };
+	virtual void setPixelColor(uint16_t pix, uint32_t color) {};
+	virtual uint32_t getPixelColor(uint16_t pix) { return 0; };
 protected:
 	int rgb_startled;
 	RGBStripFloatText* pcyclerfloattext;
@@ -145,6 +149,8 @@ public:
 	virtual uint8_t setCustomMode(const __FlashStringHelper* name, uint16_t(*p)()) ;
 	virtual void setTextColor(uint16_t c) ;
 	virtual uint32_t color_wheel(uint8_t pos);
+	virtual void setPixelColor(uint16_t pix, uint32_t color) ;
+	virtual uint32_t getPixelColor(uint16_t pix);
 private:
 	WS2812FX* pstrip;
 	StripMatrix* pMatrix;
@@ -207,6 +213,7 @@ public:
 	virtual bool ispersiststate() { return true; }
 	static  uint16_t customemodetext() { return (uint16_t)1000; };
 	static  uint16_t customemodefloattext() { return (uint16_t)1000; };
+	static  uint16_t customeeffect() { return (uint16_t)1000; };
 #if !defined ASYNC_WEBSERVER
 #if defined(ESP8266)
 	virtual void setuphandlers(ESP8266WebServer& server);
@@ -234,10 +241,13 @@ private:
 	uint cyclemode;
 	uint textmode;
 	uint textfloatmode;
+	uint firemode;
+	uint snowmode;
 	int rgb_startled;   /// indicates from which led rgb  sequence started instead grb
 	bool ismatrix;
 	uint8_t matrixWidth;
 	uint8_t matrixType;
+	RGBStripEffect* pEffect;
 
 };
 DEFINE_CONTROLLER_FACTORY(RGBStripController)

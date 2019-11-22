@@ -6,7 +6,7 @@
 #include "RGBStripController.h"
 
 #include <Ticker.h>
-
+#include "RGBStripEffects.h"
 #ifdef  ESP32
 #include "WS2812Driver.h"
 
@@ -273,6 +273,12 @@ void WS2812Wrapper::setColor(uint8_t r, uint8_t g, uint8_t b) {
 void WS2812Wrapper::setSpeed(uint16_t speed) {
 	pstrip->setSpeed(speed);
 }
+void WS2812Wrapper::setPixelColor(uint16_t pix, uint32_t color) {
+	pstrip->setPixelColor(pix, color);
+}
+uint32_t WS2812Wrapper::getPixelColor(uint16_t pix) {
+	return pstrip->getPixelColor(pix);
+}
 void WS2812Wrapper::service() {
 	pstrip->service();
 }
@@ -353,6 +359,8 @@ RGBStripController::RGBStripController() {
 	this->matrixWidth = 0;
 	this->textmode = 0;
 	this->textfloatmode = 0;
+	this-> firemode = 0;
+	this -> snowmode = 0;
 	this->matrixType = NEO_MATRIX_TOP + NEO_MATRIX_LEFT +
 		NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG;
 	//rgbModes = "";
@@ -360,6 +368,7 @@ RGBStripController::RGBStripController() {
 	//this->coreMode = Both;
 	//this->core = 1;
 	//this->priority = 100;
+	pEffect = NULL;
 }
 RGBStripController::~RGBStripController() {
 	if (pStripWrapper)
@@ -368,6 +377,8 @@ RGBStripController::~RGBStripController() {
 		delete this->pSmooth;
 	if (this->pCycle)
 		delete this->pCycle;
+	if (this->pEffect)
+		delete this->pEffect;
 }
 String  RGBStripController::serializestate() {
 
@@ -469,7 +480,11 @@ void  RGBStripController::setup() {
 		pStripWrapper->setupmatrix(matrixWidth, numleds / matrixWidth, mtype);
 		this->textmode = pStripWrapper->setCustomMode(FPSTR_PLATFORM("Show Text"), &RGBStripController::customemodetext);
 		this->textfloatmode = pStripWrapper->setCustomMode(FPSTR_PLATFORM("Show Float Text"), &RGBStripController::customemodefloattext);
+		
 	}
+	this->firemode = pStripWrapper->setCustomMode(FPSTR_PLATFORM("Fire Fire"), &RGBStripController::customeeffect);
+	this->snowmode = pStripWrapper->setCustomMode(FPSTR_PLATFORM("Snow Snow"), &RGBStripController::customeeffect);
+
 	pStripWrapper->init();
 
 	pStripWrapper->setBrightness(30);
@@ -633,6 +648,20 @@ void RGBStripController::set_state(RGBState state) {
 #endif
 				this->pCycle->start();
 			}
+			else if (state.wxmode == this->firemode ) {
+				if (pEffect)
+					delete pEffect;
+				pStripWrapper->setMode(state.wxmode);
+				pEffect = new RGBStripFireEffect(pStripWrapper, matrixWidth, numleds, 1.0 / state.wxspeed);
+				pEffect->run();
+			}
+			else if (state.wxmode == this->snowmode) {
+				if (pEffect)
+					delete pEffect;
+				pStripWrapper->setMode(state.wxmode);
+				pEffect = new RGBStripSnowEffect(pStripWrapper, matrixWidth, numleds, 1.0 / state.wxspeed);
+				pEffect->run();
+			}
 			else {
 				if (state.wxmode >= 0) pStripWrapper->setMode(state.wxmode);
 			}
@@ -648,8 +677,11 @@ void RGBStripController::set_state(RGBState state) {
 		}
 		if (oldState.color != state.color)
 			pStripWrapper->setColor(REDVALUE(state.color), GREENVALUE(state.color), BLUEVALUE(state.color));
-		if (oldState.wxspeed != state.wxspeed)
+		if (oldState.wxspeed != state.wxspeed) {
 			pStripWrapper->setSpeed(state.wxspeed);
+			if (pEffect)
+				pEffect->set_delay(1.0 / state.wxspeed);
+		}
 		if ((oldState.color != state.color) || (oldState.brightness != state.brightness)) {
 			double intensity = 0.0;
 			double hue = 0.0;
@@ -673,6 +705,14 @@ void RGBStripController::set_state(RGBState state) {
 	//for all cases
 	if (oldState.wxmode == this->textfloatmode && oldState.wxmode != state.wxmode) {
 		pStripWrapper->resetfloatcycler();
+	}
+	if (oldState.wxmode == this->firemode && oldState.wxmode != state.wxmode) {
+		DBG_OUTPUT_PORT.println("fire mode off");
+
+		if (pEffect) {
+			delete pEffect;
+			pEffect = NULL;
+		}
 	}
 
 	pStripWrapper->trigger();

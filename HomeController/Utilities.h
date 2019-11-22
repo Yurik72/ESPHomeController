@@ -16,9 +16,17 @@
 #define REDVALUE(x) ((x >> 16) & 0xFF)
 #define GREENVALUE(x)  ((x >> 8) & 0xFF)
 #define BLUEVALUE(x) ((x >> 0) & 0xFF)
+
+#define RGBCOLOR(r,g,b) ((uint32_t)r << 16) | ((uint32_t)g << 8) | b
+#define GRBCOLOR(r,g,b) ((uint32_t)g << 16) | ((uint32_t)r << 8) | b
+
+#define RGB_TO_GRB(x) GRBCOLOR(REDVALUE(x),GREENVALUE(x),BLUEVALUE(x))
+#define GRB_TO_RGB(x) RGBCOLOR(GREENVALUE(x),REDVALUE(x),BLUEVALUE(x))
 // conversion to HUE/Saturation
 #define MAXHS(x,y) ((x)>(y) ? (x) : (y))
 #define MINHS(x,y) ((x)<(y) ? (x) : (y))
+
+#define HSVColor_f_int_int(h,s,v) HSVColor(h,s/255.0,v/255.0)
 
 bool writeConfigFS(bool saveConfig);
 bool readConfigFS();
