@@ -113,11 +113,14 @@ public:
 	COLOR_MODE getColorMatrixMode() { return cmode; };
 	virtual void setPixelColor(uint16_t pix, uint32_t color) {};
 	virtual uint32_t getPixelColor(uint16_t pix) { return 0; };
+	virtual uint8_t get_matrixtype() { return _matrixType; };
 protected:
 	int rgb_startled;
 	RGBStripFloatText* pcyclerfloattext;
+	uint8_t _matrixType;
 private:
 	COLOR_MODE cmode;
+	
 };
 
 class WS2812Wrapper :public StripWrapper {

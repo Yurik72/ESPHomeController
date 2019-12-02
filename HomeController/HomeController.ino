@@ -52,8 +52,6 @@
 
 #include "Utilities.h"
 
-
-
 #if defined ASYNC_WEBSERVER
 #if defined(ESP8266)
  #include <ESPAsyncTCP.h>

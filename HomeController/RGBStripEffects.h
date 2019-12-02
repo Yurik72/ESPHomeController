@@ -31,6 +31,7 @@ protected:
 	uint16_t mlen;
 	int rgb_start_led;
 	unsigned char matrixValue[8][16];
+	uint8_t _matrixType;
 
 };
 #define SPARKLES 1        // вылетающие угольки вкл выкл

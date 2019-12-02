@@ -300,6 +300,7 @@ uint8_t WS2812Wrapper::getBrightness(void) {
 
 void WS2812Wrapper::setupmatrix(int w, int h, uint8_t matrixType ) {
 	pMatrix = new StripMatrix(w, h, pstrip,this, matrixType);
+	this->_matrixType = matrixType;
 }
 uint8_t WS2812Wrapper::setCustomMode(const __FlashStringHelper* name, uint16_t(*p)()) {
 	return pstrip->setCustomMode(name,p);
@@ -449,9 +450,11 @@ void RGBStripController::loadconfig(JsonObject& json) {
 	loadif(ismatrix, json, FPSTR(szismatrix));
 	loadif(matrixWidth, json, FPSTR(szmatrixwidth));
 	loadif(matrixType, json, FPSTR(szmatrixType));
-
-
+	//DBG_OUTPUT_PORT.println("matrixType");
+	//DBG_OUTPUT_PORT.println(matrixType);
 }
+
+
 void RGBStripController::getdefaultconfig(JsonObject& json) {
 	json[FPSTR(szPinText)]= pin;
 	json[FPSTR(sznumleds)]= numleds;
@@ -473,11 +476,11 @@ void  RGBStripController::setup() {
 	pStripWrapper->setup(pin, numleds);
 	if (ismatrix) {
 		//TO DO
-		uint8_t mtype = NEO_MATRIX_TOP + NEO_MATRIX_LEFT +
+		//uint8_t mtype = NEO_MATRIX_TOP + NEO_MATRIX_LEFT +
 			//NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG);
-			NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG;
+		//	NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG;
 
-		pStripWrapper->setupmatrix(matrixWidth, numleds / matrixWidth, mtype);
+		pStripWrapper->setupmatrix(matrixWidth, numleds / matrixWidth, matrixType);
 		this->textmode = pStripWrapper->setCustomMode(FPSTR_PLATFORM("Show Text"), &RGBStripController::customemodetext);
 		this->textfloatmode = pStripWrapper->setCustomMode(FPSTR_PLATFORM("Show Float Text"), &RGBStripController::customemodefloattext);
 		
@@ -800,14 +803,20 @@ void RGBStripController::onmqqtmessage(String topic, String payload) {
 String RGBStripController::string_modes(void) {
 	if (rgbModes.length() > 0)
 		return rgbModes;
-	const size_t bufferSize = JSON_ARRAY_SIZE(pStripWrapper->getModeCount() + 3) +JSON_OBJECT_SIZE(10);
+	//rgbModes = "";
+	const size_t bufferSize = JSON_ARRAY_SIZE(pStripWrapper->getModeCount() + 3) +JSON_OBJECT_SIZE(520)+262;
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	JsonArray json = jsonBuffer.to<JsonArray>();
-	
+	//DBG_OUTPUT_PORT.println("string_modes");
+	//DBG_OUTPUT_PORT.println(bufferSize);
 	for (uint8_t i = 0; i < pStripWrapper->getModeCount(); i++) {
+		const __FlashStringHelper* pmd= pStripWrapper->getModeName(i);
+		if (!pmd)
+			continue;
 		JsonObject object = json.createNestedObject();
+		
 		object["mode"] = i;
-		object[FPSTR(szname)] = pStripWrapper->getModeName(i);
+		object[FPSTR(szname)] = pmd;// pStripWrapper->getModeName(i);
 	}
 	JsonObject cycleobj = json.createNestedObject();
 	cycleobj["mode"] = this->cyclemode;

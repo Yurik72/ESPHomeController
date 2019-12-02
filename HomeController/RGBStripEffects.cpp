@@ -17,6 +17,9 @@ RGBStripEffect::RGBStripEffect(StripWrapper* p, uint8_t matrixwidth, uint16_t le
 		delay_interval = 0.01;
 	pStrip = p;
 	rgb_start_led = p->get_rgb_startled();
+	_matrixType = p->get_matrixtype();
+	//DBG_OUTPUT_PORT.println("RGBStripEffect");
+	//DBG_OUTPUT_PORT.println(_matrixType);
 }
 RGBStripEffect::~RGBStripEffect() {
 	DBG_OUTPUT_PORT.println("RGBStripEffect deleted");
@@ -54,15 +57,27 @@ uint32_t RGBStripEffect::getPixColorXY(int8_t x, int8_t y) {
 uint16_t RGBStripEffect::getPixelNumber(int8_t x, int8_t y) {
 	int8_t thisx=x;
 	int8_t thisy = y;
-	if (false) {  // to do matrix type
+	int8_t thiswidth = mwidth;
+	int8_t thisheight = mheight;
+	if ((_matrixType & NEO_MATRIX_AXIS) == NEO_MATRIX_COLUMNS) {   // to do matrix type
+		 
 		thisx = y;
 		thisy = x;
+		thiswidth = mheight;
+		thisheight = mwidth;
+
+
 	}
-	if ((/*THIS_Y*/y % 2 == 0) /*|| MATRIX_TYPE*/) {               // если чётная строка
-		return (/*THIS_Y*/thisy * /*_WIDTH*/mwidth + /*THIS_X*/thisx);
+	if ((_matrixType & NEO_MATRIX_SEQUENCE) == NEO_MATRIX_ZIGZAG) {
+		if ((/*THIS_Y*/thisy % 2 == 0) /*|| MATRIX_TYPE*/) {               // если чётная строка
+			return (/*THIS_Y*/thisy * /*_WIDTH*/thiswidth + /*THIS_X*/thisx);
+		}
+		else {                                              // если нечётная строка
+			return (/*THIS_Y*/thisy * /*_WIDTH*/thiswidth + /*_WIDTH*/thiswidth - /*THIS_X*/thisx - 1);
+		}
 	}
-	else {                                              // если нечётная строка
-		return (/*THIS_Y*/thisy * /*_WIDTH*/mwidth + /*_WIDTH*/mwidth - /*THIS_X*/thisx - 1);
+	else {
+		return (/*THIS_Y*/thisy * /*_WIDTH*/thiswidth + /*THIS_X*/thisx);
 	}
 }
 
@@ -116,7 +131,7 @@ void RGBStripFireEffect::generateLine() {
 	}
 }
 void RGBStripFireEffect::shiftUp() {
-	uint16_t height = mlen / mwidth;
+	uint16_t height = mheight;
 	for (uint8_t y = height - 1; y > 0; y--) {
 		for (uint8_t x = 0; x < mwidth; x++) {
 			uint8_t newX = x;
@@ -135,7 +150,7 @@ void RGBStripFireEffect::shiftUp() {
 
 
 void RGBStripFireEffect::drawFrame(int pcnt) {
-	uint16_t height = mlen / mwidth;
+	uint16_t height =mheight;
 	int nextv;
 
 	//each row interpolates with the one before it
@@ -208,7 +223,7 @@ void RGBStripSnowEffect::runcycle() {
 	for (byte x = 0; x < mwidth; x++) {
 		// заполняем случайно верхнюю строку
 		// а также не даём двум блокам по вертикали вместе быть
-		if (getPixColorXY(x, mheight - 2) == 0 && (random(0, modes[15].scale) == 0))
+		if (getPixColorXY(x, mheight - 2) == 0 && (random(0, 40) == 0))
 			drawPixelXY(x, mheight - 1, 0xE0FFFF - 0x101010 * random(0, 4));
 		else
 			drawPixelXY(x, mheight - 1, 0x000000);
