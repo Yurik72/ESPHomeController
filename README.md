@@ -2,6 +2,9 @@
 # ESPHomeController
 Generic IOT platform for Home Automation based on the ESP8266/ESP32.
 
+## Good news
+please have a look https://github.com/Yurik72/esphapcontroller  , there is a clone of code base adapted for esp-idf and NATIVE support of Apple Home Kit
+
 After a few times of implementing IOT devices for home automation, i have recognized that each new one looks better and better, but this is always copy-paste approach... And not so easilly to back to previous implementation and merge innovation. For instance after implementing simple IOT for Relay switching I have did another project to control RGB strip (WS2811/2812 ) and finally get to sketches which I have to support... 
 Instead of that i decided to develop universal sketch to support code once, but with possibility to upload to different IOT controllers for my Home Automation.
 **Main targets are :**
