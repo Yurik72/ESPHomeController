@@ -285,7 +285,17 @@ void AsyncWiFiManager::scan()
   if (wifiSSIDscan)
   {
     int n = WiFi.scanNetworks();
-	
+	if (n == WIFI_SCAN_RUNNING) {
+		delay(1000);
+		n = WiFi.scanNetworks();
+	}
+	if (n == WIFI_SCAN_FAILED) {
+		WiFi.mode(WIFI_AP);
+		delay(1000);
+		n = WiFi.scanNetworks();
+		delay(1000);
+		WiFi.mode(WIFI_AP_STA);
+	}
     DEBUG_WM(F("Scan done"));
 	DEBUG_WM(String(WiFi.scanNetworks()) +String(F("Netwokr found")));
     if (n == 0) {

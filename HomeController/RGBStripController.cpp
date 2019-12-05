@@ -370,6 +370,7 @@ RGBStripController::RGBStripController() {
 	//this->core = 1;
 	//this->priority = 100;
 	pEffect = NULL;
+	this->malimit = 2000; //mamper limit
 }
 RGBStripController::~RGBStripController() {
 	if (pStripWrapper)
@@ -450,6 +451,7 @@ void RGBStripController::loadconfig(JsonObject& json) {
 	loadif(ismatrix, json, FPSTR(szismatrix));
 	loadif(matrixWidth, json, FPSTR(szmatrixwidth));
 	loadif(matrixType, json, FPSTR(szmatrixType));
+	loadif(malimit, json,"malimit");
 	//DBG_OUTPUT_PORT.println("matrixType");
 	//DBG_OUTPUT_PORT.println(matrixType);
 }

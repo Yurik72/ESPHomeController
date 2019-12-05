@@ -23,6 +23,14 @@
 #define NEO_MATRIX_ZIGZAG      0x08 // Pixel order reverses between lines
 #define NEO_MATRIX_SEQUENCE    0x08 // Bitmask for pixel line order
 
+//current limit
+#define ONE_AMPER_PER    60  //one amper per 60 leds
+#define MAX_MA(count) ((count*100)/ONE_AMPER_PER)  //max ma per given led count
+#define MAX_MA_BR(count,br) ((MAX_MA(count)*255)/br) //ma per given count and brigtness
+#define CONSTRAINT_BR (br,count,limit) (MAX_MA_BR(count,br)>limit)? (br*limit/(MAX_MA_BR(count,br))):br
+
+
+
 class WS2812FX;
 class Ticker;
 class RGBStripCycler;
@@ -251,6 +259,7 @@ private:
 	uint8_t matrixWidth;
 	uint8_t matrixType;
 	RGBStripEffect* pEffect;
+	uint8_t malimit;
 
 };
 DEFINE_CONTROLLER_FACTORY(RGBStripController)
