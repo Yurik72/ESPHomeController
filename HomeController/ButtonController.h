@@ -11,9 +11,9 @@
 #define DOWN_MASK        0b0000000000111111
 
 #define STATE_HISTORY_MAX 5
-#define STATE_HISTORY_PERIOD_UPDATE 5000
+#define STATE_HISTORY_PERIOD_UPDATE 2000
 
-#define LONG_ACTIONDURATION 20000
+#define LONG_ACTIONDURATION 5000
 #define VERYLONG_ACTIONDURATION 20000
 struct ButtonState
 {
@@ -25,7 +25,8 @@ struct ButtonState
 	bool isVeryLongPressed= false;
 };
 enum ButtonCMD :uint {SetBtn, BtnSaveState = 4096 };
-enum  enumstate :int { none = 0,ispressed = 1, isdown = 2 };
+enum  enumstate :int { none = 0,ispressed = 1, isdown = 2,islongpressed=3 };
+enum  longhistoryres :int { his_none = 0, his_longpressed = 1, his_multiplepress = 2 };
 class ButtonController;
 typedef CController<ButtonController, ButtonState, ButtonCMD> Button;
 struct btn_state_history_record
@@ -53,8 +54,8 @@ protected:
 	uint8_t pin[MAX_BUTTONS];
 	void update(uint8_t idx);
 	void addhistory(bool bit, uint8_t idx);
-	void update_history_state(uint8_t idx, enumstate state, long ms);
-	void check_update_longhistory(uint8_t idx);
+	longhistoryres update_history_state(uint8_t idx, enumstate state, long ms);
+	longhistoryres check_update_longhistory(uint8_t idx);
 	
 	
 private:

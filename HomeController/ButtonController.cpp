@@ -142,12 +142,20 @@ void ButtonController::runcore() {
 #endif
 		}
 
-		if (this->is_pressed(i) && btnstate[i] != ispressed){//!= this->get_state(i).isPressed) {
+		if (this->is_pressed(i) && (btnstate[i] != ispressed && btnstate[i] != islongpressed)){//!= this->get_state(i).isPressed) {
 			st.isPressed = true;
 			st.changed_at = btnpresstime[i] =millis();
 			btnstate[i] = ispressed;
+			longhistoryres res = this->update_history_state(i, btnstate[i], millis());
+			if (res == his_longpressed) {
+				btnstate[i] = islongpressed;
+			}
+			else {//if (res ==his_none  ||  // todo) {
+				btnstate[i] = ispressed;
+			}
 			this->AddCommand(st, SetBtn, srcSelf);
-			this->update_history_state(i, btnstate[i], millis());
+			
+			
 #ifdef BUTTON_DEBUG
 			DBG_OUTPUT_PORT.println(F("button press"));
 #endif
@@ -159,17 +167,42 @@ void ButtonController::runcore() {
 		
 	}
 }
-void ButtonController::update_history_state(uint8_t idx, enumstate state, long ms) {
+longhistoryres ButtonController::update_history_state(uint8_t idx, enumstate state, long ms) {
 
-	memcpy(btn_long_history[idx], btn_long_history[idx] + 1, (sizeof(btn_state_history_record)*STATE_HISTORY_MAX) - 1);
-	btn_long_history[idx][STATE_HISTORY_MAX - 1].state = state;
-	btn_long_history[idx][STATE_HISTORY_MAX - 1].ms = ms;
-	check_update_longhistory(idx);
+	//shifting left
+	memcpy(btn_long_history[idx], btn_long_history[idx] + 1, (sizeof(btn_state_history_record)*(STATE_HISTORY_MAX-1)));
+	btn_state_history_record last= btn_long_history[idx][STATE_HISTORY_MAX - 1];
+	last.state = state;
+	last.ms = ms;
+	return check_update_longhistory(idx);
 }
-void ButtonController::check_update_longhistory(uint8_t idx) {
-	if (btn_long_history[idx][STATE_HISTORY_MAX - 1].state != ispressed &&
+longhistoryres ButtonController::check_update_longhistory(uint8_t idx) {
+	last_history_state_update = millis();
+	btn_state_history_record last = btn_long_history[idx][STATE_HISTORY_MAX - 1];
+	int presscount = 0;
+	if (last.state == ispressed) {
+		long lastpresstime = last.ms;
+		long durationpress = 0;
+		
+		for (int i = STATE_HISTORY_MAX - 2; i >= 0; i--) {
+			btn_state_history_record it = btn_long_history[idx][i];
+			if (it.state == ispressed) {
+				lastpresstime = it.ms;
+				presscount++;
+			}else
+				durationpress = lastpresstime-it.ms;
+				if (durationpress > LONG_ACTIONDURATION) {
+					return his_longpressed;
+				}
+			}
+		}
+	if (presscount > 1)
+		return his_multiplepress;
+	return his_none;
+	/*
+	if (last.state != ispressed &&
 		btn_long_history[idx][STATE_HISTORY_MAX - 2].state == ispressed &&
-		(btn_long_history[idx][STATE_HISTORY_MAX - 2].ms + LONG_ACTIONDURATION) < btn_long_history[idx][STATE_HISTORY_MAX - 1].ms) {
+		(btn_long_history[idx][STATE_HISTORY_MAX - 2].ms + LONG_ACTIONDURATION) < last.ms) {
 		ButtonState st = this->get_state();
 		st.idx = idx;
 		st.isLongPressed = true;
@@ -178,7 +211,8 @@ void ButtonController::check_update_longhistory(uint8_t idx) {
 		DBG_OUTPUT_PORT.println(F("button long press"));
 #endif
 	}
-	last_history_state_update = millis();
+	*/
+	
 
 }
 void ButtonController::update(uint8_t idx) {
