@@ -78,7 +78,7 @@ class Triggers extends React.Component {
         return { ...this.clonetriggers()[idx] };
     }
     assigntotrigger(idx, callback) {
-       // console.debug("assigntotrigger");
+       console.debug("assigntotrigger");
         let triggers = this.clonetriggers(idx) //all new copy
         let item = { ...triggers[idx] }; //edited item
         //item = { ...item, ...obj };
@@ -89,7 +89,7 @@ class Triggers extends React.Component {
         return triggers;
     }
     assigntotriggervalue(val, tidx, idx) {
-        //console.debug("assigntotriggervalue");
+        console.debug("assigntotriggervalue");
         return this.assigntotrigger(tidx, function (item) {
             let values = [...item.value];//copy of values
             let itemvalue = { ...values[idx] }; //edited value of item

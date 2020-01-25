@@ -7,6 +7,9 @@ import ColorWeel from "./ColorWeel"
 import { Card, Row, Col } from "./Card"
 import ItemSelector from "./ItemSelector"
 import { getBaseuri, doFetch } from "./utils"
+
+import CronEdit  from './Cronedit';
+
 class RGBTimeRecord extends React.Component {
     constructor(props) {
         super(props);
@@ -17,7 +20,8 @@ class RGBTimeRecord extends React.Component {
         this.handlechange = handlechange;
         this.modeselector = {};
         this.cs = {};
-
+        
+       
     };
     componentDidMount() {
         //console.log("componentDidMount RGBTimeRecord");
@@ -40,10 +44,19 @@ class RGBTimeRecord extends React.Component {
         //console.debug("render rgbtimerecord");
         const dfprops = { showcolor: true, showldr: true, showbrightness:true,showmode:true}
         const { item, idx, showcolor, showldr, showbrightness ,showmode} = { ...dfprops, ...this.props };
-        
+       
+       
         return (
             <>
                 <Row>
+                    <Col num={12}>
+                        <CronEdit
+                            onCronChange={t => (this.onChangeVal({ cron: t}))}
+                        />
+                    </Col>
+               </Row>
+               <Row>
+
                 <Col num={4}>
                 <TimePickCtl
                     label="Time"
