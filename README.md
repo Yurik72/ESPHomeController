@@ -13,7 +13,7 @@ Instead of that i decided to develop universal sketch to support code once, but 
  4. Nice web interface to controll devices as well to setup them
  5. RAW file browser to upload/change configuration files or HTML for the WEB
  6. MQTT integration to be able control devices via Home Kit
- 7. Native support of Apple Home Kit integration
+ 7. Native support of Apple Home Kit integration (only for ESP32)
  8. On board automation scripts/triggers.. Some times is not easy to setup this one via Home Kit or Home Kit doesn't exists
  9. Configuration portal after firts start (captive portal)
  10. Suports of RF 433 Mhz control by any existing transmitters
