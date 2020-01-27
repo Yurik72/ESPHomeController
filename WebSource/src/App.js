@@ -52,7 +52,7 @@ class App extends Component {
         console.log("App ctor");
     }
     componentDidMount() {
-        var debug = false;
+        var debug = true;
         console.log("App componentDidMount");
         if (!debug) {
             doFetch(getBaseuri() + "/get_info", (data) => { this.setHeaderdata(data) });
@@ -68,7 +68,7 @@ class App extends Component {
     }
     componentWillMount() {
      //   console.log("App componentWillMount");
-        var debug = false;
+        var debug = true;
         if (debug) {
             var obj = JSON.parse('[{"service":"RelayController","name":"Relay","enabled":true,"interval":100,"pin":5},{"service":"TimeController","name":"Time","enabled":true,"interval":1000,"timeoffs":7200,"dayloffs":3600,"server":"pool.ntp.org"},{"service":"RGBStripController","name":"RGBStrip","enabled":true,"interval":1,"pin":23,"numleds":8},{"service":"LDRController","name":"LDR","enabled":true,"interval":1000,"pin":0},{"service":"RFController","name":"RF","enabled":true,"interval":2,"pin":27}]');
             var obj1 = JSON.parse('[{"type":"TimeToRGBStrip","source":"Time","destination":"Relay","value":[{"isOn":true,"isLdr":true,"time":"* 2 * * *","bg":1,"wxmode":-1}]},{"type":"RFToRelay","source":"RF","destination":"Relay","value":[{"isOn":true,"isswitch":true,"rfkey":13532516}]}]');

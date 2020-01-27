@@ -99,6 +99,8 @@ export function encode_chops(arr) {
 }
 
 export function convertCronToString(cronExpression) {
+    if (!cronExpression.match(/^((\*(\/[1-9][0-9]?)?|([0-9]{1,2}(-[0-9]{1,2})?)(,[0-9]{1,2}(-[0-9]{1,2})?)*)( |$)){6}$/))
+        return "invalid expression";
     var cron = cronExpression.split(" ");
     var minutes = cron[0];
     var hours = cron[1];
