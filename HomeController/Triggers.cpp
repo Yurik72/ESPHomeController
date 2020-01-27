@@ -197,6 +197,7 @@ void TriggerFromService<SRC, DST>::handleloopsvc(SRC* ps, DST* pd) {
 template<typename TM>
 CBaseTimeTrigger<TM>::CBaseTimeTrigger() {
 	this->pTime=NULL;
+	
 #ifdef	TRIGGER_DEBUG
 	DBG_OUTPUT_PORT.print("CBaseTimeTrigger()");
 
@@ -213,8 +214,15 @@ void CBaseTimeTrigger<TM>::set_timectl(TimeController *pCtl) {
 template<typename TM>
 void CBaseTimeTrigger<TM>::parsetime(JsonObject& json, TM & rec) {
 	String stime = json["time"].as<String>();
-	if (rec.timetype == dailly) {
-		stime.trim();
+	stime.trim();
+	DBG_OUTPUT_PORT.println(stime);
+	cron_parse_expr(stime.c_str(), &rec.cronexpr, &rec.cron_err);
+	if (rec.iscron()) {
+		DBG_OUTPUT_PORT.println("Cron parsed ");
+	}
+	else if (rec.timetype == dailly) {
+		DBG_OUTPUT_PORT.println("Cron NOT parsed ");
+		DBG_OUTPUT_PORT.println(rec.cron_err);
 		stime.replace(":", "");
 		rec.time = stime.toInt();
 	}
@@ -235,7 +243,22 @@ void CBaseTimeTrigger<TM>::processrecord(time_t currentTime, TM& rec, Controller
 	DBG_OUTPUT_PORT.println(getFormattedTime(rec.lastTriggered));
 	
 #endif
-	if (rec.timetype == dailly) {
+	if (rec.iscron()) {
+		if (rec.lastTriggered == 0) {
+			rec.lastTriggered = currentTime-100;
+		}
+
+		rec.timeToTrigger = cron_next(&rec.cronexpr, rec.lastTriggered);
+		//DBG_OUTPUT_PORT.println("Cron next run");
+		//DBG_OUTPUT_PORT.println(getFormattedTime(rec.timeToTrigger));
+
+		if (rec.timeToTrigger < currentTime) {
+			this->dotrigger(rec, pctlss);
+			rec.lastTriggered = currentTime;
+		}
+	}
+	else if (rec.timetype == dailly) {
+
 		if (rec.timeToTrigger == 0) { //not triggered yet
 			//to be check timezones ESP32/ESP8266
 #if defined(ESP8266)

@@ -47,7 +47,7 @@ public:
 	virtual int get_maxx() { return 0; };
 	virtual void clear() {};
 	virtual void update() {};
-	virtual int drawline(size_t idx, const String& text) {};
+	virtual int drawline(size_t idx, const String& text) {return 0;};
 	virtual void drawtext(size_t x, size_t y, const String& text) {};
 protected:
 	uint8_t i2caddr;

@@ -3,6 +3,11 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include "BaseController.h"
+#ifdef	ENABLE_NATIVE_HAP
+extern "C"{
+#include "homeintegration.h"
+}
+#endif
 
 class Adafruit_BME280;
 struct BMEState
@@ -34,6 +39,13 @@ public:
 	
 	virtual bool onpublishmqtt(String& endkey, String& payload);
 	virtual void onmqqtmessage(String topic, String payload);
+#ifdef	ENABLE_NATIVE_HAP
+	virtual void setup_hap_service();
+	static void hap_callback(homekit_characteristic_t *ch, homekit_value_t value, void *context);
+
+	virtual void notify_hap();
+
+#endif
 protected:
 	void meassure(BMEState& state);
 	void directmeassure(BMEState& state);
@@ -44,6 +56,16 @@ protected:
 	double temp_corr;
 	double hum_corr;
 	Adafruit_BME280* pbme;
+#ifdef	ENABLE_NATIVE_HAP
+	homekit_service_t* hapservice_temp;
+	homekit_characteristic_t * hap_temp;
+
+	homekit_service_t* hapservice_hum;
+	homekit_characteristic_t * hap_hum;
+
+	homekit_service_t* hapservice_press;
+	homekit_characteristic_t * hap_press;
+#endif
 };
 DEFINE_CONTROLLER_FACTORY(BME280Controller)
 

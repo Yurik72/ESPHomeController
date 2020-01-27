@@ -4,6 +4,11 @@
 #include <ArduinoJson.h>
 #include "BaseController.h"
 
+#ifdef	ENABLE_NATIVE_HAP
+extern "C"{
+#include "homeintegration.h"
+}
+#endif
 
 struct RelayState
 {
@@ -32,9 +37,19 @@ public:
 	virtual void set_state(RelayState state);
 	virtual bool onpublishmqtt(String& endkey, String& payload);
 	virtual void onmqqtmessage(String topic, String payload);
+#ifdef	ENABLE_NATIVE_HAP
+	virtual void setup_hap_service();
+	static void hap_callback(homekit_characteristic_t *ch, homekit_value_t value, void *context);
+
+	virtual void notify_hap();
+
+#endif
 protected:
 	uint pin;
 	bool isinvert;
+#ifdef	ENABLE_NATIVE_HAP
+	homekit_service_t* hapservice;
+#endif
 };
 DEFINE_CONTROLLER_FACTORY(RelayController)
 

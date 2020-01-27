@@ -94,7 +94,7 @@ bool ICACHE_FLASH_ATTR readConfigFS() {
 		File configFile = SPIFFS.open("/config.json", "r");
 		if (configFile) {
 			DBG_OUTPUT_PORT.println("Opened!");
-			size_t size = configFile.size();
+			//size_t size = configFile.size();
 
 			DynamicJsonDocument jsonBuffer(JSON_OBJECT_SIZE(4) + 300);
 			DeserializationError error = deserializeJson(jsonBuffer, configFile.readString());
@@ -117,6 +117,9 @@ bool ICACHE_FLASH_ATTR readConfigFS() {
 					DBG_OUTPUT_PORT.println("Invalid load host name");
 
 				isOffline = json["offline"];
+
+				loadif(accessory_type, json, "acctype");
+
 #if defined ENABLE_HOMEBRIDGE
 				jsondata = json[name_mqtt_host];
 				if (jsondata && strlen(jsondata) > 0)
@@ -198,9 +201,9 @@ uint32_t Color(uint8_t r, uint8_t g, uint8_t b) {
 // brightness must be a float value between 0 and 1
 uint32_t  HSVColor(float h, float s, float v) {
 
-	h = constrain(h, 0, 360);
-	s = constrain(s, 0, 1);
-	v = constrain(v, 0, 1);
+	h = constrain(h, 0.0, 360.0);
+	s = constrain(s, 0.0, 1.0);
+	v = constrain(v, 0.0, 1.0);
 
 	int i, b, p, q, t;
 	float f;

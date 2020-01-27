@@ -1,8 +1,22 @@
 #ifndef config_h
 #define config_h
 
-#define ENABLE_HOMEBRIDGE    //if defined will communicate to MQTT Home bdridge
+#define ENABLE_NATIVE_HAP      //if defined will communicate Apple Home Kit with native protocols
+
+//#define ENABLE_HOMEBRIDGE    //if defined will communicate to MQTT Home bdridge
 #define HTTP_OTA             // If defined, enable ESP8266HTTPUpdateServer/ESP32HTTPUpdateServer/ESPAsyncUpdateServer OTA code.
+
+
+#if defined(ENABLE_NATIVE_HAP) && defined(ENABLE_HOMEBRIDGE)
+#error    Strange combination, which is not tested
+#endif
+
+#if defined(ENABLE_NATIVE_HAP) && defined(ESP8266)
+#error    Native hap is not supported for ESP8266
+#endif
+
+
+
 
 #define LOG_STRING_LOGGER
 #define LOG_SERIAL
@@ -54,7 +68,7 @@
 //#define SERVO_DEBUG    //debug relay dim
 //#define MQTT_DEBUG
 //#define FACTORY_DEBUG
-//#define RFCONTROLLER_DEBUG
+#define RFCONTROLLER_DEBUG
 //#define RGBSTRIP_DEBUG
 //#define MENU_DEBUG
 //#define BUTTON_DEBUG
@@ -64,9 +78,9 @@
 
 //DISABLE /ENABLE services Section
 // Importnat due to iram limitation on ESp8266 (virtual function  table)
-//#define RF_SNIFFER
+#define RF_SNIFFER
 //#define RGB
-#define RF_RELAY
+//#define RF_RELAY
 
 #ifdef ESP8266
 #define DISABLE_OLED
@@ -121,6 +135,7 @@ extern short qossub ; // AMQTT can sub qos 0 or 1 or 2
 extern bool isOffline;
 extern bool isReboot;
 extern bool isAPMode;
+extern int accessory_type;
 //extern  String globlog;
 
 #define VERSION "0.91"

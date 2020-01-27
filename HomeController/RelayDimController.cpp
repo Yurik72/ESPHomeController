@@ -26,6 +26,12 @@ RelayDimController::RelayDimController() {
 	//.this->channel= get_next_available_channel ();
 	this->channel=get_next_espchannel();
 #endif
+#ifdef	ENABLE_NATIVE_HAP
+	this->ishap=true;
+	this->hapservice=NULL;
+	this->hap_on=NULL;
+	this->hap_br=NULL;
+#endif
 }
 RelayDimController::~RelayDimController() {
 	if (this->pSmooth)
@@ -200,7 +206,7 @@ void RelayDimController::set_state(RelayDimState state) {
 	}
 	if (state.isOn) {
 		if (state.isLdr) {
-			if (oldState.brightness != state.brightness || oldState.ldrValue != state.ldrValue && !ignore_br)
+			if ((oldState.brightness != state.brightness || oldState.ldrValue != state.ldrValue) && !ignore_br)
 				this->setBrightness(getLDRBrightness(state.brightness, state.ldrValue));
 		}
 		else {
@@ -259,3 +265,67 @@ void RelayDimController::onmqqtmessage(String topic, String payload) {
 	}
 	
 }
+#ifdef	ENABLE_NATIVE_HAP
+void RelayDimController::setup_hap_service(){
+
+
+	DBG_OUTPUT_PORT.println("RGBStripController::setup_hap_service()");
+	if(!ishap)
+		return;
+
+	if(this->accessory_type>1){
+		this->hapservice=hap_add_relaydim_service_as_accessory(this->accessory_type,this->get_name(),RelayDimController::hap_callback,this);
+	}
+	else
+	{
+		this->hapservice=hap_add_relaydim_service(this->get_name(),RelayDimController::hap_callback,this);
+	}
+
+	this->hap_on=homekit_service_characteristic_by_type(this->hapservice, HOMEKIT_CHARACTERISTIC_ON);
+	this->hap_br=homekit_service_characteristic_by_type(this->hapservice, HOMEKIT_CHARACTERISTIC_BRIGHTNESS);
+}
+void RelayDimController::notify_hap(){
+	if(this->ishap && this->hapservice){
+		DBG_OUTPUT_PORT.println("RGBStripController::notify_hap");
+
+		RelayDimState newState=this->get_state();
+		if(this->hap_on->value.bool_value!=newState.isOn){
+			this->hap_on->value.bool_value=newState.isOn;
+		  homekit_characteristic_notify(this->hap_on,this->hap_on->value);
+		}
+		if(this->hap_br->value.int_value !=newState.ldrValue){
+			this->hap_br->value.int_value=newState.ldrValue;
+		  homekit_characteristic_notify(this->hap_br,this->hap_br->value);
+		}
+
+	}
+}
+void RelayDimController::hap_callback(homekit_characteristic_t *ch, homekit_value_t value, void *context){
+	DBG_OUTPUT_PORT.println("RGBStripController::hap_callback");
+
+	if(!context){
+		return;
+	};
+
+	    RelayDimController* ctl= (RelayDimController*)context;
+	    RelayDimState newState=ctl->get_state();
+	    RelayDimCMD cmd = DimRelayOn;
+		bool isSet=false;
+		if(ch==ctl->hap_on && ch->value.bool_value!=newState.isOn){
+			newState.isOn=ch->value.bool_value;
+			cmd =newState.isOn?DimRelayOn:DimRelayOn;
+			isSet=true;
+		}
+		if(ch==ctl->hap_br && ch->value.int_value!=newState.brightness){
+			newState.brightness=ch->value.int_value;
+			cmd=DimSetBrigthness;
+			isSet=true;
+		}
+
+	//	newState.isOn=value.bool_value;
+		if(isSet)
+			ctl->AddCommand(newState, cmd, srcHAP);
+
+}
+
+#endif

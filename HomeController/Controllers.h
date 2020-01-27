@@ -29,7 +29,10 @@
 
 class Triggers;
 class CBaseController;
-
+#ifdef ENABLE_NATIVE_HAP
+void init_hap_storage();
+void storage_changed(char * szstorage,int size);
+#endif
 class Controllers :public CSimpleArray< CBaseController*>
 {
 public:

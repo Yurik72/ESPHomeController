@@ -9,7 +9,11 @@
 #include <WS2812FX.h>
 #include <Print.h>
 #include <Ticker.h>
-
+#ifdef	ENABLE_NATIVE_HAP
+extern "C"{
+#include "homeintegration.h"
+}
+#endif
 
 #define NEO_MATRIX_TOP         0x00 // Pixel 0 is at top of matrix
 #define NEO_MATRIX_BOTTOM      0x01 // Pixel 0 is at bottom of matrix
@@ -55,8 +59,8 @@ public:
 	void startprint();
 	void endprint();
 	virtual size_t write(uint8_t c);
-	bool setCustomMode(bool val) { isCustomWrite_mode = val; };
-	bool setCursorMode(CURSOR_CHARMODE val) { cursormode = val; };
+	bool setCustomMode(bool val) { isCustomWrite_mode = val;return val; };
+	bool setCursorMode(CURSOR_CHARMODE val) { cursormode = val; return true; };
 	void  set_inoffset_x(int16_t val);
 	void  set_inoffset_y(int16_t val);
 protected:
@@ -87,7 +91,7 @@ enum COLOR_MODE : uint8_t {
 class StripWrapper {
 public:
 	StripWrapper() { pcyclerfloattext = NULL; cmode = current; }
-	~StripWrapper() {
+	virtual ~StripWrapper() {
 		deinit();
 	}
 
@@ -114,10 +118,10 @@ public:
 	virtual void print_at(int16_t x, String text) {};
 	virtual void printfloat(String text) {};
 	virtual void resetfloatcycler() {};
-	virtual uint8_t setCustomMode(const __FlashStringHelper* name, uint16_t(*p)()) {};
+	virtual uint8_t setCustomMode(const __FlashStringHelper* name, uint16_t(*p)()) {return 0;};
 	virtual void setTextColor(uint16_t c) {};
 	void setColorMatrixMode(COLOR_MODE m) { cmode = m; };
-	virtual uint32_t color_wheel(uint8_t pos) {};
+	virtual uint32_t color_wheel(uint8_t pos) { return 0;};
 	COLOR_MODE getColorMatrixMode() { return cmode; };
 	virtual void setPixelColor(uint16_t pix, uint32_t color) {};
 	virtual uint32_t getPixelColor(uint16_t pix) { return 0; };
@@ -135,7 +139,7 @@ class WS2812Wrapper :public StripWrapper {
 public:
 	WS2812Wrapper();
 	WS2812Wrapper(bool useinternaldriver);
-	~WS2812Wrapper();
+	virtual ~WS2812Wrapper();
 	virtual void init(void);
 	virtual void deinit(void);
 	virtual void setup(int pin, int numleds);
@@ -184,6 +188,13 @@ struct RGBState
 	bool isLdr = false;
 	char text[RGB_TEXTLEN+1];
 	COLOR_MODE cmode = current;
+	//map(value, fromLow, fromHigh, toLow, toHigh)
+	int get_br_100(){
+		return map(brightness,0,0xFF,0,100);
+	}
+	void set_br_100(int val){
+		brightness= map(val,0,100,0,0xFF);
+	};
 	//bool isFloatText = false;
 };
 enum RGBCMD :uint {
@@ -237,10 +248,23 @@ public:
 	virtual void setuphandlers(AsyncWebServer& server);
 #endif
 	void setbrightness(int br, CmdSource src = srcState);
+#ifdef	ENABLE_NATIVE_HAP
+	virtual void setup_hap_service();
+	static void hap_callback(homekit_characteristic_t *ch, homekit_value_t value, void *context);
+
+	virtual void notify_hap();
+
+#endif
 protected:
 	uint pin;
 	uint numleds;
-
+#ifdef	ENABLE_NATIVE_HAP
+	homekit_service_t* hapservice;
+	homekit_characteristic_t * hap_on;
+	homekit_characteristic_t * hap_br;
+	homekit_characteristic_t * hap_hue;
+	homekit_characteristic_t * hap_saturation;
+#endif
 private:
 	String string_modes(void);
 	StripWrapper* pStripWrapper;

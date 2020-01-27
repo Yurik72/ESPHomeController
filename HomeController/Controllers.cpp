@@ -39,6 +39,12 @@ Ticker mqttReconnectTimer;
 #endif 
 #endif
 
+#ifdef	ENABLE_NATIVE_HAP
+extern "C"{
+#include "homeintegration.h"
+}
+#endif
+
 static Controllers* _instance=NULL;
 
 //REGISTER_CONTROLLER(RFController)
@@ -67,6 +73,12 @@ void Controllers::setup() {
 	DBG_OUTPUT_PORT.println("Controllers::setup");
 //	Factories::registerController("-", &global_LDRControllerFactory);
 	//DBG_OUTPUT_PORT.println(globlog);
+#ifdef	ENABLE_NATIVE_HAP
+	init_hap_storage();
+    set_callback_storage_change(storage_changed);
+    hap_setbase_accessorytype(accessory_type);
+    hap_initbase_accessory_service(HOSTNAME,"Yurik72","0","EspHapCtl",VERSION);
+#endif
 	this->loadconfig();
 	connectmqtt();
 	for (int i = 0; i < this->GetSize(); i++) {
@@ -79,6 +91,11 @@ void Controllers::setup() {
 		}
 		ctl->set_power_on();
 	}
+	DBG_OUTPUT_PORT.println("Load services done ");
+#ifdef	ENABLE_NATIVE_HAP
+	DBG_OUTPUT_PORT.println("starting hap_init_homekit_server ");
+	hap_init_homekit_server();
+#endif
 }
 void Controllers::loadconfig() {
 	String filename = "/services.json";
@@ -115,7 +132,9 @@ void Controllers::loadconfig() {
 						if (controller->statemon) {
 							this->pMonitor = controller;
 						}
-						
+						#ifdef	ENABLE_NATIVE_HAP
+						controller->setup_hap_service();
+						#endif
 
 						DBG_OUTPUT_PORT.print("Controllers added:");
 						DBG_OUTPUT_PORT.println(name);
@@ -461,8 +480,10 @@ void Controllers::checkandreconnectWifi() {
 				isConnectingMode = false; 
 					
 				//DBG_OUTPUT_PORT.println("Wifi Restored connection");
+#ifdef ENABLE_HOMEBRIDGE
 				if (strlen(mqtt_host) > 0 && atoi(mqtt_port) > 0)
 					mqttReconnectTimer.attach(2, realconnectToMqtt);
+#endif
 			}
 		}
 	}
@@ -470,7 +491,10 @@ void Controllers::checkandreconnectWifi() {
 void onstatechanged(CBaseController * ctl)
 {
 
-	
+#ifdef	ENABLE_NATIVE_HAP
+	if(ctl->get_ishap())
+		ctl-> notify_hap();
+#endif
 #ifdef ENABLE_HOMEBRIDGE
 	String endkey;
 	String payload;
@@ -580,3 +604,46 @@ void realconnectToMqtt() {
 void Controllers::onWifiDisconnect() {
 	this->isWifiConnected = false;
 }
+
+#ifdef ENABLE_NATIVE_HAP
+void init_hap_storage(){
+	DBG_OUTPUT_PORT.print("init_hap_storage");
+	String fname="/pair.dat";
+	File fsDAT=SPIFFS.open(fname, "r");
+	if(!fsDAT){
+		DBG_OUTPUT_PORT.println("Failed to read pair.dat");
+		return;
+	}
+	int size=hap_get_storage_size_ex();
+	char* buf=new char[size];
+	memset(buf,0xff,size);
+	int readed=fsDAT.readBytes(buf,size);
+	DBG_OUTPUT_PORT.print("Readed bytes ->");
+	DBG_OUTPUT_PORT.println(readed);
+	hap_init_storage_ex(buf,size);
+	fsDAT.close();
+	delete []buf;
+
+}
+void storage_changed(char * szstorage,int size){
+	//DBG_OUTPUT_PORT.println("storage changed");
+	//DBG_OUTPUT_PORT.println(szstorage);
+	//DBG_OUTPUT_PORT.println(size);
+	//DBG_OUTPUT_PORT.println(szstorage+7);
+	String fname="/pair.dat";
+	///char*  x=new char[size];
+	//memset(x,0xff,size);
+	//memset(x+5,0x00,5);
+	//DBG_OUTPUT_PORT.println(x);
+	SPIFFS.remove(fname);
+	File fsDAT=SPIFFS.open(fname, "w+");
+	if(!fsDAT){
+		DBG_OUTPUT_PORT.println("Failed to open pair.dat");
+		return;
+	}
+	fsDAT.write((uint8_t*)szstorage, size);
+	//fsDAT.write((uint8_t*)x, size);
+	fsDAT.close();
+}
+
+#endif

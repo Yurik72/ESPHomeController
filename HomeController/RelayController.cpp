@@ -14,6 +14,11 @@ const size_t bufferSize = JSON_OBJECT_SIZE(20);
 RelayController::RelayController() {
 	this->isinvert = false;
 	this->pin = 0;
+
+#ifdef	ENABLE_NATIVE_HAP
+	this->ishap=true;
+	this->hapservice=NULL;
+#endif
 }
 String  RelayController::serializestate() {
 	
@@ -55,7 +60,7 @@ void RelayController::getdefaultconfig(JsonObject& json) {
 	json["isinvert"]= isinvert;
 	json[FPSTR(szservice)] = "RelayController";
 	json[FPSTR(szname)] = "Relay";
-	
+	json["ishap"] = ishap;
 	Relay::getdefaultconfig(json);
 }
 void  RelayController::setup() {
@@ -129,3 +134,46 @@ void RelayController::onmqqtmessage(String topic, String payload) {
 	}
 	//this->AddCommand(setcmd.state, setcmd.mode);
 }
+#ifdef	ENABLE_NATIVE_HAP
+
+void RelayController::setup_hap_service(){
+	DBG_OUTPUT_PORT.println("RelayController::setup_hap_service()");
+	if(!ishap)
+		return;
+	if(this->accessory_type>1){
+		DBG_OUTPUT_PORT.println("adding as new accessory");
+		this->hapservice=hap_add_lightbulb_service_as_accessory(this->accessory_type,this->get_name(),RelayController::hap_callback,this);
+		DBG_OUTPUT_PORT.println((int)this->hapservice);
+	}
+	else{
+
+		this->hapservice=hap_add_lightbulb_service(this->get_name(),RelayController::hap_callback,this);
+	}
+
+}
+void RelayController::notify_hap(){
+	if(this->ishap && this->hapservice){
+		DBG_OUTPUT_PORT.println("RelayController::notify_hap");
+		homekit_characteristic_t * ch= homekit_service_characteristic_by_type(this->hapservice, HOMEKIT_CHARACTERISTIC_ON);
+		if(ch){
+
+			if(ch->value.bool_value!=this->get_state().isOn){
+				ch->value.bool_value=this->get_state().isOn;
+			  homekit_characteristic_notify(ch,ch->value);
+			}
+		}
+	}
+}
+void RelayController::hap_callback(homekit_characteristic_t *ch, homekit_value_t value, void *context){
+	DBG_OUTPUT_PORT.println("RelayController::hap_callback");
+	DBG_OUTPUT_PORT.println(value.bool_value);
+	if(context){
+		RelayController* ctl= (RelayController*)context;
+		RelayState newState=ctl->get_state();
+		RelayCMD cmd = Set;
+		newState.isOn=value.bool_value;
+		ctl->AddCommand(newState, cmd, srcHAP);
+	}
+}
+#endif
+

@@ -167,7 +167,8 @@ enum CmdSource
 	srcRestore=4,
 	srcPowerOn=5,
 	srcSmooth=6,
-	srcUserAction=7
+	srcUserAction=7,
+	srcHAP=8
 };
 enum BaseCMD :uint {
 	BaseOn=1,
@@ -189,6 +190,7 @@ class CBaseController
 {
 public:
 	CBaseController();
+	virtual ~CBaseController(){};
 	friend class Controllers;
 	virtual String  serializestate() = 0;
 	virtual bool  deserializestate(String jsonstate, CmdSource src= srcState)=0;
@@ -238,12 +240,18 @@ public:
 	CoreMode get_coremode() { return coreMode; };
 
 	short get_core() { return core; };
+	bool get_ishap() { return ishap; };
 	short get_priority() { return priority; };
 	virtual bool ispersiststate() { return false; }
 	virtual void savestate() ;
 	virtual bool loadstate()=0;
 	String get_filename_state();
 	virtual void set_power_on() {};
+#ifdef	ENABLE_NATIVE_HAP
+	virtual void setup_hap_service(){};
+	virtual void notify_hap(){};
+
+#endif
 #if defined(ESP8266)
 	static void callback(CBaseController* self);
 	void oncallback();
@@ -256,6 +264,10 @@ protected:
 	short core;
 	short priority;
 	int repch = -1;
+	bool ishap=false;
+#ifdef	ENABLE_NATIVE_HAP
+	int accessory_type;
+#endif
 #if defined(ESP8266)
 	Ticker* pTicker;
 #endif
@@ -311,7 +323,7 @@ public:
 		return commands.GetSize();
 	}
 	virtual bool baseprocesscommands(command cmd) {
-		if (cmd.mode == BaseSaveState) {
+		if ((int)cmd.mode ==(int) BaseSaveState) {
 			
 			this->savestate();
 			return true;
@@ -348,6 +360,8 @@ public:
 	}
 	void set_handler_statechange(func_onstatechange f) { handler_statechange = f; };
 	void add_eventshandler_statechange(func_onstatechange f) { events.Add(f); };
+
+
 protected:
 	virtual int get_maxcommands() { return CONTROLLER_MAX_COMMANDS; }
 	void storestate(P state) { this->state = state; };

@@ -28,25 +28,30 @@ void RGBStripEffect::drawPixelXY(int8_t x, int8_t y, CRGB color) {
 	if (x < 0 || x > mwidth - 1 || y < 0 || y > mheight - 1) return;
 	int thisPixel = getPixelNumber(x, y) * SEGMENTS;
 	for (byte i = 0; i < SEGMENTS; i++) {
-		if ((thisPixel + i) >= rgb_start_led)
-			color = GRB_TO_RGB(color);
+		//if ((thisPixel + i) >= rgb_start_led)
+		//if (rgb_start_led<0 || (thisPixel + i) <= (uint32_t)rgb_start_led)
+		//	color = GRB_TO_RGB(color);
 		
 		pStrip->setPixelColor(thisPixel + i, color);
 	}
 }
 void RGBStripEffect::drawPixel(uint32_t pix, CRGB color) {
 	 
-	if (pix >= rgb_start_led)
-		color = GRB_TO_RGB(color);
-		pStrip->setPixelColor(pix, GRB_TO_RGB(color));
+	//if (pix >= rgb_start_led)
+	//	color = GRB_TO_RGB(color);
+	//pStrip->setPixelColor(pix, GRB_TO_RGB(color));
+	//if (rgb_start_led<0  ||  pix <= (uint32_t)rgb_start_led)
+	//	color = GRB_TO_RGB(color);
+	pStrip->setPixelColor(pix, color);
 }
 // функция получения цвета пикселя по его номеру
 uint32_t RGBStripEffect::getPixColor(int thisSegm) {
 	int thisPixel = thisSegm * SEGMENTS;
 	if (thisPixel < 0 || thisPixel > mlen - 1) return 0;
 	uint32_t color = pStrip->getPixelColor(thisPixel);
-	if (thisPixel >= rgb_start_led)
-		color = GRB_TO_RGB(color);
+//	if (thisPixel >= rgb_start_led)
+	//if (rgb_start_led<0  ||  thisPixel <= (uint32_t)rgb_start_led)
+	//	color = GRB_TO_RGB(color);
 	return color;// (((uint32_t)leds[thisPixel].r << 16) | ((long)leds[thisPixel].g << 8) | (long)leds[thisPixel].b);
 }
 
@@ -165,7 +170,8 @@ void RGBStripFireEffect::drawFrame(int pcnt) {
 					- pgm_read_byte(&(valueMask[y][newX]));
 				
 				CRGB color = /*CHSV*//*HSVColor*/HSVColor_f_int_int(
-					modes[1].scale * 2.5 + pgm_read_byte(&(hueMask[y][newX])), // H
+					//modes[1].scale * 2.5 + pgm_read_byte(&(hueMask[y][newX])), // H
+					pgm_read_byte(&(hueMask[y][newX]))*1.0, // yk hue
 					255, // S
 					(uint8_t)max(0, nextv) // V
 				);
@@ -195,7 +201,8 @@ void RGBStripFireEffect::drawFrame(int pcnt) {
 		if (x > 15) newX = x - 15;
 		
 		CRGB color = /*CHSV*//*HSVColor*/HSVColor_f_int_int(
-			modes[1].scale * 2.5 + pgm_read_byte(&(hueMask[0][newX])), // H
+			//modes[1].scale * 2.5 + pgm_read_byte(&(hueMask[0][newX])), // H
+			pgm_read_byte(&(hueMask[0][newX]))*1.0, //YK H
 			255,           // S
 			(uint8_t)(((100.0 - pcnt) * matrixValue[0][newX] + pcnt * pline[newX]) / 100.0) // V
 		);

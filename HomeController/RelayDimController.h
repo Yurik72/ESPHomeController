@@ -4,6 +4,13 @@
 #include <ArduinoJson.h>
 #include "BaseController.h"
 
+#ifdef	ENABLE_NATIVE_HAP
+extern "C"{
+#include "homeintegration.h"
+}
+#endif
+
+
 #define PWM_FREQ 50 //PWM requency 
 #define PWM_BIT 16  // PWM bits
 #define DIM_MIN_VAL 0
@@ -25,6 +32,12 @@ struct RelayDimState
 	bool isLdr = false;
 	int brightness = 0;
 	int ldrValue = 0;
+	int get_br_100(){
+		return map(brightness,0,0xFF,0,100);
+	}
+	void set_br_100(int val){
+		brightness= map(val,0,100,0,0xFF);
+	};
 };
 enum RelayDimCMD {
 	DimRelayOn = BaseOn,
@@ -56,9 +69,22 @@ public:
 	int getLDRBrightness(int brigtness, int ldrval);
 	virtual void onmqqtmessage(String topic, String payload);
 	virtual bool onpublishmqttex(String& endkey, String& payload, int topicnr);
+#ifdef	ENABLE_NATIVE_HAP
+	virtual void setup_hap_service();
+	static void hap_callback(homekit_characteristic_t *ch, homekit_value_t value, void *context);
+
+	virtual void notify_hap();
+
+#endif
 protected:
 	uint pin;
 	bool isinvert;
+#ifdef	ENABLE_NATIVE_HAP
+	homekit_service_t* hapservice;
+	homekit_characteristic_t * hap_on;
+	homekit_characteristic_t * hap_br;
+
+#endif
 #ifdef ESP32
 	int channel;
 #endif

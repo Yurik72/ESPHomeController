@@ -371,6 +371,14 @@ RGBStripController::RGBStripController() {
 	//this->priority = 100;
 	pEffect = NULL;
 	this->malimit = 2000; //mamper limit
+#ifdef	ENABLE_NATIVE_HAP
+	this->ishap=true;
+	this->hapservice=NULL;
+	this->hap_on=NULL;
+	this->hap_br=NULL;
+	this->hap_hue=NULL;
+	this->hap_saturation=NULL;
+#endif
 }
 RGBStripController::~RGBStripController() {
 	if (pStripWrapper)
@@ -673,7 +681,7 @@ void RGBStripController::set_state(RGBState state) {
 			if (!pStripWrapper->isRunning()) pStripWrapper->start();
 		}
 		if (state.isLdr) {
-			if (oldState.brightness != state.brightness || oldState.ldrValue!= state.ldrValue && !ignore_br)
+			if ((oldState.brightness != state.brightness || oldState.ldrValue!= state.ldrValue) && !ignore_br)
 				pStripWrapper->setBrightness(getLDRBrightness(state.brightness, state.ldrValue));
 		}
 		else {
@@ -693,7 +701,13 @@ void RGBStripController::set_state(RGBState state) {
 			double saturation = 0.0;
 			ColorToHSI(state.color, state.brightness, hue, saturation, intensity);
 			this->mqtt_hue = hue;
-			this->mqtt_saturation = saturation;
+
+			this->mqtt_saturation = saturation*100.0/255.0;
+
+			DBG_OUTPUT_PORT.print("set color hue");
+			DBG_OUTPUT_PORT.println(this->mqtt_hue);
+			DBG_OUTPUT_PORT.print("set color saturation");
+			DBG_OUTPUT_PORT.println(this->mqtt_saturation);
 		}
 		if (oldState.cmode != state.cmode) {
 			pStripWrapper->setColorMatrixMode(state.cmode);
@@ -893,6 +907,92 @@ void RGBStripController::setbrightness(int br, CmdSource src) {
 	
 
 }
+#ifdef	ENABLE_NATIVE_HAP
+
+void RGBStripController::setup_hap_service(){
+
+
+	DBG_OUTPUT_PORT.println("RGBStripController::setup_hap_service()");
+	if(!ishap)
+		return;
+
+
+ //homekit_service_t* x= HOMEKIT_SERVICE(LIGHTBULB, .primary = true);
+	//homekit_characteristic_t * ch= NEW_HOMEKIT_CHARACTERISTIC(NAME, "x");
+
+	this->hapservice=hap_add_rgbstrip_service(this->get_name(),RGBStripController::hap_callback,this);
+	this->hap_on=homekit_service_characteristic_by_type(this->hapservice, HOMEKIT_CHARACTERISTIC_ON);;
+	this->hap_br=homekit_service_characteristic_by_type(this->hapservice, HOMEKIT_CHARACTERISTIC_BRIGHTNESS);;
+	this->hap_hue=homekit_service_characteristic_by_type(this->hapservice, HOMEKIT_CHARACTERISTIC_HUE);;
+	this->hap_saturation=homekit_service_characteristic_by_type(this->hapservice, HOMEKIT_CHARACTERISTIC_SATURATION);;
+
+}
+void RGBStripController::notify_hap(){
+	if(this->ishap && this->hapservice){
+		//DBG_OUTPUT_PORT.println("RGBStripController::notify_hap");
+
+		RGBState newState=this->get_state();
+		if(this->hap_on && this->hap_on->value.bool_value!=newState.isOn){
+			this->hap_on->value.bool_value=newState.isOn;
+		  homekit_characteristic_notify(this->hap_on,this->hap_on->value);
+		}
+		if(this->hap_br && this->hap_br->value.int_value !=newState.get_br_100()){
+			this->hap_br->value.int_value=newState.get_br_100();
+		  homekit_characteristic_notify(this->hap_br,this->hap_br->value);
+		}
+		if(this->hap_hue && this->hap_hue->value.float_value !=this->mqtt_hue){
+			this->hap_hue->value.float_value=this->mqtt_hue;
+		  homekit_characteristic_notify(this->hap_hue,this->hap_hue->value);
+		}
+		if(this->hap_saturation && this->hap_saturation->value.float_value !=this->mqtt_saturation){
+			this->hap_saturation->value.float_value=this->mqtt_saturation;
+		  homekit_characteristic_notify(this->hap_saturation,this->hap_saturation->value);
+		}
+	}
+}
+void RGBStripController::hap_callback(homekit_characteristic_t *ch, homekit_value_t value, void *context){
+	DBG_OUTPUT_PORT.println("RGBStripController::hap_callback");
+
+	if(!context){
+		return;
+	};
+		RGBStripController* ctl= (RGBStripController*)context;
+		RGBState newState=ctl->get_state();
+		RGBCMD cmd = On;
+		bool isSet=false;
+		if(ch==ctl->hap_on && ch->value.bool_value!=newState.isOn){
+			newState.isOn=ch->value.bool_value;
+			cmd =newState.isOn?On:Off;
+			isSet=true;
+		}
+		if(ch==ctl->hap_br && ch->value.int_value!=newState.get_br_100()){
+			newState.set_br_100(ch->value.int_value);
+			cmd=SetBrigthness;
+			isSet=true;
+		}
+		if(ch==ctl->hap_hue && ch->value.float_value!=ctl->mqtt_hue){
+			ctl->mqtt_hue=ch->value.float_value;
+			newState.color = HSVColor(ctl->mqtt_hue, ctl->mqtt_saturation/100.0, 1.0);
+			cmd=SetColor;
+			isSet=true;
+			DBG_OUTPUT_PORT.println("HUE");
+			DBG_OUTPUT_PORT.println(ch->value.float_value);
+		}
+		if(ch==ctl->hap_saturation && ch->value.float_value!=ctl->mqtt_saturation){
+			ctl->mqtt_saturation=ch->value.float_value;
+			newState.color = HSVColor(ctl->mqtt_hue, ctl->mqtt_saturation/100.0,1.0);
+			cmd=SetColor;
+			isSet=true;
+			DBG_OUTPUT_PORT.println("Saturation");
+			DBG_OUTPUT_PORT.println(ch->value.float_value);
+		}
+	//	newState.isOn=value.bool_value;
+		if(isSet)
+			ctl->AddCommand(newState, cmd, srcHAP);
+
+}
+#endif
+
 
 
 ///cycler

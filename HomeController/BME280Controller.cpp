@@ -24,6 +24,16 @@ BME280Controller::BME280Controller() {
 	this->isinit = false;
 	this->temp_corr = 0.0;
 	this->hum_corr = 0.0;
+#ifdef	ENABLE_NATIVE_HAP
+	this->ishap=true;
+	this->hapservice_temp=NULL;
+	this->hapservice_hum=NULL;
+	this->hapservice_press=NULL;
+
+	this->hap_temp=NULL;
+	this->hap_hum=NULL;
+	this->hap_press=NULL;
+#endif
 }
 String  BME280Controller::serializestate() {
 
@@ -364,3 +374,99 @@ void BME280Controller::directmeassure(BMEState& state) {
 	
 
 }
+
+
+
+#ifdef	ENABLE_NATIVE_HAP
+
+void BME280Controller::setup_hap_service(){
+
+#ifdef  BMECONTROLLER_DEBUG
+	DBG_OUTPUT_PORT.println("BME280Controller::setup_hap_service()");
+#endif
+
+	if(!ishap)
+		return;
+	if(this->accessory_type>1){
+#ifdef  BMECONTROLLER_DEBUG
+			DBG_OUTPUT_PORT.println("BME280Controller adding as new accessory");
+#endif
+			hap_add_temp_hum_as_accessory(this->accessory_type,this->get_name(),&this->hapservice_temp,&this->hapservice_hum);
+
+		}
+	else{
+		this->hapservice_temp=hap_add_temperature_service(this->get_name());
+		this->hapservice_hum=hap_add_humidity_service(this->get_name());
+	}
+	if(this->hapservice_temp)
+		this->hap_temp=homekit_service_characteristic_by_type(this->hapservice_temp, HOMEKIT_CHARACTERISTIC_CURRENT_TEMPERATURE);
+	if(this->hapservice_hum)
+		this->hap_hum=homekit_service_characteristic_by_type(this->hapservice_hum, HOMEKIT_CHARACTERISTIC_CURRENT_RELATIVE_HUMIDITY);
+
+
+
+
+}
+void BME280Controller::notify_hap(){
+	if(this->ishap && this->hapservice_temp && this->hap_temp){
+		BMEState newState=this->get_state();
+		if(this->hap_temp->value.float_value!=newState.temp){
+			this->hap_temp->value.float_value=newState.temp;
+				  homekit_characteristic_notify(this->hap_temp,this->hap_temp->value);
+		}
+	}
+	if(this->ishap && this->hapservice_hum && this->hap_hum){
+		BMEState newState=this->get_state();
+		if(this->hap_hum->value.float_value!=newState.hum){
+			this->hap_hum->value.float_value=newState.hum;
+				  homekit_characteristic_notify(this->hap_hum,this->hap_hum->value);
+		}
+	}
+
+}
+
+
+void BME280Controller::hap_callback(homekit_characteristic_t *ch, homekit_value_t value, void *context){
+	DBG_OUTPUT_PORT.println("RGBStripController::hap_callback");
+
+	if(!context){
+		return;
+	};
+	/*
+		RGBStripController* ctl= (RGBStripController*)context;
+		RGBState newState=ctl->get_state();
+		RGBCMD cmd = On;
+		bool isSet=false;
+		if(ch==ctl->hap_on && ch->value.bool_value!=newState.isOn){
+			newState.isOn=ch->value.bool_value;
+			cmd =newState.isOn?On:Off;
+			isSet=true;
+		}
+		if(ch==ctl->hap_br && ch->value.int_value!=newState.get_br_100()){
+			newState.set_br_100(ch->value.int_value);
+			cmd=SetBrigthness;
+			isSet=true;
+		}
+		if(ch==ctl->hap_hue && ch->value.float_value!=ctl->mqtt_hue){
+			ctl->mqtt_hue=ch->value.float_value;
+			newState.color = HSVColor(ctl->mqtt_hue, ctl->mqtt_saturation, newState.brightness);
+			cmd=SetColor;
+			isSet=true;
+			DBG_OUTPUT_PORT.println("HUE");
+			DBG_OUTPUT_PORT.println(ch->value.float_value);
+		}
+		if(ch==ctl->hap_saturation && ch->value.float_value!=ctl->mqtt_saturation){
+			ctl->mqtt_saturation=ch->value.float_value;
+			newState.color = HSVColor(ctl->mqtt_hue, ctl->mqtt_saturation, newState.brightness);
+			cmd=SetColor;
+			isSet=true;
+			DBG_OUTPUT_PORT.println("Saturation");
+			DBG_OUTPUT_PORT.println(ch->value.float_value);
+		}
+	//	newState.isOn=value.bool_value;
+		if(isSet)
+			ctl->AddCommand(newState, cmd, srcHAP);
+*/
+}
+#endif
+

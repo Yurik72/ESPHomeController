@@ -177,7 +177,7 @@ WebServer server(80);
 	 }
 
 
-#if !defined(ESP8266)
+#if !defined(ESP8266_)
 	 const String FILES[] = {  "/index.html", "/js/bundle.min.js.gz","/filebrowse.html" };//"/filebrowse.html"
 	 if (!isAPMode){
 		 for(int i=0;i<sizeof(FILES)/sizeof(*FILES);i++)
@@ -378,6 +378,3 @@ void startwifimanager() {
 }
 
 // gets called when WiFiManager enters configuration mode
-
-
-

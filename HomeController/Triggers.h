@@ -4,6 +4,7 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include "Array.h"
+#include "ccronexpr.h"
 #include "BaseController.h"
 #include "RFController.h"
 #include "RelayDimController.h"
@@ -87,6 +88,7 @@ public:
 	TimeController* get_timectl();
 	void set_timectl(TimeController *pCtl);
 	void set_timeoffs(long val) { timeoffs = val; };
+
 protected:
 	virtual void dotrigger(TM & rec, Controllers* pctlss) = 0;
 	bool istimetotrigger(time_t time, time_t currentTime);
@@ -97,11 +99,18 @@ private :
 };
 ///time to rgb
 struct timerecOn {
+	timerecOn() {
+		
+		memset(&cronexpr, 0, sizeof(cronexpr));
+	}
 	int time = 0;
 	bool isOn = false;
 	TimeType timetype = dailly;
 	time_t timeToTrigger = 0;
 	time_t lastTriggered = 0;
+	bool iscron() { return cron_err == NULL; };
+	cron_expr cronexpr;
+	const char* cron_err = NULL;;
 };
 struct timerecRGB: public timerecOn {
 	//int time = 0;

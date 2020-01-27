@@ -168,7 +168,7 @@ void RFController::load_persist() {
 	DBG_OUTPUT_PORT.println("RF load_persist");
 #endif
 	String filedata = readfile(getfilename_data().c_str());
-	int capacity = JSON_ARRAY_SIZE(8) + 2 * JSON_OBJECT_SIZE(20) + 262;
+	int capacity = JSON_ARRAY_SIZE(30) + 2 * JSON_OBJECT_SIZE(20) + 262;
 	DynamicJsonDocument jsonBuffer(capacity);
 	DeserializationError error = deserializeJson(jsonBuffer, filedata);
 	if (error) {
