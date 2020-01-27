@@ -2,11 +2,15 @@
 import { Row,Col } from './Card';
 import Select from 'react-select'
 
+import { convertCronToString } from './utils'
+
 
 class CronEdit extends Component {
     constructor(props) {
         super(props);
-        const { isChecked } = this.props;
+        const { isChecked, cronvalue } = this.props;
+        if (!cronvalue)
+            cronvalue = "* * * * *";
         this.days = [];
         this.hours = [];
         this.minutes = [];
@@ -22,7 +26,15 @@ class CronEdit extends Component {
         this.cron_dom = "*";
         this.cron_months = "*";
         this.cron_dow = "*";
-       
+
+        this.cron_selhours = undefined;
+        this.cron_selminutes = undefined;
+        this.cron_seldoms = undefined;
+        this.cron_selmonths = undefined;
+        this.cron_seldows = undefined;
+        this.state = { cron_res: cronvalue, cron_hum: convertCronToString(cronvalue) };
+
+        this.importCronExpression(cronvalue);
         const { onCronChange } = this.props;
         this.on_Change = onCronChange;
         if (!onCronChange)
@@ -39,7 +51,7 @@ class CronEdit extends Component {
         }
     }
     inithours() {
-        for (var i = 0; i <= 24; i++) {
+        for (var i = 0; i < 24; i++) {
             this.hours.push({ value: i, label: i });
         }
     }
@@ -53,7 +65,35 @@ class CronEdit extends Component {
             this.months.push({ value: i, label: i });
         }
     }
-   
+   importCronExpression(expression) {
+    if (!expression.match(/^((\*(\/[1-9][0-9]?)?|([0-9]{1,2}(-[0-9]{1,2})?)(,[0-9]{1,2}(-[0-9]{1,2})?)*)( |$)){5}$/))
+        return;
+    var parts = expression.split(" ");
+    var tmp;
+    if (parts[0] != this.cron_minutes) {
+        this.cron_minutes = parts[0];
+        this.cron_selminutes = this.cronValueItemToList(true, 59, parts[0]);
+        //cronHelperSelectList(cron_minutes_id, (true, 59, parts[0]));
+    }
+       if (parts[1] != this.cron_hours) {
+           this.cron_hours = parts[1];
+           this.cron_selhours = this.cronValueItemToList(true, 23, parts[1]);
+
+        //cronHelperSelectList(cron_hours_id, cronValueItemToList(true, 23, parts[1]));
+    }
+       if (parts[2] != this.cron_dom) {
+        this.cron_dom = parts[2];
+        //cronHelperSelectList(cron_dom_id, cronValueItemToList(false, 31, parts[2]));
+    }
+       if (parts[3] != this.cron_months) {
+        this.cron_months = parts[3];
+        //cronHelperSelectList(cron_months_id, cronValueItemToList(false, 12, parts[3]));
+    }
+       if (parts[4] != this.cron_dow) {
+        this.cron_dow = parts[4];
+        //cronHelperSelectList(cron_dow_id, cronValueItemToList(true, 6, parts[4]));
+    }
+}
  cronCalculate(zeroAllowed, max, values) {
     if (zeroAllowed == false)
         values.push(0);
@@ -92,14 +132,9 @@ class CronEdit extends Component {
     if (range)
         output = output + "-" + values[values.length - 1];
     return output;
-} // }}}
-/** Convert a cron-expression (one item) to a list of values {{{
- * @param bool zeroAllowed  weather the number zero is allowed (true) or not
- *                          (false)
- * @param  int              max the maximum value (eg. 59 for minutes)
- * @param  string           the cron expression (eg. "*")
- * @return int[]
- */
+    } 
+
+
  cronValueItemToList(allowZero, maxValue, value) {
     var list = [];
     if (value == "*") {
@@ -126,31 +161,46 @@ class CronEdit extends Component {
     } else {
         return [];
     }
-    return list;
+     return list.map(function (el,idx) { return {value:el,label:el}});
     }  
 
     updateField(type,lst) {
-   var  zeroAllowed = true;
+        var zeroAllowed = true;
+        var selvals=[];
+        if (Array.isArray(lst))
+          selvals=lst.map(function (element) { return element.value; })
     switch (type) {
         case "hours":
-            this.cron_hours = this.cronCalculate(true, 23, lst);
-            
+            this.cron_hours = this.cronCalculate(true, 23, selvals);
+            this.cron_selhours = lst;
+            if (Array.isArray(this.cron_selhours)
+                && this.cron_selhours.length > 0
+                && !Array.isArray(this.cron_minutes)) {
+                this.cron_selminutes = this.minutes[0];
+                this.cron_minutes = "0";
+            }
             break;
         case "minutes":
-            this.cron_minutes = this.cronCalculate(true, 59, lst);
+            this.cron_minutes = this.cronCalculate(true, 59, selvals);
+            this.cron_selminutes = lst;
             break;
         case "dom":
-            this.cron_dom = this.cronCalculate(false, 31, lst);
+            this.cron_dom = this.cronCalculate(false, 31, selvals);
+            this.cron_seldoms = lst;
             break;
         case "months":
-            this.cron_months = this.cronCalculate(false, 12, lst);
+            this.cron_months = this.cronCalculate(false, 12, selvals);
+            this.cron_selmonths = lst;
             break;
         case "dow":
-            this.cron_dow = this.cronCalculate(true, 6, lst);
+            this.cron_dow = this.cronCalculate(true, 6, selvals);
+            this.cron_seldows = lst;
             break;
     }
         this.on_Change(this.getCronExpression());
-        console.log(this.getCronExpression());
+        this.setState({ cron_res: this.getCronExpression() });
+        this.setState({ cron_hum: convertCronToString(this.getCronExpression() )});
+        //console.log(this.getCronExpression());
     } 
     getCronExpression() {
         return this.cron_minutes + " " + this.cron_hours + " " + this.cron_dom + " " +
@@ -160,65 +210,88 @@ class CronEdit extends Component {
     handlehoursChange = (selectedOption) => {
         console.log(selectedOption);
         this.updateField('hours', selectedOption.map( function (element) { return element.value; }));
-     }
+    }
+    handlecronChange = (selectedOption,type) => {
+        console.log(selectedOption);
+        this.updateField(type, selectedOption);
+    }
     render() {
-        
+        console.log(this.cron_selhours);
         return (
            
-              
+           <>   
             
             <Row>
-                <Col num={4}>
+
+                <Col num={3}>
                 <label>Hours</label>
-                <Select options={this.hours}
+                        <Select options={this.hours}
+                            value={this.cron_selhours}
                     isMulti
                     name="hours"
-                    onChange={this.handlehoursChange}
+                    onChange={s => { this.handlecronChange(s,'hours');}}
                     className="basic-multi-select"
                     classNamePrefix="select"
                     />
                 </Col>
-                <Col num={4}>
+                <Col num={3}>
                 <label>Minutes</label>
                 <Select options={this.minutes}
                     isMulti
                     name="minutes"
-
+                    value={this.cron_selminutes}
+                    onChange={s => { this.handlecronChange(s, 'minutes'); }}
                     className="basic-multi-select"
                     classNamePrefix="select"
                     />
                 </Col>
-                <Col num={4}>
+                <Col num={3}>
                 <label>Days</label>
                 <Select options={this.days}
                     isMulti
-                    name="days"
-                   
+                            name="days"
+                            value={this.cron_seldoms}
+                    onChange={s => { this.handlecronChange(s, 'dom'); }}
                     className="basic-multi-select"
                     classNamePrefix="select"
                     />
                 </Col>
-                <Col num={4}>
+                <Col num={3}>
                 <label>Months</label>
                 <Select options={this.months}
-                    isMulti
-                    name="months"
-
-                    className="basic-multi-select"
-                    classNamePrefix="select"
+                            isMulti
+                            name="months"
+                            value={this.cron_selmonths}
+                            onChange={s => { this.handlecronChange(s, 'months'); }}
+                            className="basic-multi-select"
+                            classNamePrefix="select"
                     />
                 </Col>
-                <Col num={4}>
+                <Col num={3}>
                 <label>DayOfWeek</label>
                 <Select options={this.dayofweek}
-                    isMulti
-                    name="dayofweek"
-                   
-                    className="basic-multi-select"
-                    classNamePrefix="select"
+                            isMulti
+                            name="dayofweek"
+                            value={this.cron_seldows}
+                            onChange={s => { this.handlecronChange(s, 'dow'); }}
+                            className="basic-multi-select"
+                            classNamePrefix="select"
                     />
                 </Col>
-         </Row>
+            </Row>
+            <Row>
+                <Col num={12}>
+                    <h5>{this.state.cron_res} </h5>
+                   
+                </Col>
+            </Row>
+            <Row>
+                <Col num={12}>
+                    <h5>{this.state.cron_hum} </h5>
+                   
+                </Col>
+            </Row>
+        </>
         );
     }
 }

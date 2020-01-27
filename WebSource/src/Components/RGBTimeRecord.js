@@ -51,7 +51,8 @@ class RGBTimeRecord extends React.Component {
                 <Row>
                     <Col num={12}>
                         <CronEdit
-                            onCronChange={t => (this.onChangeVal({ cron: t}))}
+                            cronvalue={item.time}
+                            onCronChange={t => (this.onChangeVal({ time: t}))}
                         />
                     </Col>
                </Row>

@@ -2,7 +2,7 @@ import React from "react";
 import RGBTimeRecord from "./RGBTimeRecord"
 import Button from "./Button"
 import Popup from "reactjs-popup";
-import { getBaseuri, doFetch, string_chop, encode_chops} from "./utils"
+import { getBaseuri, doFetch, string_chop, encode_chops, convertCronToString} from "./utils"
 import ColorStatus from "./ColorStatus"
 import ItemSelector from "./ItemSelector"
 import Arrow from "./Arrow"
@@ -384,7 +384,7 @@ class Triggers extends React.Component {
                                         <Button label="X" className="red left btn-small" onClick={() => (tidx, idx) > this.removeValueRecord(tidx, idx)} />
                                     </Col>
                                     <Col num={4}>
-                                        <h6> {"Time:" + item.time}</h6>
+                                        <h6> {"Time:" + item.time + "/" + convertCronToString(item.time)}</h6>
                                         <div className={item.isOn ? "green" : "red"}>{item.isOn?"ON":"OFF"}</div>
                                     </Col>
                                     {showcolor &&
