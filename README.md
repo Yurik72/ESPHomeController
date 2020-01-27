@@ -2,8 +2,7 @@
 # ESPHomeController
 Generic IOT platform for Home Automation based on the ESP8266/ESP32.
 
-## Good news
-please have a look https://github.com/Yurik72/esphapcontroller  , there is a clone of code base adapted for esp-idf and NATIVE support of Apple Home Kit
+
 
 After a few times of implementing IOT devices for home automation, i have recognized that each new one looks better and better, but this is always copy-paste approach... And not so easilly to back to previous implementation and merge innovation. For instance after implementing simple IOT for Relay switching I have did another project to control RGB strip (WS2811/2812 ) and finally get to sketches which I have to support... 
 Instead of that i decided to develop universal sketch to support code once, but with possibility to upload to different IOT controllers for my Home Automation.
@@ -14,10 +13,11 @@ Instead of that i decided to develop universal sketch to support code once, but 
  4. Nice web interface to controll devices as well to setup them
  5. RAW file browser to upload/change configuration files or HTML for the WEB
  6. MQTT integration to be able control devices via Home Kit
- 7. On board automation scripts/triggers.. Some times is not easy to setup this one via Home Kit or Home Kit doesn't exists
- 8. Configuration portal after firts start (captive portal)
- 9. Suports of RF 433 Mhz control by any existing transmitters
- 10. More and more
+ 7. Native support of Apple Home Kit integration
+ 8. On board automation scripts/triggers.. Some times is not easy to setup this one via Home Kit or Home Kit doesn't exists
+ 9. Configuration portal after firts start (captive portal)
+ 10. Suports of RF 433 Mhz control by any existing transmitters
+ 11. More and more
  
 Ok, let's describe basic thing how it works
 Major element of this solution is **service**, like in windows unix , android etc. Each service are responsible to control one device wired to ESP. Hovewer it's possible to run 2 instances of the same service to control similar devices. List if services is configurable by json file with their properties
@@ -45,6 +45,8 @@ This project uses libraries and code by different authors:
 - [ESPAsyncWebServer](https://github.com/me-no-dev/ESPAsyncWebServer)
 
  -[rc-switch](https://github.com/sui77/rc-switch) small changes are done to works with ESP32 as well
+ 
+ -[ESPHap](https://github.com/Yurik72/ESPHap) this is library for native Apple Home Kit integration
 
 Parts of the code were taken or inspired by the following sources:
 
@@ -75,6 +77,9 @@ I hope I didn't miss any sources and mentioned every author. In case I forgot so
 
 
 For technical infomation see [Wiki](https://github.com/Yurik72/ESPHomeController/wiki)
+
+Please have a look https://github.com/Yurik72/esphapcontroller  , there is a clone of code base adapted for esp-idf and NATIVE support of Apple Home, this is version based on ESP-IDF
+
 
 
 
