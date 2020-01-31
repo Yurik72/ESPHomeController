@@ -951,7 +951,7 @@ void RGBStripController::notify_hap(){
 	}
 }
 void RGBStripController::hap_callback(homekit_characteristic_t *ch, homekit_value_t value, void *context){
-	DBG_OUTPUT_PORT.println("RGBStripController::hap_callback");
+	//DBG_OUTPUT_PORT.println("RGBStripController::hap_callback");
 
 	if(!context){
 		return;

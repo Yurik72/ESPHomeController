@@ -395,8 +395,12 @@ void BME280Controller::setup_hap_service(){
 
 		}
 	else{
-		this->hapservice_temp=hap_add_temperature_service(this->get_name());
-		this->hapservice_hum=hap_add_humidity_service(this->get_name());
+		String tempName = this->get_name();
+		tempName += "temp";
+		String humName=  this->get_name();
+		humName += "hum";
+		this->hapservice_temp = hap_add_temperature_service(tempName.c_str());
+		this->hapservice_hum=hap_add_humidity_service(humName.c_str());
 	}
 	if(this->hapservice_temp)
 		this->hap_temp=homekit_service_characteristic_by_type(this->hapservice_temp, HOMEKIT_CHARACTERISTIC_CURRENT_TEMPERATURE);
@@ -408,14 +412,14 @@ void BME280Controller::setup_hap_service(){
 
 }
 void BME280Controller::notify_hap(){
-	if(this->ishap && this->hapservice_temp && this->hap_temp){
+	if(this->ishap && this->hapservice_temp && this->hap_temp && this->isinit){
 		BMEState newState=this->get_state();
 		if(this->hap_temp->value.float_value!=newState.temp){
 			this->hap_temp->value.float_value=newState.temp;
 				  homekit_characteristic_notify(this->hap_temp,this->hap_temp->value);
 		}
 	}
-	if(this->ishap && this->hapservice_hum && this->hap_hum){
+	if(this->ishap && this->hapservice_hum && this->hap_hum && this->isinit){
 		BMEState newState=this->get_state();
 		if(this->hap_hum->value.float_value!=newState.hum){
 			this->hap_hum->value.float_value=newState.hum;

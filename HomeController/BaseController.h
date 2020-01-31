@@ -216,6 +216,7 @@ public:
 	void report_monitor_on(uint channel);
 	void report_monitor_off(uint channel);
 	void report_monitor_shortblink(uint channel);
+
 #if !defined ASYNC_WEBSERVER
 #if defined(ESP8266)
 	virtual void setuphandlers(ESP8266WebServer& server);
@@ -448,5 +449,14 @@ protected:
 	
 };
 
+
+#ifdef	ENABLE_NATIVE_HAP
+
+#define HAP_NOTIFY_CHANGES(name,home_characteristic,val,tollerance) \
+	if (home_characteristic && abs(home_characteristic->value.name ##_value - val)>tollerance){ \
+		home_characteristic->value.name ##_value = val ;\
+		homekit_characteristic_notify(home_characteristic, home_characteristic->value); \
+	};
+#endif
 
 #endif

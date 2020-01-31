@@ -254,7 +254,7 @@ void CBaseTimeTrigger<TM>::processrecord(time_t currentTime, TM& rec, Controller
 
 		if (rec.timeToTrigger < currentTime) {
 			this->dotrigger(rec, pctlss);
-			rec.lastTriggered = currentTime;
+			rec.lastTriggered = currentTime+2000;
 		}
 	}
 	else if (rec.timetype == dailly) {

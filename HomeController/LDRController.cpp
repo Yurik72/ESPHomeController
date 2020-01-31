@@ -19,6 +19,14 @@ LDRController::LDRController() {
 	this->pin = 0;
 	this->cvalmin = 0.0;
 	this->cvalmax = MAX_LDRVAL;
+#ifdef	ENABLE_NATIVE_HAP
+	this->ishap = true;
+	this->hapservice = NULL;
+	this->hap_level = NULL;
+	this->hapservice_type = "light";
+	//this->accessory_type = 0;
+#endif
+
 }
 String  LDRController::serializestate() {
 
@@ -70,6 +78,9 @@ void LDRController::loadconfig(JsonObject& json) {
 	cvalmin= json["cvalmin"].as<float>();
 	cvalmax = json["cvalmax"].as<float>();
 	cfmt = json["cfmt"].as<String>();
+	loadif(hapservice_type, json, "haptype");
+
+
 #ifdef  LDRCONTROLLER_DEBUG
 	DBG_OUTPUT_PORT.println("LDRController load config");
 #endif
@@ -81,6 +92,7 @@ void LDRController::getdefaultconfig(JsonObject& json) {
 	json["cvalmin"]= cvalmin;
 	json["cvalmax"]= cvalmax;
 	json["cfmt"] = cfmt;
+	json["haptype"] = hapservice_type;
 	LDR::getdefaultconfig(json);
 }
 void  LDRController::setup() {
@@ -125,3 +137,94 @@ bool LDRController::onpublishmqtt(String& endkey, String& payload) {
 	payload = String(this->get_state().ldrValue);
 	return true;
 }
+
+#ifdef	ENABLE_NATIVE_HAP
+void LDRController::setup_hap_service() {
+	
+
+	DBG_OUTPUT_PORT.println("LDRController::setup_hap_service()");
+	if (!ishap) {
+		
+		DBG_OUTPUT_PORT.println("LDRController::NO Hap support");
+		return;
+	}
+	DBG_OUTPUT_PORT.println(this->hapservice_type);
+//	DBG_OUTPUT_PORT.println("LDRController ishap");
+	//DBG_OUTPUT_PORT.println(hapservice_type);
+	if (this->hapservice_type == "light") {
+		DBG_OUTPUT_PORT.println("LDRController  light");
+		if (this->accessory_type > 1) {
+			DBG_OUTPUT_PORT.println("LDRController  accessory_type > 1");
+			this->hapservice = hap_add_light_service_as_accessory(this->accessory_type, this->get_name(), LDRController::hap_callback, this);
+		}
+		else
+		{
+			this->hapservice = hap_add_light_service(this->get_name(), LDRController::hap_callback, this);
+		}
+		this->hap_level= homekit_service_characteristic_by_type(this->hapservice, HOMEKIT_CHARACTERISTIC_CURRENT_AMBIENT_LIGHT_LEVEL);
+	}
+	if (this->hapservice_type == "bat") {
+		DBG_OUTPUT_PORT.println("LDRController  bat");
+		this->hapservice = hap_add_battery_service(this->get_name(), LDRController::hap_callback, this);
+		this->hap_level = homekit_service_characteristic_by_type(this->hapservice, HOMEKIT_CHARACTERISTIC_BATTERY_LEVEL);
+	}
+	
+}
+void LDRController::notify_hap() {
+	if (this->ishap && this->hapservice) {
+		//DBG_OUTPUT_PORT.println("LDRController::notify_hap");
+		LDRState lstate = this->get_state();
+		if (this->hapservice_type == "light" && this->hap_level) {
+			if (this->hap_level->value.float_value != lstate.cvalue) {
+				this->hap_level->value.float_value = lstate.cvalue;
+				homekit_characteristic_notify(this->hap_level, this->hap_level->value);
+			}
+		}
+		if (this->hapservice_type == "bat" && this->hap_level) {
+			float chargepercent = 100.0*((cvalmax + cvalmin) / 2.0) / lstate.cvalue;
+			if (this->hap_level->value.float_value != chargepercent) {
+				this->hap_level->value.float_value = chargepercent;
+				homekit_characteristic_notify(this->hap_level, this->hap_level->value);
+			}
+			homekit_characteristic_t* hc_charg = homekit_service_characteristic_by_type(this->hapservice, HOMEKIT_CHARACTERISTIC_CHARGING_STATE);
+			homekit_characteristic_t* hc_lb = homekit_service_characteristic_by_type(this->hapservice, HOMEKIT_CHARACTERISTIC_STATUS_LOW_BATTERY);
+
+			HAP_NOTIFY_CHANGES(bool, hc_charg, false, 0);
+			//if (hc_charg && hc_charg->value.bool_value) {
+			//	hc_charg->value.bool_value = false;
+			//	homekit_characteristic_notify(this->hap_level, hc_charg->value);
+			//}
+			if (hc_lb && cvalmin != cvalmax) {
+				bool blowlevel = lstate.cvalue < (cvalmax*2.0 / 3.0);
+				HAP_NOTIFY_CHANGES(bool, hc_lb, blowlevel, 0);
+				//if (hc_lb->value.bool_value != blowlevel) {
+				//	hc_lb->value.bool_value = blowlevel;
+				//	homekit_characteristic_notify(this->hap_level, hc_lb->value);
+				//}
+			}
+		}
+	}
+}
+void LDRController::hap_callback(homekit_characteristic_t *ch, homekit_value_t value, void *context) {
+	DBG_OUTPUT_PORT.println("RGBStripController::hap_callback");
+
+	if (!context) {
+		return;
+	};
+
+	LDRController* ctl = (LDRController*)context;
+
+	/*
+	if (ch == ctl->hap_br && ch->value.int_value != newState.brightness) {
+		newState.brightness = ch->value.int_value;
+		cmd = DimSetBrigthness;
+		isSet = true;
+	}
+
+	//	newState.isOn=value.bool_value;
+	if (isSet)
+		ctl->AddCommand(newState, cmd, srcHAP);
+		*/
+
+}
+#endif

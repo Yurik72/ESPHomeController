@@ -166,6 +166,7 @@ WebServer server(80);
 		 startwifimanager();
 #endif
 	 //setup mdns
+#ifndef ENABLE_NATIVE_HAP
 	 DBG_OUTPUT_PORT.print("Starting MDNS  host:");
 	 DBG_OUTPUT_PORT.println(HOSTNAME);
 	 if (!isAPMode) {
@@ -175,9 +176,9 @@ WebServer server(80);
 		 }
 
 	 }
+#endif
 
-
-#if !defined(ESP8266_)
+#if !defined(ESP8266)
 	 const String FILES[] = {  "/index.html", "/js/bundle.min.js.gz","/filebrowse.html" };//"/filebrowse.html"
 	 if (!isAPMode){
 		 for(int i=0;i<sizeof(FILES)/sizeof(*FILES);i++)
