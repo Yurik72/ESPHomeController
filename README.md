@@ -80,7 +80,11 @@ For technical infomation see [Wiki](https://github.com/Yurik72/ESPHomeController
 
 Please have a look https://github.com/Yurik72/esphapcontroller  , there is a clone of code base adapted for esp-idf and NATIVE support of Apple Home, this is version based on ESP-IDF
 
+**Projects using this firmware**
 
+[fireplace lamp with tem sensors](https://www.instructables.com/id/Accu-Multicololred-LED-Lamp-With-Weather/)
+[Bed Room Lamp Ws2812](https://www.instructables.com/id/Bed-Room-Lamp-Ws2812/)
+[Weather station](https://www.instructables.com/id/ESP32-Weather-Station-Solar-Powered/)
 
 
 P.S. !! This is starting project not all parts already comitted. Will come soon after testing. If you are interested feel free to contact me
