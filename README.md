@@ -82,8 +82,12 @@ Please have a look https://github.com/Yurik72/esphapcontroller  , there is a clo
 
 **Projects using this firmware**
 
-[fireplace lamp with tem sensors](https://www.instructables.com/id/Accu-Multicololred-LED-Lamp-With-Weather/)
+[Fireplace lamp with tem sensors](https://www.instructables.com/id/Accu-Multicololred-LED-Lamp-With-Weather/)
+
+
 [Bed Room Lamp Ws2812](https://www.instructables.com/id/Bed-Room-Lamp-Ws2812/)
+
+
 [Weather station](https://www.instructables.com/id/ESP32-Weather-Station-Solar-Powered/)
 
 
