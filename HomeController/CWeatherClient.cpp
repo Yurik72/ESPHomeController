@@ -123,7 +123,7 @@ void WeatherClientController::set_state(WeatherState state) {
     }
  
     http.end(); //Free the resources
-    int capacity = 1024*3;
+    int capacity = 1024*16;
     DynamicJsonDocument jsonBuffer(capacity);
 #ifdef	WEATHER_DEBUG
 Serial.println("Start parsing");
@@ -177,6 +177,7 @@ Serial.println("Start parsing");
     else{
 #ifdef	WEATHER_DEBUG	
 	   DBG_OUTPUT_PORT.println(F("Weather Erorr parse json"));
+	   DBG_OUTPUT_PORT.println(error.c_str());
 	   return false;
 #endif
     }

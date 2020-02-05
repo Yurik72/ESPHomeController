@@ -24,6 +24,7 @@ LDRController::LDRController() {
 	this->hapservice = NULL;
 	this->hap_level = NULL;
 	this->hapservice_type = "light";
+	this->meassure_num = 5;
 	//this->accessory_type = 0;
 #endif
 
@@ -104,7 +105,7 @@ void LDRController::run() {
 	if (this->commands.GetSize() == 0) {
 		command newcmd;
 		newcmd.mode = Measure;
-		newcmd.state.ldrValue = analogRead(pin);
+		newcmd.state.ldrValue = meassure();// analogRead(pin);
 #ifdef  LDRCONTROLLER_DEBUG
 		DBG_OUTPUT_PORT.print("LDR ctl run value->");
 		DBG_OUTPUT_PORT.println(newcmd.state.ldrValue);
@@ -122,6 +123,14 @@ void LDRController::run() {
 		this->set_state(newState);
 	}
 	LDR::run();
+}
+uint16_t LDRController::meassure() {
+	int accres=0;
+	for (int i = 0; i < meassure_num; i++) {
+		accres+= analogRead(pin);
+		delay(2);
+	}
+	return accres / meassure_num;
 }
 void LDRController::set_state(LDRState state) {
 	if (cvalmin != cvalmax)
@@ -142,17 +151,17 @@ bool LDRController::onpublishmqtt(String& endkey, String& payload) {
 void LDRController::setup_hap_service() {
 	
 
-	DBG_OUTPUT_PORT.println("LDRController::setup_hap_service()");
+	//DBG_OUTPUT_PORT.println("LDRController::setup_hap_service()");
 	if (!ishap) {
 		
-		DBG_OUTPUT_PORT.println("LDRController::NO Hap support");
+		//DBG_OUTPUT_PORT.println("LDRController::NO Hap support");
 		return;
 	}
-	DBG_OUTPUT_PORT.println(this->hapservice_type);
+	//DBG_OUTPUT_PORT.println(this->hapservice_type);
 //	DBG_OUTPUT_PORT.println("LDRController ishap");
 	//DBG_OUTPUT_PORT.println(hapservice_type);
 	if (this->hapservice_type == "light") {
-		DBG_OUTPUT_PORT.println("LDRController  light");
+		//DBG_OUTPUT_PORT.println("LDRController  light");
 		if (this->accessory_type > 1) {
 			DBG_OUTPUT_PORT.println("LDRController  accessory_type > 1");
 			this->hapservice = hap_add_light_service_as_accessory(this->accessory_type, this->get_name(), LDRController::hap_callback, this);
@@ -164,7 +173,7 @@ void LDRController::setup_hap_service() {
 		this->hap_level= homekit_service_characteristic_by_type(this->hapservice, HOMEKIT_CHARACTERISTIC_CURRENT_AMBIENT_LIGHT_LEVEL);
 	}
 	if (this->hapservice_type == "bat") {
-		DBG_OUTPUT_PORT.println("LDRController  bat");
+		//DBG_OUTPUT_PORT.println("LDRController  bat");
 		this->hapservice = hap_add_battery_service(this->get_name(), LDRController::hap_callback, this);
 		this->hap_level = homekit_service_characteristic_by_type(this->hapservice, HOMEKIT_CHARACTERISTIC_BATTERY_LEVEL);
 	}
@@ -190,17 +199,10 @@ void LDRController::notify_hap() {
 			homekit_characteristic_t* hc_lb = homekit_service_characteristic_by_type(this->hapservice, HOMEKIT_CHARACTERISTIC_STATUS_LOW_BATTERY);
 
 			HAP_NOTIFY_CHANGES(bool, hc_charg, false, 0);
-			//if (hc_charg && hc_charg->value.bool_value) {
-			//	hc_charg->value.bool_value = false;
-			//	homekit_characteristic_notify(this->hap_level, hc_charg->value);
-			//}
+
 			if (hc_lb && cvalmin != cvalmax) {
 				bool blowlevel = lstate.cvalue < (cvalmax*2.0 / 3.0);
-				HAP_NOTIFY_CHANGES(bool, hc_lb, blowlevel, 0);
-				//if (hc_lb->value.bool_value != blowlevel) {
-				//	hc_lb->value.bool_value = blowlevel;
-				//	homekit_characteristic_notify(this->hap_level, hc_lb->value);
-				//}
+
 			}
 		}
 	}

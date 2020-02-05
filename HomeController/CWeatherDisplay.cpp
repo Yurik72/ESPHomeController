@@ -35,8 +35,8 @@ WeatherDisplayController::WeatherDisplayController(){
   pDisplay=NULL;
   disptype=ILI9341;
   orientation=Hor;
-  this->coreMode = Core;
-  this->core = 0;
+ // this->coreMode = Core;
+ // this->core = 0;
   //recalclayout();
 }
 String  WeatherDisplayController::serializestate() {

@@ -358,7 +358,7 @@ void runcoreloop(void*param)
 			//DBG_OUTPUT_PORT.println("CBaseController::run from core");
 		}
 	    // https://github.com/espressif/arduino-esp32/issues/595
-		vTaskDelay(10);
+		vTaskDelay(20);
 	}
 }
 #endif

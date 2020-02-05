@@ -35,7 +35,7 @@ public:
 #ifdef	ENABLE_NATIVE_HAP
 	virtual void setup_hap_service();
 	static void hap_callback(homekit_characteristic_t *ch, homekit_value_t value, void *context);
-
+	uint16_t meassure();
 	virtual void notify_hap();
 
 #endif
@@ -48,6 +48,7 @@ protected:
 	homekit_service_t* hapservice;
 	homekit_characteristic_t * hap_level;
 	String hapservice_type ;
+	uint8_t meassure_num;
 
 #endif
 };
