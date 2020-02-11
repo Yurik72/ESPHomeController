@@ -169,7 +169,9 @@ CBaseController::CBaseController() {
 	this->priority = 1;
 	this->isforcedinterval = false;
 	this->statemon = false;
+#ifdef	ENABLE_NATIVE_HAP
 	this->accessory_type=1;
+#endif
 	this->ishap=false;
 	
 #if defined(ESP8266)

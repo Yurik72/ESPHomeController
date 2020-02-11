@@ -3,7 +3,11 @@
 
 #ifdef LOG_STRING_LOGGER
 #ifdef  LOG_SERIAL
-Logger ESPLogger(Serial);
+#ifdef ESP32
+Logger ESPLogger(Serial,3000);
+#else
+Logger ESPLogger(Serial,800);
+#endif
 #else
 Logger EspLogger;
 #endif
@@ -13,6 +17,7 @@ Logger::Logger(size_t size) {
 	pextradupl = NULL;
 	pSerial = NULL;
 	this->logsize = size;
+	this->setup();
 }
 Logger::Logger(Stream& extra, size_t size):Logger(size)
 
@@ -21,9 +26,11 @@ Logger::Logger(Stream& extra, size_t size):Logger(size)
 	this->logsize = size;
 	this->setup();
 }
+
 Logger::Logger(HardwareSerial& extra, size_t size) :Logger(size) {
 	pSerial = &extra;
 	this->logsize = size;
+	
 }
 void Logger::setup() {
 	if (this->logsize > 0) {

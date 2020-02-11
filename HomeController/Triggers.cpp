@@ -247,12 +247,16 @@ void CBaseTimeTrigger<TM>::processrecord(time_t currentTime, TM& rec, Controller
 		if (rec.lastTriggered == 0) {
 			rec.lastTriggered = currentTime-100;
 		}
-
+		//DBG_OUTPUT_PORT.println("CBaseTimeTrigger free heap");
+		//DBG_OUTPUT_PORT.println(esp_get_free_heap_size());
 		rec.timeToTrigger = cron_next(&rec.cronexpr, rec.lastTriggered);
+		//DBG_OUTPUT_PORT.println(esp_get_free_heap_size());
 		//DBG_OUTPUT_PORT.println("Cron next run");
-		//DBG_OUTPUT_PORT.println(getFormattedTime(rec.timeToTrigger));
-
+		//DBG_OUTPUT_PORT.println(getFormattedDateTime(rec.timeToTrigger));
+		//DBG_OUTPUT_PORT.println(getFormattedDateTime(currentTime));
+		//DBG_OUTPUT_PORT.println(esp_get_free_heap_size());
 		if (rec.timeToTrigger < currentTime) {
+			DBG_OUTPUT_PORT.println("Do trigger");
 			this->dotrigger(rec, pctlss);
 			rec.lastTriggered = currentTime+2000;
 		}
@@ -444,6 +448,8 @@ void TimeToRGBStripTrigger::dotrigger(timerecRGB & rec, Controllers* pctlss) {
 		newstate.color = rec.color;
 		
 		this->get_stripctl()->AddCommand(newstate, SetRGB, srcTrigger);
+		//DBG_OUTPUT_PORT.println("Add command");
+		//DBG_OUTPUT_PORT.println(this->get_stripctl()->get_commands_size());
 		//newstate.isLdr = rec.isLdr;
 		//this->get_stripctl()->AddCommand(newstate, SetLdrVal, srcTrigger);
 		//newstate.brightness = rec.brightness;
@@ -456,6 +462,8 @@ void TimeToRGBStripTrigger::dotrigger(timerecRGB & rec, Controllers* pctlss) {
 		DBG_OUTPUT_PORT.println("Mode Off");
 #endif
 		this->get_stripctl()->AddCommand(newstate, Off, srcTrigger);
+		//DBG_OUTPUT_PORT.println("Add command");
+		//DBG_OUTPUT_PORT.println(this->get_stripctl()->get_commands_size());
 	}
 
 }

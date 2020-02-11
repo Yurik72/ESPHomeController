@@ -79,7 +79,9 @@ void LDRController::loadconfig(JsonObject& json) {
 	cvalmin= json["cvalmin"].as<float>();
 	cvalmax = json["cvalmax"].as<float>();
 	cfmt = json["cfmt"].as<String>();
+#ifdef	ENABLE_NATIVE_HAP
 	loadif(hapservice_type, json, "haptype");
+#endif
 
 
 #ifdef  LDRCONTROLLER_DEBUG
@@ -93,7 +95,9 @@ void LDRController::getdefaultconfig(JsonObject& json) {
 	json["cvalmin"]= cvalmin;
 	json["cvalmax"]= cvalmax;
 	json["cfmt"] = cfmt;
+#ifdef	ENABLE_NATIVE_HAP
 	json["haptype"] = hapservice_type;
+#endif
 	LDR::getdefaultconfig(json);
 }
 void  LDRController::setup() {

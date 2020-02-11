@@ -335,6 +335,7 @@ public:
 	//virtual void  SerilizeState() {
 		//T::SerilizeState();
 	//}
+	virtual size_t get_commands_size() { return commands.GetSize(); }
 	virtual void set_state(P state) {
 		this->state = state;
 		

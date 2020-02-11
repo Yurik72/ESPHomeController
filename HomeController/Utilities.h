@@ -32,6 +32,7 @@
 bool writeConfigFS(bool saveConfig);
 bool readConfigFS();
 String getFormattedTime(time_t tt);
+String getFormattedDateTime(time_t t);
 unsigned long GetHours(time_t tt);
 unsigned long GetMinutes(time_t tt);
 time_t apply_hours_minutes_fromhhmm(time_t src, int hhmm, long offs);

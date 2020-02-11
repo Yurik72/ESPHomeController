@@ -245,7 +245,6 @@ void loop()
 	server.handleClient();   ///handle income http request
 #endif
 	controllers.handleloops(); //handle controller task
-	
 }
 
 bool wifidirectconnect() {

@@ -155,6 +155,12 @@ bool ICACHE_FLASH_ATTR readConfigFS() {
 
 	return false;
 }
+String getFormattedDateTime(time_t t) {
+	struct tm * timeinfo = localtime(&t);
+	String datetime= String(timeinfo->tm_mon) + " " + String(timeinfo->tm_mday) + " " + String(1900 + timeinfo->tm_year);
+	datetime += " " + String(timeinfo->tm_hour) + ":" + String(timeinfo->tm_min) + ":" + String(timeinfo->tm_sec);
+	return datetime;
+}
 String ICACHE_FLASH_ATTR getFormattedTime(time_t tt) {
 
 	unsigned long hours = (tt % 86400L) / 3600;

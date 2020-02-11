@@ -71,9 +71,10 @@ Controllers* Controllers::getInstance() {
 }
 void Controllers::setup_before_wifi() {
 
-	DBG_OUTPUT_PORT.println("Controllers::setup_before_wifi");
+	
 	if (setupphase != setup_phase_none)
 		return;
+	DBG_OUTPUT_PORT.println("Controllers::setup_before_wifi");
 	this->loadconfig();
 	//DBG_OUTPUT_PORT.println("Controllers::loadconfig done");
 	for (int i = 0; i < this->GetSize(); i++) {
@@ -114,7 +115,9 @@ void Controllers::setup() {
 		CBaseController* ctl = this->GetAt(i);
 		//ctl->setup();
 		ctl->setup_after_wifi();
+#ifdef	ENABLE_NATIVE_HAP
 		ctl->setup_hap_service();
+#endif
 		//ctl->set_power_on();
 	}
 	

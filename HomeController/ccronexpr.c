@@ -103,24 +103,28 @@ time_t cron_mktime_gm(struct tm* tm) {
 #elif defined(__AVR__)
 /* https://www.nongnu.org/avr-libc/user-manual/group__avr__time.html */
     return mk_gmtime(tm);
-#elif defined(ESP8266) || defined(ESP_PLATFORM)
+#elif defined(ESP8266) || defined(ESP32) || defined(ESP_PLATFORM)
     /* https://linux.die.net/man/3/timegm */
     /* http://www.catb.org/esr/time-programming/ */
     /* portable version of timegm() */
     time_t ret;
+	/*
     char *tz;
     tz = getenv("TZ");
     if (tz)
         tz = strdup(tz);
     setenv("TZ", "UTC+0", 1);
     tzset();
+	*/
     ret = mktime(tm);
+	/*
     if (tz) {
         setenv("TZ", tz, 1);
         free(tz);
     } else
         unsetenv("TZ");
     tzset();
+	*/
     return ret;
 #elif defined(ANDROID)
     /* https://github.com/adobe/chromium/blob/cfe5bf0b51b1f6b9fe239c2a3c2f2364da9967d7/base/os_compat_android.cc#L20 */
@@ -975,9 +979,10 @@ time_t cron_next(cron_expr* expr, time_t date) {
      4 If hour matches move on, otherwise find the next match
      4.1 If next match is in the next day then roll forwards,
      4.2 Reset the minutes and seconds and go to 2
-
+	 
      ...
      */
+	
     if (!expr) return CRON_INVALID_INSTANT;
     struct tm calval;
     memset(&calval, 0, sizeof(struct tm));
@@ -985,7 +990,9 @@ time_t cron_next(cron_expr* expr, time_t date) {
     if (!calendar) return CRON_INVALID_INSTANT;
     time_t original = cron_mktime(calendar);
     if (CRON_INVALID_INSTANT == original) return CRON_INVALID_INSTANT;
+	
 
+	
     int res = do_next(expr, calendar, calendar->tm_year);
     if (0 != res) return CRON_INVALID_INSTANT;
 
