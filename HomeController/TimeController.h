@@ -28,6 +28,7 @@ public :
 	virtual bool  deserializestate(String jsonstate, CmdSource src = srcState);
 	virtual void getdefaultconfig(JsonObject& json);
 	virtual void setup();
+	virtual void setup_after_wifi();
 	void loadconfig(JsonObject& json);
 	virtual void run();
 	virtual void set_state(TimeState state);

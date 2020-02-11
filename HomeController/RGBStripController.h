@@ -233,9 +233,11 @@ public:
 	virtual void onmqqtmessage(String topic, String payload);
 	virtual bool onpublishmqttex(String& endkey, String& payload, int topicnr);
 	virtual bool ispersiststate() { return true; }
+	virtual void set_power_on();
 	static  uint16_t customemodetext() { return (uint16_t)1000; };
 	static  uint16_t customemodefloattext() { return (uint16_t)1000; };
 	static  uint16_t customeeffect() { return (uint16_t)1000; };
+	
 #if !defined ASYNC_WEBSERVER
 #if defined(ESP8266)
 	virtual void setuphandlers(ESP8266WebServer& server);

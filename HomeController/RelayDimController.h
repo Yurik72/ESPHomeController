@@ -63,6 +63,7 @@ public:
 	virtual void setup();
 	virtual void loadconfig(JsonObject& json);
 	virtual void run();
+	virtual void set_power_on();
 	virtual void set_state(RelayDimState state);
 	virtual bool onpublishmqtt(String& endkey, String& payload);
 	void setBrightness(uint8_t br);

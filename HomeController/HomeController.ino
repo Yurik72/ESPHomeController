@@ -159,12 +159,15 @@ WebServer server(80);
 #else
 	 WiFi.setHostname(HOSTNAME);
 #endif
+	 controllers.setup_before_wifi();
+	
 #if defined(ESP8266)
 	 startwifimanager();
 #else
 	 if (!wifidirectconnect())   //this will decrease sketch size
 		 startwifimanager();
 #endif
+	 DBG_OUTPUT_PORT.print("wifi  connected");
 	 //setup mdns
 #ifndef ENABLE_NATIVE_HAP
 	 DBG_OUTPUT_PORT.print("Starting MDNS  host:");

@@ -67,7 +67,11 @@ void  RelayController::setup() {
 	pinMode(pin, OUTPUT);
 	digitalWrite(pin, this->isinvert?HIGH:LOW);
 }
+void RelayController::set_power_on() {
+	Relay::set_power_on();
+	this->run();
 
+}
 void RelayController::run() {
 	command cmd;
 	while (commands.Dequeue(&cmd)) {

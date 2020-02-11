@@ -56,6 +56,7 @@ Controllers::Controllers():
 	//globlog += "CTOR";
 	lastWifiReconnectms = 0;
 	isConnectingMode = false;
+	setupphase = setup_phase_none;
 	
 }
 CBaseController* Controllers::GetByName(const char* name) {
@@ -68,9 +69,36 @@ CBaseController* Controllers::GetByName(const char* name) {
 Controllers* Controllers::getInstance() {
 	return _instance;
 }
+void Controllers::setup_before_wifi() {
+
+	DBG_OUTPUT_PORT.println("Controllers::setup_before_wifi");
+	if (setupphase != setup_phase_none)
+		return;
+	this->loadconfig();
+	//DBG_OUTPUT_PORT.println("Controllers::loadconfig done");
+	for (int i = 0; i < this->GetSize(); i++) {
+		CBaseController* ctl = this->GetAt(i);
+		//DBG_OUTPUT_PORT.println(ctl->get_name());
+		//DBG_OUTPUT_PORT.println("ctl->setup()");
+		
+		ctl->setup();
+		if (ctl->ispersiststate()) {
+			DBG_OUTPUT_PORT.print(ctl->get_name());
+			DBG_OUTPUT_PORT.println(" : Restore persist state");
+			ctl->loadstate();
+		}
+		//DBG_OUTPUT_PORT.println("ctl->set_power_on()");
+		ctl->set_power_on();
+	}
+	DBG_OUTPUT_PORT.println("Load services done ");
+	setupphase = setup_phase_before_wifi;
+	
+}
 void Controllers::setup() {
 
-	DBG_OUTPUT_PORT.println("Controllers::setup");
+	//DBG_OUTPUT_PORT.println("Controllers::setup");
+	setup_before_wifi();
+	setupphase = setup_phase_after_wifi;
 //	Factories::registerController("-", &global_LDRControllerFactory);
 	//DBG_OUTPUT_PORT.println(globlog);
 #ifdef	ENABLE_NATIVE_HAP
@@ -79,23 +107,24 @@ void Controllers::setup() {
     hap_setbase_accessorytype(accessory_type);
     hap_initbase_accessory_service(HOSTNAME,"Yurik72","0","EspHapCtl",VERSION);
 #endif
-	this->loadconfig();
+	//this->loadconfig();
 	connectmqtt();
+	
 	for (int i = 0; i < this->GetSize(); i++) {
 		CBaseController* ctl = this->GetAt(i);
-		ctl->setup();
-		if (ctl->ispersiststate()) {
-			//DBG_OUTPUT_PORT.print(ctl->get_name());
-			//DBG_OUTPUT_PORT.println(" : Restore persist state");
-			ctl->loadstate();
-		}
-		ctl->set_power_on();
+		//ctl->setup();
+		ctl->setup_after_wifi();
+		ctl->setup_hap_service();
+		//ctl->set_power_on();
 	}
+	
 	DBG_OUTPUT_PORT.println("Load services done ");
+	
 #ifdef	ENABLE_NATIVE_HAP
 	DBG_OUTPUT_PORT.println("starting hap_init_homekit_server ");
 	hap_init_homekit_server();
 #endif
+	
 }
 void Controllers::loadconfig() {
 	String filename = "/services.json";
@@ -133,7 +162,8 @@ void Controllers::loadconfig() {
 							this->pMonitor = controller;
 						}
 						#ifdef	ENABLE_NATIVE_HAP
-						controller->setup_hap_service();
+						if(setupphase == setup_phase_after_wifi)
+							controller->setup_hap_service();
 						#endif
 
 						DBG_OUTPUT_PORT.print("Controllers added:");
@@ -152,6 +182,7 @@ void Controllers::loadconfig() {
 	}
 	
 	triggers.loadconfig();
+	DBG_OUTPUT_PORT.println("Triggers load config done");
 }
 #if !defined ASYNC_WEBSERVER
 #if defined(ESP8266)

@@ -295,11 +295,14 @@ void CBaseController::setuphandlers(WebServer& server) {
 }
 #endif
 void CBaseController::setup() {
+
+}
+void CBaseController::setup_after_wifi() {
 #if !defined(ESP8266)
 	//DBG_OUTPUT_PORT.println("CBaseController::setup");
-	
-	if (this->get_coremode()== Core || this->get_coremode()==Both) {
-	
+
+	if (this->get_coremode() == Core || this->get_coremode() == Both) {
+
 		DBG_OUTPUT_PORT.println("CBaseController::xTaskCreatePinnedToCore");
 		xTaskCreatePinnedToCore(
 			runcoreloop,
@@ -309,12 +312,12 @@ void CBaseController::setup() {
 			this->get_priority(),
 			&taskhandle,
 			this->get_core());
-	}
+}
 #else
 	if (this->get_coremode() == Core || this->get_coremode() == Both) {
 		this->pTicker = new Ticker();
-		this->pTicker->attach_ms<CBaseController*>(!this->interval?1:this->interval, CBaseController::callback, this);
-		
+		this->pTicker->attach_ms<CBaseController*>(!this->interval ? 1 : this->interval, CBaseController::callback, this);
+
 	}
 #endif
 }

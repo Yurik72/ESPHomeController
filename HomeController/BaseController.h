@@ -197,6 +197,7 @@ public:
 	virtual String getdefaultconfig();
 	virtual void getdefaultconfig(JsonObject& json);
 	virtual void setup() ;
+	virtual void setup_after_wifi();
 	const char* get_name() {
 		return name;
 	}

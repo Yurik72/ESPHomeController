@@ -152,6 +152,11 @@ void RelayDimController::run() {
 	}
 	RelayDim::run();
 }
+void RelayDimController::set_power_on() {
+	RelayDim::set_power_on();
+	this->run();
+
+}
 void RelayDimController::setBrightness(uint8_t br) {
 	
 #ifdef ESP8266

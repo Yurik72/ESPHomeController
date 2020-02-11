@@ -35,6 +35,7 @@ public:
 	virtual void loadconfig(JsonObject& json);
 	virtual void run();
 	virtual void set_state(RelayState state);
+	virtual void set_power_on();
 	virtual bool onpublishmqtt(String& endkey, String& payload);
 	virtual void onmqqtmessage(String topic, String payload);
 #ifdef	ENABLE_NATIVE_HAP

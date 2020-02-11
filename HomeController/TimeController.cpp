@@ -112,6 +112,9 @@ void TimeController::getdefaultconfig(JsonObject& json) {
 	TimeCtl::getdefaultconfig(json);
 }
 void  TimeController::setup() {
+	TimeCtl::setup();
+}
+void TimeController::setup_after_wifi() {
 #if defined TIMECONTROLLER_FULL_DEBUG
 	DBG_OUTPUT_PORT.println("TimeController::setup");
 	DBG_OUTPUT_PORT.print("gmtOffset");
@@ -127,8 +130,8 @@ void  TimeController::setup() {
 	configTime(gmtOffset_sec, daylightOffset_sec, ntpServer.c_str());
 #endif
 	this->nextsleep = millis() + 300000; //5 min to give a chanse to update//this->sleepinterval;
+	TimeCtl::setup_after_wifi();
 }
-
 void TimeController::run() {
 	
 #if defined TIMECONTROLLER_FULL_DEBUG

@@ -584,6 +584,11 @@ void RGBStripController::run() {
 	}
 	RGBStrip::run();
 }
+void RGBStripController::set_power_on() {
+	RGBStrip::set_power_on();
+	this->run();
+
+}
 void RGBStripController::set_state(RGBState state) {
 	
 	RGBState oldState = this->get_state();

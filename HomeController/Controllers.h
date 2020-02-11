@@ -33,6 +33,14 @@ class CBaseController;
 void init_hap_storage();
 void storage_changed(char * szstorage,int size);
 #endif
+
+enum controllers_setup_phase
+{
+	setup_phase_none = 0,
+	setup_phase_before_wifi = 1,
+	setup_phase_after_wifi = 2
+};
+
 class Controllers :public CSimpleArray< CBaseController*>
 {
 public:
@@ -40,6 +48,7 @@ public:
 	static Controllers* getInstance();
 	static CBaseController* CreateByName(const char* name);
 	CBaseController* GetByName(const char* name);
+	void setup_before_wifi();
 	void setup();
 	void handleloops();
 	void connectmqtt();
@@ -67,6 +76,7 @@ private:
 	bool isWifiConnected = true;
 	bool isneedreconnectwifi = true;
 	CBaseController* pMonitor=NULL;
+	controllers_setup_phase setupphase;
 };
 void onstatechanged(CBaseController *);
 #ifdef ENABLE_HOMEBRIDGE
