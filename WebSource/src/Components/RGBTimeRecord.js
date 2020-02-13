@@ -42,8 +42,8 @@ class RGBTimeRecord extends React.Component {
     render() {
 
         //console.debug("render rgbtimerecord");
-        const dfprops = { showcolor: true, showldr: true, showbrightness:true,showmode:true}
-        const { item, idx, showcolor, showldr, showbrightness ,showmode} = { ...dfprops, ...this.props };
+        const dfprops = { showcolor: true, showldr: true, showbrightness:true,showmode:true,showfade:true}
+        const { item, idx, showcolor, showldr, showbrightness, showmode, showfade} = { ...dfprops, ...this.props };
        
        
         return (
@@ -64,15 +64,33 @@ class RGBTimeRecord extends React.Component {
                     timevalue={item.time}
                     handleTimeChange={t => (this.onChangeVal({ time: t.getIntTime() /*t.state.timevalue*/ }))}
                     />
-                </Col>
+                    </Col>
+                </Row>
+                {showfade &&
+                    <Row>
+                        <Col num={4}>
+                            <label htmlFor="fadetm" className="input-label">Fade time</label>
+                            <input name="fadetm" type="text" value={item.fadetm} name="fadetm"
+                                onChange={ev => {
+                                    var val = parseInt(ev.target.value);
+                                    this.onChangeVal({ fadetm: val });
+
+                                }}
+                            />
+                        </Col>
+                    </Row>
+                }
+                <Row>
                 <Col num={2}>
                 <Checkbox
                     isChecked={item.isOn}
                     label="IsOn"
                     handleCheckboxChange={ch => (this.onChangeVal({ isOn: ch.state.isChecked }))}
                     key="isOn"
-                    />
-                </Col>
+                        />
+
+                    </Col>
+                    <Col num={2}></Col>
                     {showldr &&
                         <Col num={2}>
                             <Checkbox
@@ -84,6 +102,7 @@ class RGBTimeRecord extends React.Component {
                         </Col>
                     }
                 </Row>
+
                 {showbrightness &&
                     <Row>
                         <RangeCtl
@@ -105,13 +124,7 @@ class RGBTimeRecord extends React.Component {
                         </Col>
                         <Col num={4}>
                         <label htmlFor="color" className="input-label" >Color</label>
-                            <input name="color" type="text" value={item.color} name="color"
-                                onChange={ev => {
-                                    var val = parseInt(ev.target.value);
-                                    this.onChangeVal({ color: val });
-                                    //this.cs.setBkColor(col);
-                                }}
-                            />
+                           cc
                         </Col>
                         <Col num={4}>
                             <ColorStatus ref={el => this.cs = el} color={item.color} />

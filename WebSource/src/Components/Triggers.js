@@ -357,7 +357,8 @@ class Triggers extends React.Component {
         const showcolor = timetype  === "timergb";
         const showbrightness = (timetype === "timergb" || timetype === "timerelaydim" );
         const showldr = (timetype === "timergb" || timetype === "timerelaydim");
-        const showmode = (timetype === "timergb" );
+        const showmode = (timetype === "timergb");
+        const showfade = (timetype === "timergb" || timetype === "timerelaydim");
         return (
             <>
                 <Row className="blue-grey lighten-5 valign-wrapper" >
@@ -406,6 +407,7 @@ class Triggers extends React.Component {
                                
                                    
                                 <RGBTimeRecord item={item} idx={idx}
+                                    showfade={showfade}
                                     showcolor={showcolor}
                                     showldr={showldr}
                                     showbrightness={showbrightness}

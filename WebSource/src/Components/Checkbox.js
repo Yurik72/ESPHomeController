@@ -1,10 +1,12 @@
 import React, { Component } from 'react';
 
+
+var _selectIndex = 1;
 class Checkbox extends Component {
     constructor(props) {
         super(props);
         const { isChecked } = this.props;
-        
+        this.cid = "ch-" + _selectIndex++;
         this.state = {
             isChecked: isChecked
         }
@@ -33,20 +35,23 @@ class Checkbox extends Component {
     render() {
         const { label } = this.props;
         const { isChecked } = this.props;
-       
+        var cid = this.cid;
         return (
-           
-                <div className="center switch">{label}<br />
-                <label>Off
+
+            <div className="center switch__ ios-toggles"> <span>{label}</span>   <span></span>
+            
+                
                     <input
+                    id={cid}
                         type="checkbox"
-                        
+                        class="ios-toggle checkboxgreen"       
                         checked={isChecked}
                         onChange={this.toggleCheckboxChange}
                     />
-                    <span className="lever"></span>On 
+                <label for={cid} class="checkbox-label" data-off="off" data-on="on"/>
+                   
                     
-                    </label>
+                
 
             </div>
         );
