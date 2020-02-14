@@ -99,14 +99,14 @@ export function encode_chops(arr) {
 }
 
 export function convertCronToString(cronExpression) {
-    if (!cronExpression.match(/^((\*(\/[1-9][0-9]?)?|([0-9]{1,2}(-[0-9]{1,2})?)(,[0-9]{1,2}(-[0-9]{1,2})?)*)( |$)){6}$/))
+    if (typeof (cronExpression) != 'string' || !cronExpression.match(/^((\*(\/[1-9][0-9]?)?|([0-9]{1,2}(-[0-9]{1,2})?)(,[0-9]{1,2}(-[0-9]{1,2})?)*)( |$)){6}$/))
         return "invalid expression";
     var cron = cronExpression.split(" ");
-    var minutes = cron[0];
-    var hours = cron[1];
-    var dayOfMonth = cron[2];
-    var month = cron[3];
-    var dayOfWeek = cron[4];
+    var minutes = cron[1];
+    var hours = cron[2];
+    var dayOfMonth = cron[3];
+    var month = cron[4];
+    var dayOfWeek = cron[5];
 
     var cronToString = "Runs at ";
 

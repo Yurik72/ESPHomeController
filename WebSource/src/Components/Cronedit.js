@@ -74,26 +74,26 @@ class CronEdit extends Component {
 
     var tmp;
     if (parts[1] != this.cron_minutes) {
-        this.cron_minutes = parts[0];
-        this.cron_selminutes = this.cronValueItemToList(true, 59, parts[0]);
+        this.cron_minutes = parts[1];
+        this.cron_selminutes = this.cronValueItemToList(true, 59, parts[1]);
         //cronHelperSelectList(cron_minutes_id, (true, 59, parts[0]));
     }
        if (parts[2] != this.cron_hours) {
-           this.cron_hours = parts[1];
-           this.cron_selhours = this.cronValueItemToList(true, 23, parts[1]);
+           this.cron_hours = parts[2];
+           this.cron_selhours = this.cronValueItemToList(true, 23, parts[2]);
 
         //cronHelperSelectList(cron_hours_id, cronValueItemToList(true, 23, parts[1]));
     }
        if (parts[3] != this.cron_dom) {
-        this.cron_dom = parts[2];
+        this.cron_dom = parts[3];
         //cronHelperSelectList(cron_dom_id, cronValueItemToList(false, 31, parts[2]));
     }
        if (parts[4] != this.cron_months) {
-        this.cron_months = parts[3];
+        this.cron_months = parts[4];
         //cronHelperSelectList(cron_months_id, cronValueItemToList(false, 12, parts[3]));
     }
        if (parts[5] != this.cron_dow) {
-        this.cron_dow = parts[4];
+        this.cron_dow = parts[5];
         //cronHelperSelectList(cron_dow_id, cronValueItemToList(true, 6, parts[4]));
     }
 }
