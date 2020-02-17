@@ -317,7 +317,7 @@ public:
 			//DBG_OUTPUT_PORT.println("Command ignored");
 		}
 		commands.Add(cmd);
-		if (this->ispersiststate() && (src == srcState || src == srcMQTT)) {
+		if (this->ispersiststate() && (src == srcState || src == srcMQTT || src== srcHAP)) {
 			command savecmd = {(M) BaseSaveState, state };
 			//DBG_OUTPUT_PORT.println("AddCommand->SaveState");
 			commands.Add(savecmd);
@@ -400,7 +400,7 @@ public:
 	}
 	virtual int AddCommand(P state, M mode, CmdSource src) {
 
-		if (src == srcState || src==srcPowerOn) { //save state
+		if (src == srcState ) { //save state
 			//DBG_OUTPUT_PORT.print("Add command keep previous state -> ");
 			//DBG_OUTPUT_PORT.println(this->get_name());
 			P saved = this->get_state();
@@ -414,6 +414,7 @@ public:
 				//DBG_OUTPUT_PORT.println("Current");
 				//DBG_OUTPUT_PORT.println(millis());
 				this->isrestoreactivated = true;
+				
 			}
 		}
 		return CController<T, P, M>::AddCommand(state,mode,src);
@@ -424,14 +425,17 @@ public:
 		if (this->isrestoreactivated && this->mswhenrestore <= millis()) { // need restore
 			//DBG_OUTPUT_PORT.print(this->get_name());
 			//DBG_OUTPUT_PORT.println(" : Restore after manual set");
+			this->mswhenrestore = millis() + 1000;
 			this->restorestate();
 		}
 	}
 	virtual void restorestate() {
-		this->isrestoreactivated = false;
-		P saved = this->get_prevstate();
-		M val = (M)(int)BaseSetRestore;
-		this->AddCommand(saved, val, srcSelf);
+		if (this->isrestoreactivated) {
+			this->isrestoreactivated = false;
+			P saved = this->get_prevstate();
+			M val = (M)(int)BaseSetRestore;
+			this->AddCommand(saved, val, srcSelf);
+		}
 	}
 	virtual void set_power_on() {
 		CController<T, P, M>::set_power_on();
@@ -441,6 +445,8 @@ public:
 		M val = (M)(int)BaseOn;
 		
 		this->AddCommand(current, val, srcPowerOn);
+		//this->isrestoreactivated = true;
+		//this->restorestate();
 	};
 
 protected: 

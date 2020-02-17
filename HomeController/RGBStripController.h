@@ -186,6 +186,8 @@ struct RGBState
 	int wxspeed = 100;
 	int ldrValue = 0;
 	bool isLdr = false;
+	int fadetm = 0;
+	bool isHsv = false;
 	char text[RGB_TEXTLEN+1];
 	COLOR_MODE cmode = current;
 	//map(value, fromLow, fromHigh, toLow, toHigh)

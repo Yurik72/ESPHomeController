@@ -111,6 +111,7 @@ struct timerecOn {
 	bool iscron() { return cron_err == NULL; };
 	cron_expr cronexpr;
 	const char* cron_err = NULL;;
+	int fadetm = 0;
 };
 struct timerecRGB: public timerecOn {
 	//int time = 0;

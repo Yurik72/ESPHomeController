@@ -197,7 +197,7 @@ void TriggerFromService<SRC, DST>::handleloopsvc(SRC* ps, DST* pd) {
 template<typename TM>
 CBaseTimeTrigger<TM>::CBaseTimeTrigger() {
 	this->pTime=NULL;
-	
+	this->timeoffs = 0;
 #ifdef	TRIGGER_DEBUG
 	DBG_OUTPUT_PORT.print("CBaseTimeTrigger()");
 
@@ -244,21 +244,26 @@ void CBaseTimeTrigger<TM>::processrecord(time_t currentTime, TM& rec, Controller
 	
 #endif
 	if (rec.iscron()) {
+		bool dotrigger = false;
+		currentTime -= this->get_timeoffs();
 		if (rec.lastTriggered == 0) {
-			rec.lastTriggered = currentTime-100;
+			rec.lastTriggered = currentTime;// -100 - this->get_timeoffs();
+			//dotrigger = true;
 		}
 		//DBG_OUTPUT_PORT.println("CBaseTimeTrigger free heap");
 		//DBG_OUTPUT_PORT.println(esp_get_free_heap_size());
-		rec.timeToTrigger = cron_next(&rec.cronexpr, rec.lastTriggered);
+		rec.timeToTrigger = cron_next(&rec.cronexpr, rec.lastTriggered+ this->get_timeoffs());
 		//DBG_OUTPUT_PORT.println(esp_get_free_heap_size());
 		//DBG_OUTPUT_PORT.println("Cron next run");
+		//DBG_OUTPUT_PORT.println(getFormattedDateTime(rec.lastTriggered));
 		//DBG_OUTPUT_PORT.println(getFormattedDateTime(rec.timeToTrigger));
 		//DBG_OUTPUT_PORT.println(getFormattedDateTime(currentTime));
 		//DBG_OUTPUT_PORT.println(esp_get_free_heap_size());
-		if (rec.timeToTrigger < currentTime) {
-			DBG_OUTPUT_PORT.println("Do trigger");
+		if (rec.timeToTrigger < currentTime || dotrigger) {
+			
+			//DBG_OUTPUT_PORT.println("Do trigger");
 			this->dotrigger(rec, pctlss);
-			rec.lastTriggered = currentTime+2000;
+			rec.lastTriggered = currentTime;
 		}
 	}
 	else if (rec.timetype == dailly) {
@@ -364,6 +369,7 @@ void TimeToRGBStripTrigger::loadconfig(JsonObject& json) {
 		rec.brightness = arr[i]["bg"].as<int>();
 		rec.wxmode = arr[i]["wxmode"].as<int>();
 		rec.isLdr = arr[i]["isLdr"].as<int>();
+		rec.fadetm= arr[i]["fadetm"].as<int>();
 		times.Add(rec);
 	}
 }
@@ -446,7 +452,7 @@ void TimeToRGBStripTrigger::dotrigger(timerecRGB & rec, Controllers* pctlss) {
 		newstate.isLdr = rec.isLdr;
 		newstate.brightness = rec.brightness;
 		newstate.color = rec.color;
-		
+		newstate.fadetm = rec.fadetm;
 		this->get_stripctl()->AddCommand(newstate, SetRGB, srcTrigger);
 		//DBG_OUTPUT_PORT.println("Add command");
 		//DBG_OUTPUT_PORT.println(this->get_stripctl()->get_commands_size());
@@ -461,6 +467,9 @@ void TimeToRGBStripTrigger::dotrigger(timerecRGB & rec, Controllers* pctlss) {
 #ifdef	TRIGGER_DEBUG
 		DBG_OUTPUT_PORT.println("Mode Off");
 #endif
+		
+		newstate.fadetm = rec.fadetm;
+		
 		this->get_stripctl()->AddCommand(newstate, Off, srcTrigger);
 		//DBG_OUTPUT_PORT.println("Add command");
 		//DBG_OUTPUT_PORT.println(this->get_stripctl()->get_commands_size());
@@ -482,7 +491,8 @@ void LDRToRGBStrip::handleloopsvc(LDRController* ps, RGBStripController* pd) {
 	DBG_OUTPUT_PORT.println("LDRToRGBStrip set ");
 	DBG_OUTPUT_PORT.println(rState.ldrValue);
 #endif	TRIGGER_DEBUG
-	pd->AddCommand(rState, cmd, srcTrigger);
+	if(rState.isLdr && rState.isOn)
+		pd->AddCommand(rState, cmd, srcTrigger);
 }
 
 //LDR to Realy

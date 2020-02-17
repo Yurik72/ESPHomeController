@@ -126,6 +126,7 @@ void Controllers::setup() {
 #ifdef	ENABLE_NATIVE_HAP
 	DBG_OUTPUT_PORT.println("starting hap_init_homekit_server ");
 	hap_init_homekit_server();
+	delay(500);// give one sec to home kit
 #endif
 	
 }

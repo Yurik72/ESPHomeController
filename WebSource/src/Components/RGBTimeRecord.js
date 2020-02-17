@@ -69,7 +69,7 @@ class RGBTimeRecord extends React.Component {
                 {showfade &&
                     <Row>
                         <Col num={4}>
-                            <label htmlFor="fadetm" className="input-label">Fade time</label>
+                            <label htmlFor="fadetm" className="input-label">Fade time sec</label>
                             <input name="fadetm" type="text" value={item.fadetm} name="fadetm"
                                 onChange={ev => {
                                     var val = parseInt(ev.target.value);

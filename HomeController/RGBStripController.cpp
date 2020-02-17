@@ -443,6 +443,9 @@ bool  RGBStripController::deserializestate(String jsonstate, CmdSource src) {
 //			newState.wxmode = 0;
 //	}
 	//DBG_OUTPUT_PORT.println(String("Deserilize color :") + String(newState.color) + String(" R") + String(REDVALUE(newState.color)) +String(" G") + String(GREENVALUE(newState.color)) + String(" B") + String(BLUEVALUE(newState.color)));
+	//	DBG_OUTPUT_PORT.println("RGBStrip deserialize state");
+	//	DBG_OUTPUT_PORT.println(newState.isOn);
+	//	DBG_OUTPUT_PORT.println(newState.color);
 	this->AddCommand(newState, SetRGB, src);
 	
 	return true;
@@ -452,9 +455,10 @@ void RGBStripController::loadconfig(JsonObject& json) {
 	RGBStrip::loadconfig(json);
 	pin = json[FPSTR(szPinText)];
 	numleds = json[FPSTR(sznumleds)];
-	isEnableSmooth = json[FPSTR(szissmooth)];
+	//isEnableSmooth = json[FPSTR(szissmooth)];
 //	if(json.containsKey("rgb_startled"))
 //		rgb_startled= json["rgb_startled"];
+	loadif(isEnableSmooth, json, FPSTR(szissmooth));
 	loadif(rgb_startled, json, FPSTR(szrgb_startled));
 	loadif(ismatrix, json, FPSTR(szismatrix));
 	loadif(matrixWidth, json, FPSTR(szmatrixwidth));
@@ -525,6 +529,8 @@ void RGBStripController::run() {
 	if (this->isEnableSmooth && pSmooth->isActive())
 		return;   ///ignore 
 	while (commands.Dequeue(&cmd)) {
+		//DBG_OUTPUT_PORT.println("RGBStripController::process command");
+		//DBG_OUTPUT_PORT.println(cmd.mode);
 		if (this->baseprocesscommands(cmd))
 			continue;
 		RGBState newState = this->get_state();
@@ -533,15 +539,18 @@ void RGBStripController::run() {
 		case On:
 
 			newState.isOn = true;
+			newState.fadetm = cmd.state.fadetm;
 			break;
 		case Off:
 			newState.isOn = false;
+			newState.fadetm = cmd.state.fadetm;
 			break;
 		case SetBrigthness:
 			newState.brightness = cmd.state.brightness;
 			break;
 		case SetColor:
 			newState.color = cmd.state.color;
+			newState.isHsv = cmd.state.isHsv;
 			break;
 		case SetLdrVal:
 			newState.ldrValue = cmd.state.ldrValue;
@@ -587,10 +596,12 @@ void RGBStripController::run() {
 void RGBStripController::set_power_on() {
 	RGBStrip::set_power_on();
 	this->run();
-
+	if (pStripWrapper) {
+		pStripWrapper->trigger();
+	}
 }
 void RGBStripController::set_state(RGBState state) {
-	
+	//DBG_OUTPUT_PORT.println("RGBStripController::set_state");
 	RGBState oldState = this->get_state();
 	RGBStripController* self = this;
 	bool ignore_br = false;
@@ -626,6 +637,13 @@ void RGBStripController::set_state(RGBState state) {
 			DBG_OUTPUT_PORT.println("Switching OFF");
 			if (this->isEnableSmooth && !pSmooth->isActive()) {
 				pSmooth->stop();
+				uint32_t duration = 1000;
+				if (state.fadetm > 1) {
+					duration = state.fadetm * 1000;
+				}
+				uint32_t count = duration / 50;
+				DBG_OUTPUT_PORT.println(duration);
+				DBG_OUTPUT_PORT.println(count);
 				pSmooth->start(oldState.brightness,0,
 					[self](int val) {
 						self->pStripWrapper->setBrightness(val);
@@ -635,7 +653,7 @@ void RGBStripController::set_state(RGBState state) {
 						if (self->pStripWrapper->isRunning())
 							self->pStripWrapper->stop();
 						self->AddCommand(state, SetRGB, srcSmooth);
-					});
+					},duration,count);
 				//return;
 				
 			}else{
@@ -700,19 +718,21 @@ void RGBStripController::set_state(RGBState state) {
 			if (pEffect)
 				pEffect->set_delay(1.0 / state.wxspeed);
 		}
-		if ((oldState.color != state.color) || (oldState.brightness != state.brightness)) {
+		if (!state.isHsv && ((oldState.color != state.color) || (oldState.brightness != state.brightness))) {
 			double intensity = 0.0;
 			double hue = 0.0;
 			double saturation = 0.0;
+			//DBG_OUTPUT_PORT.print("old saturation");
+			//DBG_OUTPUT_PORT.println(this->mqtt_saturation);
 			ColorToHSI(state.color, state.brightness, hue, saturation, intensity);
 			this->mqtt_hue = hue;
 
 			this->mqtt_saturation = saturation*100.0/255.0;
 
-			DBG_OUTPUT_PORT.print("set color hue");
-			DBG_OUTPUT_PORT.println(this->mqtt_hue);
-			DBG_OUTPUT_PORT.print("set color saturation");
-			DBG_OUTPUT_PORT.println(this->mqtt_saturation);
+			//DBG_OUTPUT_PORT.print("set color hue");
+			///DBG_OUTPUT_PORT.println(this->mqtt_hue);
+			//DBG_OUTPUT_PORT.print("set color saturation");
+			//DBG_OUTPUT_PORT.println(this->mqtt_saturation);
 		}
 		if (oldState.cmode != state.cmode) {
 			pStripWrapper->setColorMatrixMode(state.cmode);
@@ -977,16 +997,18 @@ void RGBStripController::hap_callback(homekit_characteristic_t *ch, homekit_valu
 		}
 		if(ch==ctl->hap_hue && ch->value.float_value!=ctl->mqtt_hue){
 			ctl->mqtt_hue=ch->value.float_value;
-			newState.color = HSVColor(ctl->mqtt_hue, ctl->mqtt_saturation/100.0, 1.0);
+			newState.isHsv = true;
+			newState.color = HSVColor(ctl->mqtt_hue, ctl->mqtt_saturation/100.0, newState.brightness / 255.0);
 			cmd=SetColor;
-			isSet=true;
+			//isSet=true;
 			DBG_OUTPUT_PORT.println("HUE");
 			DBG_OUTPUT_PORT.println(ch->value.float_value);
 		}
 		if(ch==ctl->hap_saturation && ch->value.float_value!=ctl->mqtt_saturation){
 			ctl->mqtt_saturation=ch->value.float_value;
-			newState.color = HSVColor(ctl->mqtt_hue, ctl->mqtt_saturation/100.0,1.0);
+			newState.color = HSVColor(ctl->mqtt_hue, ctl->mqtt_saturation/100.0, newState.brightness/255.0);
 			cmd=SetColor;
+			newState.isHsv = true;
 			isSet=true;
 			DBG_OUTPUT_PORT.println("Saturation");
 			DBG_OUTPUT_PORT.println(ch->value.float_value);

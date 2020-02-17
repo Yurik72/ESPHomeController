@@ -126,6 +126,76 @@ WebServer server(80);
  bool wifidirectconnect();
  void startwifimanager();
 // The setup() function runs once each time the micro-controller starts
+
+ void setup_after_wifi() {
+	
+	
+	 if (WiFi.getMode() != WIFI_STA ) {
+		 DBG_OUTPUT_PORT.println("Wifi is not connected or not STA, stop initilizing");
+		 return;
+	 }
+#ifndef ENABLE_NATIVE_HAP
+	 DBG_OUTPUT_PORT.print("Starting MDNS  host:");
+	 DBG_OUTPUT_PORT.println(HOSTNAME);
+	 if (!isAPMode) {
+		 if (MDNS.begin(HOSTNAME)) {
+			 DBG_OUTPUT_PORT.println("MDNS responder started");
+			 MDNS.addService("_http", "_tcp", 80);
+		 }
+
+	 }
+#endif
+
+#if !defined(ESP8266)
+	 const String FILES[] = { "/index.html", "/js/bundle.min.js.gz","/filebrowse.html" };//"/filebrowse.html"
+	 if (!isAPMode) {
+		 for (int i = 0; i < sizeof(FILES) / sizeof(*FILES); i++)
+			 check_anddownloadfile(szfilesourceroot, FILES[i]);
+		 //	downloadnotexistingfiles(szfilesourceroot, filestodownload);
+	 }
+#endif
+	 //if (!isAPMode) {
+	 SETUP_FILEHANDLES  ///setup file browser
+ //}
+#if defined(ASYNC_WEBSERVER)
+		 setExternRebootFlag(&isReboot);
+#endif
+	 // ***************************************************************************
+	 // Setup: update server
+	 // ***************************************************************************
+#if defined (HTTP_OTA) && !defined(ASYNC_WEBSERVER)
+	 httpUpdater.setExternRebootFlag(&isReboot);
+	 httpUpdater.setup(&server, "/update");
+#endif
+
+#if defined (HTTP_OTA) && defined(ASYNC_WEBSERVER)
+	 if (!isAPMode) {
+		 httpUpdater.setExternRebootFlag(&isReboot);
+		 httpUpdater.setup(asserver, "/update");
+	 }
+#endif
+
+	 ///finaly start  web server
+#if !defined ASYNC_WEBSERVER
+	 server.begin();
+#endif
+
+#if defined ASYNC_WEBSERVER
+	 if (!isAPMode)
+		 asserver.begin();
+#endif
+	 //and start controllers
+	 controllers.setup();
+#if !defined ASYNC_WEBSERVER
+	 controllers.setuphandlers(server);
+#endif
+
+#if defined ASYNC_WEBSERVER
+	 //if (!isAPMode)
+	 controllers.setuphandlers(asserver);
+#endif
+
+ }
  void setup()
  {
 	 DBG_OUTPUT_PORT.begin(115200); //setup serial ports
@@ -164,72 +234,12 @@ WebServer server(80);
 #if defined(ESP8266)
 	 startwifimanager();
 #else
-	 if (!wifidirectconnect())   //this will decrease sketch size
+	 if (!wifidirectconnect())   
 		 startwifimanager();
 #endif
 	 DBG_OUTPUT_PORT.print("wifi  connected");
 	 //setup mdns
-#ifndef ENABLE_NATIVE_HAP
-	 DBG_OUTPUT_PORT.print("Starting MDNS  host:");
-	 DBG_OUTPUT_PORT.println(HOSTNAME);
-	 if (!isAPMode) {
-		 if (MDNS.begin(HOSTNAME)) {
-			 DBG_OUTPUT_PORT.println("MDNS responder started");
-			 MDNS.addService("_http", "_tcp", 80);
-		 }
-
-	 }
-#endif
-
-#if !defined(ESP8266)
-	 const String FILES[] = {  "/index.html", "/js/bundle.min.js.gz","/filebrowse.html" };//"/filebrowse.html"
-	 if (!isAPMode){
-		 for(int i=0;i<sizeof(FILES)/sizeof(*FILES);i++)
-			check_anddownloadfile(szfilesourceroot, FILES[i]);
-	 //	downloadnotexistingfiles(szfilesourceroot, filestodownload);
-     }
-#endif
-	//if (!isAPMode) {
-		SETUP_FILEHANDLES  ///setup file browser
-	//}
-#if defined(ASYNC_WEBSERVER)
-		setExternRebootFlag(&isReboot);
-#endif
-	// ***************************************************************************
-	// Setup: update server
-	// ***************************************************************************
-#if defined (HTTP_OTA) && !defined(ASYNC_WEBSERVER)
-		httpUpdater.setExternRebootFlag(&isReboot);
-		httpUpdater.setup(&server, "/update");  
-#endif
-
-#if defined (HTTP_OTA) && defined(ASYNC_WEBSERVER)
-		if (!isAPMode) {
-			httpUpdater.setExternRebootFlag(&isReboot);
-			httpUpdater.setup(asserver, "/update");
-		}
-#endif
-
-	///finaly start  web server
-#if !defined ASYNC_WEBSERVER
-	server.begin();
-#endif
-
-#if defined ASYNC_WEBSERVER
-	if(!isAPMode)
-		asserver.begin();
-#endif
-	//and start controllers
-	controllers.setup();
-#if !defined ASYNC_WEBSERVER
-	controllers.setuphandlers(server);
-#endif
-
-#if defined ASYNC_WEBSERVER
-	//if (!isAPMode)
-		controllers.setuphandlers(asserver);
-#endif
-	
+	 setup_after_wifi();
 }
 
 // Add the main program code into the continuous loop() function
@@ -263,6 +273,18 @@ void onWifiDisconnect() {
 }
 
 #endif
+#if defined(ESP8266)
+void onWifiConnect(const WiFiEventStationModeConnected& event) {
+	//DBG_OUTPUT_PORT.println("WiFi On Disconnect.");
+	//setup_after_wifi();
+}
+#else
+void onWifiConnect() {
+	DBG_OUTPUT_PORT.println("WiFi On Connect.");
+	//setup_after_wifi();
+}
+
+#endif
 void startwifimanager() {
 
 
@@ -271,7 +293,7 @@ void startwifimanager() {
 	DBG_OUTPUT_PORT.println("Setupr DNS ");
 	DNSServer dns;
 	DBG_OUTPUT_PORT.println("AsyncWiFiManager");
-	
+
 	//AsyncWiFiManager wifiManager(&asserver, &dns);
 	pwifiManager = new AsyncWiFiManager(&asserver, &dns);
 #else
@@ -325,9 +347,21 @@ void startwifimanager() {
 	pwifiManager->setConfigPortalTimeout(CONFIG_PORTAL_TIMEOUT);
 #endif
 	//finally let's wait normal wifi connection
-	
+#if defined(ESP8266)
+	if (!isAPMode) {
+		WiFi.onStationModeDisconnected(onWifiDisconnect);
+		WiFi.onStationModeConnected(onWifiConnect);
+	}
+#else
+	WiFiEventId_t eventID = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info) {
+		onWifiDisconnect();
+	}, WiFiEvent_t::SYSTEM_EVENT_STA_DISCONNECTED);
+	WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info) {
+		onWifiConnect();
+	}, WiFiEvent_t::SYSTEM_EVENT_STA_CONNECTED);
+#endif
 #if defined ASYNC_WEBSERVER
-	if (!pwifiManager->autoConnect(HOSTNAME,NULL,!isOffline)) {
+	if (!pwifiManager->autoConnect(HOSTNAME, NULL, !isOffline)) {
 #else
 	if (!wifiManager.autoConnect(HOSTNAME, NULL)) {
 #endif
@@ -344,16 +378,9 @@ void startwifimanager() {
 			pwifiManager->startOfflineApp(HOSTNAME, NULL);
 #endif
 		}
-		
+
 	}
-#if defined(ESP8266)
-	if(!isAPMode)
-		WiFi.onStationModeDisconnected(onWifiDisconnect);
-#else
-	WiFiEventId_t eventID = WiFi.onEvent([](WiFiEvent_t event, WiFiEventInfo_t info) {
-		onWifiDisconnect();
-	}, WiFiEvent_t::SYSTEM_EVENT_STA_DISCONNECTED);
-#endif
+
 #if ! defined ASYNC_WEBSERVER
 	if (shouldSaveConfig) {
 		char localHost[32];
