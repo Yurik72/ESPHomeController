@@ -208,6 +208,12 @@ void CBaseController::savestate() {
 
 	
 }
+void CBaseController::raise_event(ControllerEvent evt, uint16_t evData) {
+	Controllers::getInstance()->raise_event(this, evt, evData);
+}
+void CBaseController::on_event(CBaseController* pSender,ControllerEvent evt, uint16_t evData) {
+
+}
 void CBaseController::set_monitor_state(uint channel, bool isOn, long mask , uint masklen, uint duration) {
 
 }

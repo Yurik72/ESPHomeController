@@ -90,6 +90,7 @@ void BME280Controller::getdefaultconfig(JsonObject& json) {
 #define BME_SDO_MOSI 5
 #define BME_CS 14
 void  BME280Controller::setup() {
+	DBG_OUTPUT_PORT.println("BME280Controller setup");
 	if (this->uselegacy) {
 		DBG_OUTPUT_PORT.println("Init Adafruit_BME280");
 		this->pbme = new Adafruit_BME280();

@@ -75,6 +75,11 @@
 //#define THINGSPEAK_DEBUG
 #define WEATHER_DEBUG
 
+#define WEATHER_GXEPD2
+
+#if defined(ESP8266) && defined(WEATHER_GXEPD2)
+#undef WEATHER_GXEPD2
+#endif
 
 //DISABLE /ENABLE services Section
 // Importnat due to iram limitation on ESp8266 (virtual function  table)

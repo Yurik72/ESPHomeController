@@ -5,7 +5,23 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_ST7735.h>
 #include <Adafruit_ILI9341.h>
+#ifdef WEATHER_GXEPD2
+#include <GxEPD2_BW.h>
+//to do dynamic 
+#define EPD2TYPENAME GxEPD2_213_B73 
+#define EPDTYPEMACRO(name) GxEPD2_BW<name, name::HEIGHT>
+
+#define EPDTYPE EPDTYPEMACRO(EPD2TYPENAME)
+
+#define EPDNEW new EPDTYPE()
+
+#endif
+
 #include "CWeatherClient.h"
+
+#ifdef WEATHER_GXEPD2
+#include <GxEPD2_BW.h>
+#endif
 
 #define BMP_WIDTH 25
 #define BMP_HEIGHT 25
@@ -61,13 +77,23 @@ struct WeatherData{
 
   
 };
+struct DispRect {
+	DispRect() :DispRect(0, 0, 0, 0) {};
+	DispRect(uint16_t _x, uint16_t _y, uint16_t _w, uint16_t _h):x(_x),y(_y),w(_w),h(_h) {};
+	uint16_t x = 0;
+	uint16_t y = 0;
+	uint16_t w = 0;
+	uint16_t h = 0;
+};
+typedef struct DispRect DispRect_t;
 enum Orientation{
   Hor=0,
   Vert=1
 };
 enum DisplayType{
   ST7735=0,
-  ILI9341=1
+  ILI9341=1,
+  GxEPD2=2
 };
 enum DisplayMode {
 	MainWether = 1,
@@ -118,7 +144,7 @@ public:
 	virtual void run();
 	
 	virtual void set_state(WeatherDisplayState state);
-
+	virtual void on_event(CBaseController* pSender, ControllerEvent evt, uint16_t evData);
 	void refreshAll();
 
 void draw_icon(uint8_t row,uint8_t col,uint16_t x,uint16_t y);
@@ -151,24 +177,32 @@ void adjustRotation();
 void draw_forecast();
 void draw_weatherdata();
 void draw_time();
+void clearTime();
+void clearDate();
+void clearRect(DispRect_t* pRect);
 void diagnostic();
 void refreshTime();
 void setBrightness(uint8_t br);
-
+void flushDisplay(bool partial=true);
 String format_date(time_t time);
 Adafruit_ST7735* pDisplay7735;
 Adafruit_ILI9341* pDisplay9341;
 Adafruit_GFX* pDisplay;
-
+#ifdef WEATHER_GXEPD2
+EPDTYPE* pDisplayEPD2;
+#endif 
 uint16_t y_offs_forecast;
 uint16_t height_forecast;
 uint16_t width_forecast;
 uint8_t max_forecast;
+uint16_t y_offs_dt_text=5;
+uint16_t x_offs_time_text = 170;
 uint8_t fontsize_forecast_temp_h=1;
 bool isdraw_forecastcondition=false;
 uint16_t forecast_cond_offset=70;
 uint16_t main_offset_y_wetaher=1;
 uint16_t start_y_weather = 25;
+
 
 
 ForecastDataT fData;
@@ -188,6 +222,21 @@ uint8_t dac_i2c = 0;
 
 uint8_t brigthness = 200;
 time_t disp_time;
+uint16_t dt_color = ST7735_WHITE;
+uint16_t bk_color = ST7735_BLACK;
+uint16_t forecast_day_color = ST7735_GREEN;
+uint16_t forecast_temp_color = ST7735_YELLOW;
+uint16_t forecast_precip_color = COLOR_LIGHTBLUE;
+uint16_t* icon_palette = 0;
+uint8_t  dt_text_size = 2;
+uint8_t  tm_text_size = 3;
+
+DispRect_t rect_time;
+DispRect_t rect_forecast;
+DispRect_t rect_temp;
+DispRect_t rect_date;
+DispRect_t rect_hum;
+DispRect_t rect_press;
 #ifdef ESP32
 int br_channel = 0;;
 #endif

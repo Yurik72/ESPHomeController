@@ -24,6 +24,7 @@
 #endif
 
 const uint16_t yellowpalette[]={0x0C23D4,0xFFE0,0x001F};
+const uint16_t blackpalette[] = { 0x000000,0x000000,0x000000 };
 const size_t bufferSize = JSON_OBJECT_SIZE(200);
 #ifndef DISABLE_WEATHERDISPLAY
 REGISTER_CONTROLLER_FACTORY(WeatherDisplayController)
@@ -35,6 +36,7 @@ WeatherDisplayController::WeatherDisplayController(){
   pDisplay=NULL;
   disptype=ILI9341;
   orientation=Hor;
+  icon_palette = (uint16_t*)yellowpalette;
  // this->coreMode = Core;
  // this->core = 0;
   //recalclayout();
@@ -85,7 +87,9 @@ void WeatherDisplayController::loadconfig(JsonObject& json) {
 	loadif(pmiso, json, "pmiso");
 	loadif(pbr, json, "pbr");
 	loadif(dac_i2c, json, "dac_i2c");
-	
+	int tp = disptype;
+	loadif(tp, json, "disptype");
+	disptype = (DisplayType)tp;
 
 }
 void WeatherDisplayController::getdefaultconfig(JsonObject& json) {
@@ -103,7 +107,14 @@ void WeatherDisplayController::getdefaultconfig(JsonObject& json) {
 
 	WeatherDisplay::getdefaultconfig(json);
 }
-
+void WeatherDisplayController::on_event(CBaseController* pSender, ControllerEvent evt, uint16_t evData) {
+#ifdef WEATHER_GXEPD2
+	if (disptype == GxEPD2 && pDisplayEPD2 && evt== SleepStart) {
+		DBG_OUTPUT_PORT.println("E ink start hibernate");
+		//pDisplayEPD2->hibernate();
+	}
+#endif
+}
 
 void WeatherDisplayController::run() {
 
@@ -259,12 +270,48 @@ void WeatherDisplayController::setup(){
 	  }
       //diagnostic();
   }
+#ifdef WEATHER_GXEPD2
+  else if (disptype == GxEPD2) {
+	  pDisplayEPD2 = new EPDTYPE(EPD2TYPENAME(pcs, pdc, prst, 4));
+	  pDisplay = static_cast<Adafruit_GFX*>(pDisplayEPD2);
+	  dt_color = ST7735_BLACK;
+	  bk_color = ST7735_WHITE;
+	  forecast_day_color = ST7735_BLACK;
+	  forecast_temp_color= ST7735_BLACK;
+	  forecast_precip_color = ST7735_BLACK;
+	  pDisplayEPD2->init(115200);
+	  //pDisplayEPD2->clearScreen();
+	  pDisplayEPD2->firstPage();
+	  pDisplay->setTextWrap(false);
+	  orientation = Hor;
+	  tm_text_size = 2;
+	  dt_text_size = 1;
+	  x_offs_time_text = 150;
+	  y_offs_dt_text = 7;
+	  icon_palette =(uint16_t*) blackpalette;
+	  //pDisplayEPD2->setRotation(1);
+	 
+  }
+#endif
 
-
-  this->recalclayout();
   this->adjustRotation();
+  this->recalclayout();
+  
   cleardisplay();
+ // this->flushDisplay();
   WeatherDisplay::setup();
+}
+void WeatherDisplayController::clearRect(DispRect_t* pRect) {
+	pDisplay->fillRect(pRect->x, pRect->y, pRect->w, pRect->h, bk_color);
+}
+void WeatherDisplayController::flushDisplay(bool partial) {
+#ifdef WEATHER_GXEPD2
+	//pDisplayEPD2->refresh();
+
+	if (disptype == GxEPD2 && pDisplayEPD2) {
+			pDisplayEPD2->display(partial);
+	}
+#endif
 }
 void WeatherDisplayController::setBrightness(uint8_t br) {
 	if (pbr > 0) {
@@ -287,7 +334,7 @@ void WeatherDisplayController::setBrightness(uint8_t br) {
 
 }
 void WeatherDisplayController::cleardisplay() {
-	pDisplay->fillRect(0, 0, pDisplay->width(), pDisplay->height(), ST7735_BLACK);
+	pDisplay->fillRect(0, 0, pDisplay->width(), pDisplay->height(), bk_color);
 }
 void WeatherDisplayController::draw_info() {
 	draw_infoline(10, "Temperature:", String(this->get_state().data.temp) +"C");
@@ -359,7 +406,24 @@ void WeatherDisplayController::recalclayout(){
        //spDisplay->setRotation(1);
     }
   }
-  
+#ifdef WEATHER_GXEPD2
+  else if (disptype == GxEPD2) {
+	  y_offs_forecast = 60;
+	  height_forecast = 58;
+	  width_forecast = 60;
+	  max_forecast = 4;
+	  main_offset_y_wetaher = 30;
+	  start_y_weather = 25;
+	  rect_time = DispRect_t(150, 0, pDisplay->width()-150, 25);
+	  rect_date = DispRect_t(170, 33, pDisplay->width() - 160, 12);
+	  rect_temp = DispRect_t(0, 0, 150, 60);
+	  rect_hum= DispRect_t(160, 45, 250, 15);;
+	  rect_press= DispRect_t(190, 45, 250, 15);;
+	  forecast_cond_offset = 60;
+	
+  }
+#endif
+  rect_forecast = DispRect_t(0, y_offs_forecast, pDisplay->width(), pDisplay->height()- y_offs_forecast);
 }
 void WeatherDisplayController::set_orientation(Orientation o){
   orientation=o;
@@ -369,7 +433,15 @@ void  WeatherDisplayController::adjustRotation(){
    if(orientation==Vert){
       pDisplay->setRotation(0);
     }else{
-        pDisplay->setRotation(3);
+	   if (disptype != GxEPD2)
+		pDisplay->setRotation(3);
+#ifdef WEATHER_GXEPD2
+	   if (disptype == GxEPD2) {
+		   pDisplay->setRotation(1);
+		   pDisplayEPD2->mirror(false);
+	   }
+#endif
+
     }
 }
 void WeatherDisplayController::draw_icon(uint8_t row,uint8_t col,uint16_t x,uint16_t y){
@@ -456,9 +528,9 @@ void WeatherDisplayController::drawPixel (uint16_t x,uint16_t y, uint16_t color)
 }
 void WeatherDisplayController::drawSSString(uint16_t x, uint16_t y,String str,uint16_t color){
   char* buf=new char[str.length()+1];
-  str.toCharArray(buf, str.length()); 
+  str.toCharArray(buf, str.length()+1); 
   int reduce=0;
-  for(int16_t i=0; i<str.length()-1; i++ ) {
+  for(int16_t i=0; i<str.length(); i++ ) {
     int charreduce=0;
     if(buf[i]=='.' || buf[i]==':'){
       charreduce=14;
@@ -509,45 +581,68 @@ void WeatherDisplayController::drawSSchar(uint16_t x, uint16_t y,uint8_t ch,uint
     
     pDisplay->endWrite();
 }
+void WeatherDisplayController::clearTime() {
+
+	clearRect(&rect_time);
+}
+void WeatherDisplayController::clearDate() {
+	clearRect(&rect_date);
+}
 void WeatherDisplayController::refreshTime() {
 
 	
 
-	//pDisplay->fillRect(200, 0, pDisplay->width(), start_y_weather, ST7735_BLACK);
-	//bool bredrawDate = format_date(disp_time) != format_date(this->get_state().now);
-
-	draw_time(disp_time, ST7735_BLACK);
-	if (format_date(disp_time) != format_date(this->get_state().now)) {
-		draw_date(format_date(disp_time), ST7735_BLACK);
+	if (disptype == GxEPD2) {
+		pDisplay->fillRect(140, 0, 60, 25,bk_color);
+		clearTime();
+		clearDate();
+		disp_time = this->get_state().now;
+		draw_time();
+		draw_date(format_date(disp_time), dt_color);
 	}
-	disp_time = this->get_state().now;
-	draw_time();
-	draw_date(format_date(disp_time));
+	else
+	{
+		draw_time(disp_time, bk_color);
+		if (format_date(disp_time) != format_date(this->get_state().now)) {
+			draw_date(format_date(disp_time), bk_color);
+		}
+		disp_time = this->get_state().now;
+		draw_time();
+		draw_date(format_date(disp_time), dt_color);
+	}
+	this->flushDisplay();
 
 }
 void WeatherDisplayController::draw_time() {
 	
-	draw_time(disp_time);
+	draw_time(disp_time, dt_color);
 }
 void WeatherDisplayController::draw_time(time_t time, uint16_t color){
-  if(disptype==ILI9341){
+  if(disptype==ILI9341 || disptype== GxEPD2){
   struct tm * timeinfo = localtime (&time);
 
   //char time_str[50];
  //sprintf(time_str, "%02d:%02d:%02d\n",timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
   pDisplay->setTextColor(color);
-  pDisplay->setTextSize(3);
-  pDisplay->setCursor(170, 1);
+  pDisplay->setTextSize(tm_text_size);
+
+  if (disptype == GxEPD2)
+	  pDisplay->setCursor(rect_time.x, rect_time.y+9);
+  else
+	 pDisplay->setCursor(x_offs_time_text, y_offs_dt_text);
 
   pDisplay->println(getFormattedTime(time));
   
   }
 }
 void WeatherDisplayController::draw_date(String date, uint16_t color) {
-	pDisplay->setTextSize(2);
+	pDisplay->setTextSize(dt_text_size);
 	pDisplay->setTextColor(color);
-	
-	pDisplay->setCursor(1, 5);
+
+	if(disptype== GxEPD2)
+		pDisplay->setCursor(rect_date.x, rect_date.y);
+	else
+		pDisplay->setCursor(1, y_offs_dt_text);
 	pDisplay->println(date);
 }
 String WeatherDisplayController::format_date(time_t time) {
@@ -560,7 +655,7 @@ void WeatherDisplayController::draw_weatherdata(){
 	WeatherData wdata = this->get_state().data;
    
 if(disptype==ST7735){    
-  pDisplay->fillRect(0,start_y_weather,  pDisplay->width(), start_y_weather- y_offs_forecast, ST7735_BLACK);
+    pDisplay->fillRect(0,start_y_weather,  pDisplay->width(), start_y_weather- y_offs_forecast, ST7735_BLACK);
    this->drawSSString(1,start_y,format_doublestr("%.1f ",wdata.temp),ST7735_YELLOW);
 
    
@@ -596,31 +691,54 @@ if(disptype==ST7735){
    this->drawSSString(5,main_offset_y_wetaher,format_doublestr("%.1f C ",wdata.temp),ST7735_YELLOW);
       
 
-if(orientation==Vert){
-   pDisplay->setTextSize(1);
+	if(orientation==Vert){
+	   pDisplay->setTextSize(1);
 
-    pDisplay->setCursor(5, main_offset_y_wetaher);
-    pDisplay->setTextColor(COLOR_LIGHTBLUE);
-    pDisplay->print(format_doublestr("Hum %.f %%",wdata.humidity));
+		pDisplay->setCursor(5, main_offset_y_wetaher);
+		pDisplay->setTextColor(COLOR_LIGHTBLUE);
+		pDisplay->print(format_doublestr("Hum %.f %%",wdata.humidity));
 
-    pDisplay->setTextSize(1);
-    pDisplay->setCursor(5, main_offset_y_wetaher+50);
-    pDisplay->setTextColor(ST7735_RED);
-    pDisplay->println(format_doublestr("Press %.f",wdata.pressure));
- }else{
-   pDisplay->setTextSize(2);
-     pDisplay->setCursor(180, main_offset_y_wetaher);
-    pDisplay->setTextColor(COLOR_LIGHTBLUE);
-    pDisplay->print(format_doublestr("Hum %.f %%",wdata.humidity));
+		pDisplay->setTextSize(1);
+		pDisplay->setCursor(5, main_offset_y_wetaher+50);
+		pDisplay->setTextColor(ST7735_RED);
+		pDisplay->println(format_doublestr("Press %.f",wdata.pressure));
+	 }else{
+	   pDisplay->setTextSize(2);
+		 pDisplay->setCursor(180, main_offset_y_wetaher);
+		pDisplay->setTextColor(COLOR_LIGHTBLUE);
+		pDisplay->print(format_doublestr("Hum %.f %%",wdata.humidity));
 
    
-    pDisplay->setCursor(180, main_offset_y_wetaher+30);
-    pDisplay->setTextColor(ST7735_RED);
-    pDisplay->println(format_doublestr("P %.f hPa",wdata.pressure));
- }
+		pDisplay->setCursor(180, main_offset_y_wetaher+30);
+		pDisplay->setTextColor(ST7735_RED);
+		pDisplay->println(format_doublestr("P %.f hPa",wdata.pressure));
+	 }
   
 }
- 
+#ifdef WEATHER_GXEPD2
+else if (disptype == GxEPD2) {
+	this->clearRect(&rect_temp);
+	pDisplay->setTextWrap(true);
+	this->drawSSString(rect_temp.x, rect_temp.y+7, format_doublestr("%.1f C", wdata.temp), ST7735_BLACK);
+	pDisplay->setTextWrap(false);
+	pDisplay->setTextSize(1);
+
+
+
+	//pDisplay->setCursor(180, main_offset_y_wetaher);
+	this->clearRect(&rect_hum);
+	pDisplay->setCursor(rect_hum.x, rect_hum.y);
+	pDisplay->setTextColor(ST7735_BLACK);
+	pDisplay->print(format_doublestr("%.f %%", wdata.humidity));
+
+
+	this->clearRect(&rect_press);
+	pDisplay->setCursor(rect_press.x, rect_press.y);
+	pDisplay->setTextColor(ST7735_BLACK);
+	pDisplay->println(format_doublestr("%.f hPa", wdata.pressure));
+}
+#endif
+this->flushDisplay();
 }
 void WeatherDisplayController::draw_forecast(){
   
@@ -629,37 +747,46 @@ void WeatherDisplayController::draw_forecast(){
   for(int i=0;i<getforecastdata().GetSize() && i<max_forecast;i++){
       draw_forecast(i,getforecastdata()[i]);
   }
-  
+  this->flushDisplay();
 }
 void WeatherDisplayController::clear_forecast(){
-   pDisplay->fillRect(0, y_offs_forecast, pDisplay->width(), pDisplay->height()-y_offs_forecast, ST7735_BLACK); 
+   pDisplay->fillRect(0, y_offs_forecast, pDisplay->width(), pDisplay->height()-y_offs_forecast, bk_color); 
 }
 void WeatherDisplayController::draw_forecast(uint8_t idx,ForeceastRecord& rec){
 //Serial.println("Draw forecast "+String(idx));
   uint16_t start_y=y_offs_forecast;
   uint16_t start_x=idx*width_forecast;
   //pDisplay->drawFastVLine(start_x, start_y, pDisplay->height()-start_y, ST7735_YELLOW);
+  uint16_t daytext_offs = 3;
+  uint16_t icon_offs = 10;
+  uint16_t temp_offs = 54;
+  if (disptype == GxEPD2) {
+	  daytext_offs = 1;
+	  icon_offs = 5;
+	  temp_offs = 50;
+}
    pDisplay->setFont(NULL); 
-   pDisplay->setCursor(start_x+5, start_y+3);
-   pDisplay->setTextColor(ST7735_GREEN);
+   pDisplay->setCursor(start_x+5, start_y+ daytext_offs);
+   pDisplay->setTextColor(forecast_day_color);
    pDisplay->setTextSize(1);
    pDisplay->println(rec.text);
     
   //draw_icon(ICONROW(data.condition),ICONCOL(data.condition),40,start_y+1);
    //Serial.println(rec.icon);
-   draw_icon(start_x,start_y+10,rec.icon,yellowpalette);
-   start_y+=54;
+
+   draw_icon(start_x,start_y+ icon_offs,rec.icon, (const uint16_t*)icon_palette);
+   start_y+= temp_offs;
    pDisplay->setCursor(start_x+2, start_y);
-   pDisplay->setTextColor(ST7735_YELLOW);
+   pDisplay->setTextColor(forecast_temp_color);
    pDisplay->setTextSize(fontsize_forecast_temp_h);
-   pDisplay->println(format_doublestr("%.0f",rec.temperature));
-   pDisplay->setTextColor(COLOR_LIGHTBLUE);
+   pDisplay->println(format_doublestr("%.0f C",rec.temperature));
+   pDisplay->setTextColor(forecast_precip_color);
    pDisplay->setCursor(start_x+(fontsize_forecast_temp_h==1?30:35), start_y);
    pDisplay->println(String(rec.precipChance)+String("%"));
    
     start_y=y_offs_forecast+forecast_cond_offset;
     pDisplay->setTextSize(1);
-    pDisplay->setTextColor(ST7735_WHITE);
+    pDisplay->setTextColor(dt_color);
     pDisplay->setCursor(start_x+5, start_y);
     pDisplay->println(rec.phraseshort);
 }

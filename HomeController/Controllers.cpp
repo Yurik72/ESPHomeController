@@ -66,6 +66,11 @@ CBaseController* Controllers::GetByName(const char* name) {
 	}
 	return NULL;
 }
+void Controllers::raise_event(CBaseController* pSender, ControllerEvent evt, uint16_t evData) {
+	for (int i = 0; i < this->GetSize(); i++) {
+		this->GetAt(i)->on_event(pSender, evt, evData);
+	}
+}
 Controllers* Controllers::getInstance() {
 	return _instance;
 }
@@ -79,10 +84,11 @@ void Controllers::setup_before_wifi() {
 	//DBG_OUTPUT_PORT.println("Controllers::loadconfig done");
 	for (int i = 0; i < this->GetSize(); i++) {
 		CBaseController* ctl = this->GetAt(i);
-		//DBG_OUTPUT_PORT.println(ctl->get_name());
-		//DBG_OUTPUT_PORT.println("ctl->setup()");
+		DBG_OUTPUT_PORT.println(ctl->get_name());
+		DBG_OUTPUT_PORT.println("ctl->setup()");
 		
 		ctl->setup();
+		//delay(1000);
 		if (ctl->ispersiststate()) {
 			DBG_OUTPUT_PORT.print(ctl->get_name());
 			DBG_OUTPUT_PORT.println(" : Restore persist state");

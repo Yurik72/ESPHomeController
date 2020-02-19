@@ -29,7 +29,11 @@ void runcoreloop(void*param);
 #endif
 #define CONTROLLER_MAX_COMMANDS 99
 class CBaseController;
+enum ControllerEvent {
+	SleepStart = 0,
+	SleepUp = 1
 
+};
 class ControllerFactory
 {
 public:
@@ -246,6 +250,8 @@ public:
 	short get_priority() { return priority; };
 	virtual bool ispersiststate() { return false; }
 	virtual void savestate() ;
+	virtual void raise_event(ControllerEvent evt,uint16_t evData);
+	virtual void on_event(CBaseController* pSender,ControllerEvent evt, uint16_t evData);
 	virtual bool loadstate()=0;
 	String get_filename_state();
 	virtual void set_power_on() {};
