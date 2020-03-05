@@ -243,6 +243,7 @@ void WeatherDisplayController::refreshAll() {
 void WeatherDisplayController::setup(){
   if(disptype==ST7735){
     pDisplay7735 =new  Adafruit_ST7735(pcs, pdc, pmosi, psclk, prst);
+	
     pDisplay=static_cast<Adafruit_GFX*>(pDisplay7735);
     pDisplay7735->initR(INITR_BLACKTAB);
   }else if (disptype==ILI9341){
@@ -344,6 +345,7 @@ void WeatherDisplayController::draw_info() {
 	draw_infoline(90, "WiFi Strength:", String(WiFi.RSSI()) + "dB");
 	draw_infoline(110, "IP Address", String(WiFi.localIP().toString()) );
 }
+
 void  WeatherDisplayController::draw_infoline(uint16_t y,String label, String text) {
 	pDisplay->setTextSize(2);
 	pDisplay->setTextColor(ST7735_YELLOW);
@@ -351,6 +353,7 @@ void  WeatherDisplayController::draw_infoline(uint16_t y,String label, String te
 	pDisplay->println(label);
 	pDisplay->setCursor(170,y);
 	pDisplay->println(text);
+	
 }
 void WeatherDisplayController::diagnostic(){
   return;

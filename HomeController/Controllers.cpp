@@ -43,6 +43,9 @@ Ticker mqttReconnectTimer;
 extern "C"{
 #include "homeintegration.h"
 }
+#ifdef ESP8266
+#include "homekitintegrationcpp.h"
+#endif
 #endif
 
 static Controllers* _instance=NULL;
@@ -84,8 +87,8 @@ void Controllers::setup_before_wifi() {
 	//DBG_OUTPUT_PORT.println("Controllers::loadconfig done");
 	for (int i = 0; i < this->GetSize(); i++) {
 		CBaseController* ctl = this->GetAt(i);
-		DBG_OUTPUT_PORT.println(ctl->get_name());
-		DBG_OUTPUT_PORT.println("ctl->setup()");
+		//DBG_OUTPUT_PORT.println(ctl->get_name());
+		//DBG_OUTPUT_PORT.println("ctl->setup()");
 		
 		ctl->setup();
 		//delay(1000);
@@ -465,7 +468,10 @@ CBaseController* Controllers::CreateByName(const char* name) { //to be rewrite b
 	*/
 };
 void Controllers::handleloops() {
-	//checkandreconnectWifi();
+	//checkandreconnectWifi()
+#if defined(ENABLE_NATIVE_HAP) && defined(ESP8266)
+	hap_homekit_loop();
+#endif
 	for (int i = 0; i < this->GetSize(); i++) {
 		CBaseController*ctl = this->GetAt(i);
 

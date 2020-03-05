@@ -206,6 +206,44 @@ size_t StripMatrix::write(uint8_t c) {
 	return res;
 }
 ///End matrix
+uint32_t StripWrapper::computeAdjustment(uint8_t scale) {
+
+	uint8_t add_color[3];
+	add_color[0] = 0;
+	add_color[1] = 0;
+	add_color[2] = 0;
+	//DBG_OUTPUT_PORT.println("computeAdjustment");
+	//DBG_OUTPUT_PORT.println(correction);
+	if (scale > 0 && ((temperature!=0) || (correction!=0) )) {
+		for (uint8_t i = 0; i < 3; i++) {
+			uint8_t cc = (correction & (0xFF << (i * 8))) >> (i * 8);//colorCorrection.raw[i];
+		
+			uint8_t ct = (temperature & (0xFF << (i * 8)))>> (i * 8);//colorTemperature.raw[i];
+			if (cc > 0 || ct > 0) {
+				uint32_t work = (((uint32_t)cc) + 1) * (((uint32_t)ct) + 1) * scale;
+				//DBG_OUTPUT_PORT.println(work);
+				//work /= 0x10000L;
+				 work /= 0x00010L;
+				add_color[i] = work & 0xFF;
+				//DBG_OUTPUT_PORT.println(String("add color:") + String(i) + String(":") + String(add_color[i]));
+
+				//	DBG_OUTPUT_PORT.println(cc);
+			}
+		}
+		//color = RGBCOLOR(REDVALUE(color) + add_color[0], GREENVALUE(color) + add_color[1], BLUEVALUE(color) + add_color[2]);
+	}
+	return RGBCOLOR(add_color[3], add_color[1], add_color[0]);
+	
+}
+ uint32_t StripWrapper::applyAdjustment(uint8_t scale, uint32_t color) {
+	 uint32_t adj = computeAdjustment(scale);
+	return RGBCOLOR(REDVALUE(color) - REDVALUE(adj), GREENVALUE(color) - GREENVALUE(adj), BLUEVALUE(color) - BLUEVALUE(adj));
+}
+ uint32_t StripWrapper::reverseAdjustment(uint8_t scale, uint32_t color) {
+	 uint32_t adj = computeAdjustment(scale);
+	 return RGBCOLOR(REDVALUE(color) + REDVALUE(adj), GREENVALUE(color) + GREENVALUE(adj), BLUEVALUE(color) + BLUEVALUE(adj));
+ 
+}
 
 WS2812Wrapper::WS2812Wrapper() {
 	pstrip = NULL;
@@ -264,20 +302,22 @@ void WS2812Wrapper::setMode(uint8_t mode) {
 	pstrip->setMode(mode);
 };
 void WS2812Wrapper::setColor(uint32_t color) {
-	pstrip->setColor(color);
+	pstrip->setColor(this->applyAdjustment(this->getBrightness(), color));
 };
 void WS2812Wrapper::setColor(uint8_t r, uint8_t g, uint8_t b) {
-	pstrip->setColor(r, g, b);
+	//TraceColor("set color before", RGBCOLOR(r, g, b));
+	pstrip->setColor(this->applyAdjustment(this->getBrightness(), RGBCOLOR(r,g,b)));
+	//TraceColor("set color after", this->applyAdjustment(this->getBrightness(), RGBCOLOR(r, g, b)));
 }
 
 void WS2812Wrapper::setSpeed(uint16_t speed) {
 	pstrip->setSpeed(speed);
 }
 void WS2812Wrapper::setPixelColor(uint16_t pix, uint32_t color) {
-	pstrip->setPixelColor(pix, color);
+	pstrip->setPixelColor(pix, this->applyAdjustment(this->getBrightness(), color));
 }
 uint32_t WS2812Wrapper::getPixelColor(uint16_t pix) {
-	return pstrip->getPixelColor(pix);
+	return this->reverseAdjustment(this->getBrightness(),  pstrip->getPixelColor(pix));
 }
 void WS2812Wrapper::service() {
 	pstrip->service();
@@ -464,6 +504,8 @@ void RGBStripController::loadconfig(JsonObject& json) {
 	loadif(matrixWidth, json, FPSTR(szmatrixwidth));
 	loadif(matrixType, json, FPSTR(szmatrixType));
 	loadif(malimit, json,"malimit");
+	loadif(temperature, json, "temperature");
+	loadif(correction, json, "correction");
 	//DBG_OUTPUT_PORT.println("matrixType");
 	//DBG_OUTPUT_PORT.println(matrixType);
 }
@@ -478,6 +520,8 @@ void RGBStripController::getdefaultconfig(JsonObject& json) {
 	json[FPSTR(szrgb_startled)] = -1;
 	json[FPSTR(szismatrix)] = false;
 	json[FPSTR(szmatrixwidth)] = 0;
+	json["temperature"] = 0;
+	json["correction"] = 0;
 	RGBStrip::getdefaultconfig(json);
 }
 void  RGBStripController::setup() {
@@ -488,6 +532,8 @@ void  RGBStripController::setup() {
 #endif
 	pStripWrapper->set_rgb_startled(rgb_startled);
 	pStripWrapper->setup(pin, numleds);
+	pStripWrapper->setCorrection(correction);
+	pStripWrapper->setTemperature(temperature);
 	if (ismatrix) {
 		//TO DO
 		//uint8_t mtype = NEO_MATRIX_TOP + NEO_MATRIX_LEFT +
@@ -708,11 +754,15 @@ void RGBStripController::set_state(RGBState state) {
 				pStripWrapper->setBrightness(getLDRBrightness(state.brightness, state.ldrValue));
 		}
 		else {
-			if (oldState.brightness != state.brightness && !ignore_br)
+			if (oldState.brightness != state.brightness && !ignore_br) {
 				pStripWrapper->setBrightness(state.brightness);
+				if((this->correction!=0 || this->temperature != 0) && oldState.color == state.color)
+					pStripWrapper->setColor(REDVALUE(state.color), GREENVALUE(state.color), BLUEVALUE(state.color));
+			}
 		}
-		if (oldState.color != state.color)
+		if (oldState.color != state.color) 
 			pStripWrapper->setColor(REDVALUE(state.color), GREENVALUE(state.color), BLUEVALUE(state.color));
+
 		if (oldState.wxspeed != state.wxspeed) {
 			pStripWrapper->setSpeed(state.wxspeed);
 			if (pEffect)

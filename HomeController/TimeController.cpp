@@ -158,8 +158,8 @@ void TimeController::run() {
 #endif
 		newcmd.state.time_withoffs = newcmd.state.time;
 #ifdef ESP32
-		newcmd.state.time_withoffs+= gmtOffset_sec;
-		newcmd.state.time_withoffs -= daylightOffset_sec;
+		newcmd.state.time_withoffs-= gmtOffset_sec;
+		newcmd.state.time_withoffs += daylightOffset_sec;
 #endif
 		//this->commands.Add(newcmd);
 		newcmd.mode = SET;
@@ -216,10 +216,11 @@ void TimeController::run() {
 						 esp_sleep_enable_ext0_wakeup((gpio_num_t)btnwakeup, 0);
 					 this->sleepnumber++;
 					 this->is_sleepstarted = true;
-					
+					 this->raise_event(SleepStart, this->sleeptype);
 					 delay(20);
 					 esp_light_sleep_start();
 					 delay(500);
+					 this->raise_event(SleepUp, this->sleeptype);
 				 }
 			 }
 			 else if (this->sleeptype == 2) {

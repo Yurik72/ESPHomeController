@@ -441,7 +441,10 @@ uint32_t calcTempColorSimple(float temp, float temp_min, float temp_max) {
 
 	return res;
 }
-
+void TraceColor(char* msg, uint32_t color) {
+	String message = String(msg) + String("Red:") + String(REDVALUE(color)) + String(" ") + String("Green:") + String(GREENVALUE(color)) + String(" ") + String("blue:") + String(BLUEVALUE(color));
+	DBG_OUTPUT_PORT.println(message);
+}
 JsonObject getRootObject(DynamicJsonDocument buf) {
 
 	return buf.as<JsonObject>();

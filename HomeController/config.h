@@ -12,7 +12,7 @@
 #endif
 
 #if defined(ENABLE_NATIVE_HAP) && defined(ESP8266)
-#error    Native hap is not supported for ESP8266
+#warning     Native hap is on development on  ESP8266
 #endif
 
 

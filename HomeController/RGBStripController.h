@@ -126,12 +126,20 @@ public:
 	virtual void setPixelColor(uint16_t pix, uint32_t color) {};
 	virtual uint32_t getPixelColor(uint16_t pix) { return 0; };
 	virtual uint8_t get_matrixtype() { return _matrixType; };
+	virtual void setTemperature(uint32_t val) { temperature = val; };
+	virtual void  setCorrection(uint32_t val) { correction = val; };
+	virtual uint32_t computeAdjustment(uint8_t scale);
+	uint32_t applyAdjustment(uint8_t scale, uint32_t color);
+	uint32_t reverseAdjustment(uint8_t scale, uint32_t color);
 protected:
 	int rgb_startled;
 	RGBStripFloatText* pcyclerfloattext;
 	uint8_t _matrixType;
+	uint32_t temperature=0;
+	uint32_t correction=0;
 private:
 	COLOR_MODE cmode;
+
 	
 };
 
@@ -274,6 +282,9 @@ private:
 	StripWrapper* pStripWrapper;
 	float mqtt_saturation;
 	float mqtt_hue;
+	uint32_t temperature = 0;
+	uint32_t correction = 0;
+
 	CSmoothVal* pSmooth;
 	RGBStripCycler* pCycle;
 	bool isEnableSmooth;

@@ -29,6 +29,8 @@
 //#define HSVColor_f_int_int(h,s,v) HSVColor(h,((float)s)/255.0,((float)v)/255.0)
 #define HSVColor_f_int_int(h,s,v) HSVColor((float)h,((float)s)/255.0,((float)v)/100.0)
 
+void TraceColor(char* msg, uint32_t color);
+
 bool writeConfigFS(bool saveConfig);
 bool readConfigFS();
 String getFormattedTime(time_t tt);
