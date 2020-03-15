@@ -4,9 +4,10 @@
 #include "BaseController.h"
 #include "RelayBlinkController.h"
 
+#ifndef DISABLE_RELAYBLINK
 REGISTER_CONTROLLER_FACTORY(RelayBlinkController)
 const size_t bufferSize = JSON_OBJECT_SIZE(20);
-
+#endif
 RelayBlinkController::RelayBlinkController() {
 
 	
@@ -55,19 +56,20 @@ void RelayBlinkController::getdefaultconfig(JsonObject& json) {
 
 }
 String  RelayBlinkController::serializestate() {
-
+#ifndef DISABLE_RELAYBLINK
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	JsonObject root = jsonBuffer.to<JsonObject>();
 	root[FPSTR(szisOnText)] = this->get_state().isOn;
-
+#endif
 	String json;
 	json.reserve(128);
+#ifndef DISABLE_RELAYBLINK
 	serializeJson(root, json);
-
+#endif
 	return json;
 }
 bool  RelayBlinkController::deserializestate(String jsonstate, CmdSource src) {
-
+#ifndef DISABLE_RELAYBLINK
 	DynamicJsonDocument jsonBuffer(bufferSize);
 	DeserializationError error = deserializeJson(jsonBuffer, jsonstate);
 	if (error) {
@@ -81,6 +83,7 @@ bool  RelayBlinkController::deserializestate(String jsonstate, CmdSource src) {
 	//newState.isOn = root[FPSTR(szisOnText)];
 	this->AddCommand(newState, RelayBlinkSet, src);
 	//this->set_state(newState);
+#endif
 	return true;
 
 }

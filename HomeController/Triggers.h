@@ -14,6 +14,7 @@
 #include "ThingSpeakClient.h"
 #include "CWeatherDisplay.h"
 #include "ButtonController.h"
+#include "MotionController.h"
 
 #define NEXT_DAY_SEC (1 * 24 * 60 * 60)
 #define SEC_TOLLERANCE 1200  //2 min
@@ -217,6 +218,21 @@ private:
 	CSimpleArray<RFRecord> rfs;
 	long delaywait;
 };
+class RFToMotion :public TriggerFromService< RFController, MotionController> {
+public:
+	RFToMotion();
+
+	virtual void handleloopsvc(RFController* ps, MotionController* pd);
+	virtual void loadconfig(JsonObject& json);
+	void processrecord(RFRecord& rec, MotionController* pr);
+protected:
+
+private:
+	long last_tick;
+	long last_token;
+	CSimpleArray<RFRecord> rfs;
+	long delaywait;
+};
 
 class DallasToRGBStrip :public TriggerFromService< DallasController, RGBStripController> {
 public:
@@ -388,7 +404,7 @@ DEFINE_TRIGGER_FACTORY(WeatherForecastToWeatherDisplay)
 DEFINE_TRIGGER_FACTORY(ButtonToWeatherDisplay)
 DEFINE_TRIGGER_FACTORY(LDRToThingSpeak)
 DEFINE_TRIGGER_FACTORY(ButtonToRelay)
-
+DEFINE_TRIGGER_FACTORY(RFToMotion)
 //DEFINE_TRIGGER_FACTORY(LDRToRelay)
 //DEFINE_TRIGGER_FACTORY(LDRToRGBStrip)
 //DEFINE_TRIGGER_FACTORY(RFToRelay)

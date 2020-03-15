@@ -1,9 +1,13 @@
 #ifndef config_h
 #define config_h
 
+//#ifndef ESP8266
 #define ENABLE_NATIVE_HAP      //if defined will communicate Apple Home Kit with native protocols
+//#endif
 
+#ifdef ESP8266
 //#define ENABLE_HOMEBRIDGE    //if defined will communicate to MQTT Home bdridge
+#endif
 #define HTTP_OTA             // If defined, enable ESP8266HTTPUpdateServer/ESP32HTTPUpdateServer/ESPAsyncUpdateServer OTA code.
 
 
@@ -73,7 +77,7 @@
 //#define MENU_DEBUG
 //#define BUTTON_DEBUG
 //#define THINGSPEAK_DEBUG
-#define WEATHER_DEBUG
+//#define WEATHER_DEBUG
 
 #define WEATHER_GXEPD2
 
@@ -83,9 +87,9 @@
 
 //DISABLE /ENABLE services Section
 // Importnat due to iram limitation on ESp8266 (virtual function  table)
-#define RF_SNIFFER
+//#define RF_SNIFFER
 //#define RGB
-//#define RF_RELAY
+#define RF_RELAY
 
 #ifdef ESP8266
 #define DISABLE_OLED
@@ -111,6 +115,8 @@
 #define DISABLE_RGB
 #define DISABLE_RELAYDIM
 #define DISABLE_DALLAS
+#define DISABLE_BUTTON
+#define DISABLE_RELAYBLINK
 #endif
 
 #endif

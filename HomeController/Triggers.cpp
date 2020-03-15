@@ -41,6 +41,7 @@ REGISTER_TRIGGER_FACTORY(LDRToRGBStrip)
 #endif
 #ifndef DISABLE_RELAY
 REGISTER_TRIGGER_FACTORY(RFToRelay)
+REGISTER_TRIGGER_FACTORY(RFToMotion)
 
 REGISTER_TRIGGER_FACTORY(TimeToRelayTrigger)
 REGISTER_TRIGGER_FACTORY(ButtonToRelay)
@@ -1086,4 +1087,67 @@ void ButtonToRelay::handleloopsvc(ButtonController* ps, RelayController* pd) {
 		lasttriggered = presstime;
 	}
 
+}
+
+
+RFToMotion::RFToMotion() {
+this->last_tick = 0;
+this->last_token = 0;
+this->delaywait = 300;
+}
+void RFToMotion::loadconfig(JsonObject& json) {
+	Trigger::loadconfig(json);
+	JsonArray arr = json["value"].as<JsonArray>();
+	for (int i = 0; i < arr.size(); i++) {
+		RFRecord & rec = *(new RFRecord());
+		JsonObject json = arr[i];
+
+		rec.isOn = arr[i][FPSTR(szisOnText)].as<bool>();
+		rec.isswitch = arr[i]["isSwitch"].as<bool>();
+		rec.token = arr[i]["token"].as<long>();
+		rec.len = arr[i]["len"];;
+		rec.protocol = arr[i]["protocol"];
+		rec.pulse = arr[i]["pulse"];
+		rfs.Add(rec);
+	}
+}
+void RFToMotion::handleloopsvc(RFController* ps, MotionController* pd) {
+
+
+	RFState rfstate = ps->get_state();
+	if (this->last_tick == rfstate.timetick) { ///simple ignore, not new data
+
+		return;
+	}
+
+	if (this->delaywait > 0 && this->last_token == rfstate.rftoken && (this->last_tick + this->delaywait) > millis()) {
+		//TO DO implement continues pressing
+		this->last_tick = rfstate.timetick;
+		return;    //ignoring duplicate
+	}
+#ifdef	RF_TRIGGER_DEBUG
+	DBG_OUTPUT_PORT.println("RFToRelay continue with new token");
+#endif 
+	this->last_tick = rfstate.timetick;
+	this->last_token = rfstate.rftoken;
+	//	return;
+	for (int i = 0; i < this->rfs.GetSize(); i++) {
+		RFRecord& rec = this->rfs.GetAt(i);
+		if (rec.token == rfstate.rftoken)
+			this->processrecord(rec, pd);
+	}
+
+
+
+}
+void RFToMotion::processrecord(RFRecord& rec, MotionController* pr) {
+	MotionState newState = pr->get_state();
+#ifdef	RF_TRIGGER_DEBUG
+	DBG_OUTPUT_PORT.print("RFToRelay::processrecord with key");
+	DBG_OUTPUT_PORT.println(rec.token);
+#endif 
+	MotionCMD cmd = MotionSet;
+	newState.isTriggered = true;
+	newState.tmTrigger = millis();
+	pr->AddCommand(newState, cmd, srcTrigger);
 }

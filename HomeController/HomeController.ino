@@ -148,6 +148,10 @@ WebServer server(80);
 
 #if !defined(ESP8266)
 	 const String FILES[] = { "/index.html", "/js/bundle.min.js.gz","/filebrowse.html" };//"/filebrowse.html"
+#else
+	 const String FILES[] = { "/index.html", "/filebrowse.html" };//"/filebrowse.html"
+#endif
+#if !defined(ESP8266)
 	 if (!isAPMode) {
 		 for (int i = 0; i < sizeof(FILES) / sizeof(*FILES); i++)
 			 check_anddownloadfile(szfilesourceroot, FILES[i]);
@@ -237,7 +241,7 @@ WebServer server(80);
 	 if (!wifidirectconnect())   
 		 startwifimanager();
 #endif
-	 DBG_OUTPUT_PORT.print("wifi  connected");
+	 DBG_OUTPUT_PORT.println("wifi  connected");
 	 //setup mdns
 	 setup_after_wifi();
 }

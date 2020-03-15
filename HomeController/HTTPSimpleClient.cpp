@@ -22,7 +22,7 @@
 #define DBG_OUTPUT_PORT Serial  
 #endif
 
-#define DEBUG_HTTPCLIENT
+//#define DEBUG_HTTPCLIENT
 /**
  * constructor
  */
@@ -55,7 +55,9 @@ void HTTPSimpleClient::clear()
 
 bool HTTPSimpleClient::begin(String url)
 {
-
+#ifdef DEBUG_HTTPCLIENT
+	DBG_OUTPUT_PORT.println("[HTTP] Begin " + String(url));
+#endif
 	clear();
 
 	// check for : (http: or https:
@@ -89,7 +91,7 @@ bool HTTPSimpleClient::begin(String url)
 	_uri = url;
 	_secure = _protocol == "https";
 
-	DBG_OUTPUT_PORT.println(F("http begin start connection"));
+	DBG_OUTPUT_PORT.println("http begin start connection "+String(_host));
 	return connect();
 }
 
@@ -417,15 +419,22 @@ bool HTTPSimpleClient::connect(void)
 
 	if (_secure) {
 		_client = new WiFiClientSecure();
+#ifdef ESP8266
+		((WiFiClientSecure*)_client)->setInsecure();
+
+#endif
 	}
 	else {
 		_client = new WiFiClient();
 
 	}
 
-
+#ifdef DEBUG_HTTPCLIENT
+	DBG_OUTPUT_PORT.println("[HTTP] Start connection " + String(_host) +String(_port));
+#endif
 	_client->setTimeout(_connectTimeout);
 	if (!_client->connect(_host.c_str(), _port)) {
+		DBG_OUTPUT_PORT.println("WiFi Client not able to connect");
 		return false;
 	}
 
@@ -763,10 +772,10 @@ bool HTTPSimpleClient::downloadfile(String baseurl,  String filename)
 			// read all data from server
 			while (this->connected() && (len > 0 || len == -1))
 			{
+
 				// get available data size
 				size_t size = stream->available();
-
-				if (size)
+				
 				{
 					// read up to 128 byte
 					int c = stream->readBytes(buff, ((size > sizeof(buff)) ? sizeof(buff) : size));

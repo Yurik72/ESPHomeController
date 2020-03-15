@@ -393,7 +393,7 @@ void download_savefile(String fileSourceRoot, String destfilename) {
 	*/
 }
 void check_anddownloadfile(String fileSourceRoot, String filename) {
-	
+
 	if (filename.indexOf("/") != 0)
 		filename = "/" + filename;
 	File file = SPIFFS.open(filename, "r");
@@ -401,6 +401,7 @@ void check_anddownloadfile(String fileSourceRoot, String filename) {
 		file.close();
 			delay(5);
 	   DBG_OUTPUT_PORT.println(String("Download not existing file:") + filename);
+	   delay(1000);
 		download_savefile(fileSourceRoot, filename);
 	}
 	else {

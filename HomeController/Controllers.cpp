@@ -111,11 +111,23 @@ void Controllers::setup() {
 	setupphase = setup_phase_after_wifi;
 //	Factories::registerController("-", &global_LDRControllerFactory);
 	//DBG_OUTPUT_PORT.println(globlog);
+	bool ishapused = false;
+	for (int i = 0; i < this->GetSize(); i++) {
+		if (this->GetAt(i)->ishap) {
+			ishapused = true;
+			break;
+		}
+	}
 #ifdef	ENABLE_NATIVE_HAP
-	init_hap_storage();
-    set_callback_storage_change(storage_changed);
-    hap_setbase_accessorytype(accessory_type);
-    hap_initbase_accessory_service(HOSTNAME,"Yurik72","0","EspHapCtl",VERSION);
+	if (ishapused) {
+		init_hap_storage();
+		set_callback_storage_change(storage_changed);
+		hap_setbase_accessorytype(accessory_type);
+		hap_initbase_accessory_service(HOSTNAME, "Yurik72", "0", "EspHapCtl", VERSION);
+	}
+	else {
+		DBG_OUTPUT_PORT.println("Home kit not activated, nothing to do");
+	}
 #endif
 	//this->loadconfig();
 	connectmqtt();
@@ -133,9 +145,11 @@ void Controllers::setup() {
 	DBG_OUTPUT_PORT.println("Load services done ");
 	
 #ifdef	ENABLE_NATIVE_HAP
-	DBG_OUTPUT_PORT.println("starting hap_init_homekit_server ");
-	hap_init_homekit_server();
-	delay(500);// give one sec to home kit
+	if (ishapused) {
+		DBG_OUTPUT_PORT.println("starting hap_init_homekit_server ");
+		hap_init_homekit_server();
+		delay(500);// give one sec to home kit
+	}
 #endif
 	
 }

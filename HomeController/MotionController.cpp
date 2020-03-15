@@ -14,7 +14,8 @@ const size_t bufferSize = JSON_OBJECT_SIZE(20);
 MotionController::MotionController() {
 	
 	this->pin = 0;
-
+	this->autoreset = 0;
+	this->nextreset = 0;
 #ifdef	ENABLE_NATIVE_HAP
 	this->ishap=true;
 	this->hapservice=NULL;
@@ -53,7 +54,7 @@ bool  MotionController::deserializestate(String jsonstate, CmdSource src) {
 void MotionController::loadconfig(JsonObject& json) {
 	Motion::loadconfig(json);
 	pin= json[FPSTR(szPinText)];
-	
+	loadif(autoreset,json,"autoreset");
 }
 void MotionController::getdefaultconfig(JsonObject& json) {
 	json[FPSTR(szPinText)]= pin;
@@ -61,16 +62,18 @@ void MotionController::getdefaultconfig(JsonObject& json) {
 	json[FPSTR(szservice)] = "MotionController";
 	json[FPSTR(szname)] = "Motion";
 	json["ishap"] = ishap;
+	json["autoreset"] = 0;
 	Motion::getdefaultconfig(json);
 }
 void  MotionController::setup() {
-	pinMode(pin, INPUT);
+	if(pin > 0)
+		pinMode(pin, INPUT);
 	
 }
 
 void MotionController::run() {
 	command cmd;
-	if (this->commands.GetSize() == 0 && this->get_state().isOn) {
+	if (this->commands.GetSize() == 0 && this->get_state().isOn && pin>0) {
 		command newcmd;
 		bool motion = digitalRead(pin);
 		newcmd.state = this->get_state();
@@ -79,7 +82,17 @@ void MotionController::run() {
 			newcmd.state.tmTrigger = millis();
 			newcmd.state.isTriggered = motion;// analogRead(pin);
 			this->AddCommand(newcmd.state, newcmd.mode, srcSelf);
+			DBG_OUTPUT_PORT.println(String("MotionController detected ")+ String((motion?"ON":"OFF")));
 		}
+	}
+	if (this->commands.GetSize() && autoreset > 0 && nextreset < millis() && this->get_state().isOn  && this->get_state().isTriggered)
+	{
+		command newcmd;
+		newcmd.state = this->get_state();
+		newcmd.mode = MotionSet;
+		newcmd.state.isTriggered = false;
+		this->AddCommand(newcmd.state, newcmd.mode, srcSelf);
+		DBG_OUTPUT_PORT.println("MotionController autoreset ");
 	}
 	while (commands.Dequeue(&cmd)) {
 		MotionState newState = cmd.state;
@@ -90,6 +103,8 @@ void MotionController::run() {
 			case MotionSet:
 				newState.isTriggered = cmd.state.isTriggered;
 				newState.tmTrigger = cmd.state.tmTrigger;
+				if (autoreset > 0)
+					nextreset = millis() + autoreset;
 			case MotionRestore:
 				newState.isOn = cmd.state.isOn;
 				break;

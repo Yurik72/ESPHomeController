@@ -12,7 +12,7 @@ extern "C"{
 
 struct MotionState
 {
-	bool isOn=false;
+	bool isOn=true;
 	bool isTriggered = false;
 	long tmTrigger = 0;
 };
@@ -48,7 +48,8 @@ public:
 #endif
 protected:
 	uint8_t pin;
-
+	int autoreset = 0;
+	long nextreset = 0;
 #ifdef	ENABLE_NATIVE_HAP
 	homekit_service_t* hapservice;
 #endif
