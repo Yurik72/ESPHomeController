@@ -8,16 +8,17 @@ After a few times of implementing IOT devices for home automation, i have recogn
 Instead of that i decided to develop universal sketch to support code once, but with possibility to upload to different IOT controllers for my Home Automation.
 **Main targets are :**
  1. Support ESP32 and ESP8266  with the same code
- 2. The same skecth should support different devices, the difference must be outside in the configuration file. Like Lego bricks...
- 3. Updatable via the web (OTA), some times not easilly to physically access device, when it's altready installed
- 4. Nice web interface to controll devices as well to setup them
- 5. RAW file browser to upload/change configuration files or HTML for the WEB
- 6. MQTT integration to be able control devices via Home Kit
- 7. Native support of Apple Home Kit integration (only for ESP32)
+ 2. Native Apple Home Kit Integration
+ 3. The same skecth should support different devices, the difference must be outside in the configuration file. Like Lego bricks...
+ 4. Updatable via the web (OTA), some times not easilly to physically access device, when it's altready installed
+ 5. Nice web interface to controll devices as well to setup them
+ 6. RAW file browser to upload/change configuration files or HTML for the WEB
+ 7. MQTT integration to be able control devices via any Home controller
  8. On board automation scripts/triggers.. Some times is not easy to setup this one via Home Kit or Home Kit doesn't exists
  9. Configuration portal after firts start (captive portal)
  10. Suports of RF 433 Mhz control by any existing transmitters
  11. More and more
+ 
  
 Ok, let's describe basic thing how it works
 Major element of this solution is **service**, like in windows unix , android etc. Each service are responsible to control one device wired to ESP. Hovewer it's possible to run 2 instances of the same service to control similar devices. List if services is configurable by json file with their properties
@@ -69,6 +70,7 @@ I hope I didn't miss any sources and mentioned every author. In case I forgot so
  - Built-in web site implemented on React js, and browser content is very fast, compatible with native mobile application, Thanks to React developers;
 - Sketch can be compiled within VS 2017, by using  [Arduino IDE for Visual Studio](https://marketplace.visualstudio.com/items?itemName=VisualMicro.ArduinoIDEforVisualStudio)
 - Adapt WS2812FX library to perfectly works on ESP32, see details [here](https://github.com/Yurik72/ESPHomeController/wiki/WS2812-driver-to-remove-flickering)
+- Native Apple Home Kit Integration
 
 **WebSite**
 
@@ -78,8 +80,7 @@ I hope I didn't miss any sources and mentioned every author. In case I forgot so
 
 For technical infomation see [Wiki](https://github.com/Yurik72/ESPHomeController/wiki)
 
-Please have a look https://github.com/Yurik72/esphapcontroller  , there is a clone of code base adapted for esp-idf and NATIVE support of Apple Home, this is version based on ESP-IDF
-
+Please have a look https://github.com/Yurik72/esphapcontroller  , there is a clone of code base adapted for ESP-IDF
 **Projects using this firmware**
 
 [Fireplace lamp with temperature sensor](https://www.instructables.com/id/Accu-Multicololred-LED-Lamp-With-Weather/)
