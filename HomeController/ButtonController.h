@@ -13,7 +13,7 @@
 #define STATE_HISTORY_MAX 5
 #define STATE_HISTORY_PERIOD_UPDATE 2000
 
-#define LONG_ACTIONDURATION 5000
+#define LONG_ACTIONDURATION 1000
 #define VERYLONG_ACTIONDURATION 20000
 struct ButtonState
 {
@@ -65,6 +65,7 @@ private:
 	btn_state_history btn_long_history[MAX_BUTTONS];
 	uint8_t btncount;
 	long last_history_state_update;
+	bool defstate;
 	
 };
 DEFINE_CONTROLLER_FACTORY(ButtonController)

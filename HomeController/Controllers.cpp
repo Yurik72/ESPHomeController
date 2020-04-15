@@ -482,7 +482,7 @@ CBaseController* Controllers::CreateByName(const char* name) { //to be rewrite b
 	*/
 };
 void Controllers::handleloops() {
-	//checkandreconnectWifi()
+	
 #if defined(ENABLE_NATIVE_HAP) && defined(ESP8266)
 	hap_homekit_loop();
 #endif
@@ -491,12 +491,11 @@ void Controllers::handleloops() {
 
 		
 		if (ctl->shouldRun() && (ctl->get_coremode() == NonCore  || ctl->get_coremode()==Both) && ctl->isenabled()) {
-			//if (!this->isWifiConnected)
+			
 			this->checkandreconnectWifi();
 
 			ctl->run();
-			//if (!this->isWifiConnected)
-			//	this->checkandreconnectWifi();
+
 			for (int j = 0;j < this->triggers.GetSize();j++) {
 				Trigger* tr = this->triggers.GetAt(j);
 
@@ -510,9 +509,9 @@ void Controllers::handleloops() {
 
 }
 void Controllers::set_monitor_state(uint channel, bool isOn, long mask, uint masklen, uint duration) {
-	//DBG_OUTPUT_PORT.println("Controllers set_monitor_state");
+	
 	if (pMonitor) {
-		//DBG_OUTPUT_PORT.println("send to monitor");
+		
 		pMonitor->set_monitor_state(channel, isOn, mask, masklen, duration);
 	}
 }

@@ -1183,7 +1183,7 @@ void RGBStripFloatText::oncallback() {
 		//char_offset++;
 		//
 		String txt_toprint = " "+txt;  //leading space always 
-		if (char_offset > space) {
+		if (char_offset >=space) {
 			uint16_t char_to_add = char_offset - space;
 			uint16_t from = textlen - char_to_add;
 			uint16_t to = from+char_to_add;
@@ -1195,7 +1195,7 @@ void RGBStripFloatText::oncallback() {
 		else {
 			posx += char_offset * charwidth;
 		}
-		//DBG_OUTPUT_PORT.println(txt_toprint);
+		//DBG_OUTPUT_PORT.println(String(posx)+String(":")+String(txt_toprint));
 		//DBG_OUTPUT_PORT.println(txt_toprint.substring(0, char_onscreen));
 		//DBG_OUTPUT_PORT.println(String("minor:") + String(minorcycleIndex) +String("posx:") + String(posx) + String(" charofset:") + String(char_offset) + String(" charonscreen:") + String(char_onscreen));
 		//DBG_OUTPUT_PORT.println(String("delay:") + String(delay_interval));

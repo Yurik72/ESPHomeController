@@ -75,7 +75,7 @@ void MotionController::run() {
 	command cmd;
 	if (this->commands.GetSize() == 0 && this->get_state().isOn && pin>0) {
 		command newcmd;
-		bool motion = digitalRead(pin);
+		bool motion = digitalRead(pin)==HIGH;
 		newcmd.state = this->get_state();
 		newcmd.mode = MotionSet;
 		if (motion != newcmd.state.isTriggered) {
@@ -85,7 +85,7 @@ void MotionController::run() {
 			DBG_OUTPUT_PORT.println(String("MotionController detected ")+ String((motion?"ON":"OFF")));
 		}
 	}
-	if (this->commands.GetSize() && autoreset > 0 && nextreset < millis() && this->get_state().isOn  && this->get_state().isTriggered)
+	if (this->commands.GetSize()==0 && autoreset > 0 && nextreset < millis() && this->get_state().isOn  && this->get_state().isTriggered)
 	{
 		command newcmd;
 		newcmd.state = this->get_state();

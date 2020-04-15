@@ -20,6 +20,7 @@ ButtonController::ButtonController() {
 	memset(btn_long_history, 0, sizeof(btn_state_history_record)*STATE_HISTORY_MAX*MAX_BUTTONS);
 
 	this->btncount = 0;
+	this->defstate = true;
 	Ticker* pTicker;
 	this->coreMode = Both;
 	this->last_history_state_update = 0;
@@ -60,7 +61,7 @@ bool  ButtonController::deserializestate(String jsonstate, CmdSource src) {
 void ButtonController::loadconfig(JsonObject& json) {
 	uint8_t mpin = json[FPSTR(szPinText)];
 	JsonArray arr = json["pins"].as<JsonArray>();
-
+	loadif(this->defstate, json, "defstate");
 #ifdef BUTTON_DEBUG
 	DBG_OUTPUT_PORT.println(F("Button setup pins"));
 #endif
@@ -143,14 +144,19 @@ void ButtonController::runcore() {
 		}
 
 		if (this->is_pressed(i) && (btnstate[i] != ispressed && btnstate[i] != islongpressed)){//!= this->get_state(i).isPressed) {
-			st.isPressed = true;
 			st.changed_at = btnpresstime[i] =millis();
-			btnstate[i] = ispressed;
-			longhistoryres res = this->update_history_state(i, btnstate[i], millis());
+
+			longhistoryres res = this->update_history_state(i, ispressed, millis());
+			
 			if (res == his_longpressed) {
 				btnstate[i] = islongpressed;
+				st.isLongPressed = true;
+				st.isPressed = false;
 			}
-			else {//if (res ==his_none  ||  // todo) {
+			else {
+				st.isPressed = true;
+				st.isLongPressed = false;
+				st.changed_at = btnpresstime[i] = millis();
 				btnstate[i] = ispressed;
 			}
 			this->AddCommand(st, SetBtn, srcSelf);
@@ -161,19 +167,21 @@ void ButtonController::runcore() {
 #endif
 		}
 	}
-	if ((last_history_state_update + STATE_HISTORY_PERIOD_UPDATE) < millis()) {
-		for (uint8_t i = 0;i < btncount;i++)
-			check_update_longhistory(i);
+	//if ((last_history_state_update + STATE_HISTORY_PERIOD_UPDATE) < millis()) {
+	//	for (uint8_t i = 0;i < btncount;i++)
+	//		check_update_longhistory(i);
 		
-	}
+	//}
 }
 longhistoryres ButtonController::update_history_state(uint8_t idx, enumstate state, long ms) {
 
 	//shifting left
 	memcpy(btn_long_history[idx], btn_long_history[idx] + 1, (sizeof(btn_state_history_record)*(STATE_HISTORY_MAX-1)));
-	btn_state_history_record last= btn_long_history[idx][STATE_HISTORY_MAX - 1];
-	last.state = state;
-	last.ms = ms;
+	//btn_state_history_record last= btn_long_history[idx][STATE_HISTORY_MAX - 1];
+	btn_long_history[idx][STATE_HISTORY_MAX - 1].state = state;
+	btn_long_history[idx][STATE_HISTORY_MAX - 1].ms = ms;
+	//last.state = state;
+	//last.ms = ms;
 	return check_update_longhistory(idx);
 }
 longhistoryres ButtonController::check_update_longhistory(uint8_t idx) {
@@ -183,19 +191,28 @@ longhistoryres ButtonController::check_update_longhistory(uint8_t idx) {
 	if (last.state == ispressed) {
 		long lastpresstime = last.ms;
 		long durationpress = 0;
-		
+		btn_state_history_record prev = btn_long_history[idx][STATE_HISTORY_MAX - 2];
+		//if (prev.state == isdown) {
+		//	DBG_OUTPUT_PORT.println(String("isdown ")+ String(last.ms)+String(" ")+ String(prev.ms) + String(" ") + String(last.ms-prev.ms));
+		//}
+		if (prev.state == isdown && ((last.ms - prev.ms) > LONG_ACTIONDURATION)) {
+			return his_longpressed;
+		}
 		for (int i = STATE_HISTORY_MAX - 2; i >= 0; i--) {
 			btn_state_history_record it = btn_long_history[idx][i];
+			//DBG_OUTPUT_PORT.println(String(i)+ String(" ")+String(it.state)+ String(" ")+ String(it.ms));
 			if (it.state == ispressed) {
+
 				lastpresstime = it.ms;
 				presscount++;
-			}else
-				durationpress = lastpresstime-it.ms;
-				if (durationpress > LONG_ACTIONDURATION) {
-					return his_longpressed;
-				}
+				//}else
+				//	durationpress = lastpresstime-it.ms;
+				//	if (durationpress > LONG_ACTIONDURATION) {
+				//		return his_longpressed;
+				//	}
 			}
 		}
+	}
 	if (presscount > 1)
 		return his_multiplepress;
 	return his_none;
@@ -217,7 +234,7 @@ longhistoryres ButtonController::check_update_longhistory(uint8_t idx) {
 }
 void ButtonController::update(uint8_t idx) {
 
-	this->addhistory(digitalRead(pin[idx])!=HIGH,idx);
+	this->addhistory(digitalRead(pin[idx])!=(this->defstate?HIGH:LOW),idx);
 }
 void ButtonController::addhistory(bool bit, uint8_t idx) {
 

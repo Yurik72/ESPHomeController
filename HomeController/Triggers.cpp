@@ -38,6 +38,7 @@ REGISTER_TRIGGER_FACTORY(ButtonToWeatherDisplay)
 
 #ifndef DISABLE_RGB
 REGISTER_TRIGGER_FACTORY(LDRToRGBStrip)
+REGISTER_TRIGGER_FACTORY(ButtonToRgbStripMode)
 #endif
 #ifndef DISABLE_RELAY
 REGISTER_TRIGGER_FACTORY(RFToRelay)
@@ -1150,4 +1151,51 @@ void RFToMotion::processrecord(RFRecord& rec, MotionController* pr) {
 	newState.isTriggered = true;
 	newState.tmTrigger = millis();
 	pr->AddCommand(newState, cmd, srcTrigger);
+}
+
+
+ButtonToRgbStripMode::ButtonToRgbStripMode() {
+	modecount = 0;
+	current_mode_idx = 0;
+}
+void ButtonToRgbStripMode::loadconfig(JsonObject& json) {
+	Trigger::loadconfig(json);
+
+	JsonArray arr = json["modes"].as<JsonArray>();
+	loadif(idx, json, "idx");
+	modecount = constrain(arr.size(), 0,BTN_RGB_MAXMODES);
+	for (int i = 0; i < modecount; i++) {
+		modes[i] = arr[i];
+	}
+
+}
+void ButtonToRgbStripMode::handleloopsvc(ButtonController* ps, RGBStripController* pd) {
+	TriggerFromService< ButtonController, RGBStripController>::handleloopsvc(ps, pd);
+	ButtonState bs = ps->get_state();
+
+
+	long presstime = ps->get_btn_presstime(idx);
+	if (ps->get_buttonsstate()[idx] == ispressed && presstime != lasttriggered) {
+		//DBG_OUTPUT_PORT.println("ButtonToRgbStripMode processed");
+		RGBState rgbState = pd->get_state();
+		RGBCMD cmd = SetMode;
+		rgbState.wxmode = modes[current_mode_idx];
+	//	RelayState newState = pd->get_state();
+	//	RelayCMD cmd = Set;
+
+	//	newState.isOn = !newState.isOn;
+		pd->AddCommand(rgbState, cmd, srcTrigger);
+	    lasttriggered = presstime;
+		current_mode_idx++;
+		if (current_mode_idx >= modecount)
+			current_mode_idx = 0;
+	}
+	if (ps->get_buttonsstate()[idx] == islongpressed && presstime != lasttriggered) {
+		//DBG_OUTPUT_PORT.println("ButtonToRgbStripMode long pressed");
+		RGBState rgbState = pd->get_state();
+		rgbState.isOn = !rgbState.isOn;
+		pd->AddCommand(rgbState, rgbState.isOn?On:Off, srcTrigger);
+
+		lasttriggered = presstime;
+	}
 }

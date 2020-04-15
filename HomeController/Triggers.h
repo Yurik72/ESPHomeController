@@ -386,6 +386,24 @@ private:
 	long lasttriggered = 0;
 	uint8_t idx = 0;
 };
+
+#define BTN_RGB_MAXMODES 100
+class ButtonToRgbStripMode :public TriggerFromService< ButtonController, RGBStripController> {
+public:
+
+	ButtonToRgbStripMode();
+
+	virtual void handleloopsvc(ButtonController* ps, RGBStripController* pd);
+	virtual void loadconfig(JsonObject& json);
+
+protected:
+private:
+	long lasttriggered = 0;
+	uint8_t modes[BTN_RGB_MAXMODES];
+	uint8_t modecount;
+	uint8_t current_mode_idx;
+	uint8_t idx = 0;
+};
 //DEFINE_TRIGGER_FACTORY(TimeToRGBStripTrigger)
 
 DEFINE_TRIGGER_FACTORY(TimeToRGBStripTrigger)
@@ -405,6 +423,7 @@ DEFINE_TRIGGER_FACTORY(ButtonToWeatherDisplay)
 DEFINE_TRIGGER_FACTORY(LDRToThingSpeak)
 DEFINE_TRIGGER_FACTORY(ButtonToRelay)
 DEFINE_TRIGGER_FACTORY(RFToMotion)
+DEFINE_TRIGGER_FACTORY(ButtonToRgbStripMode)
 //DEFINE_TRIGGER_FACTORY(LDRToRelay)
 //DEFINE_TRIGGER_FACTORY(LDRToRGBStrip)
 //DEFINE_TRIGGER_FACTORY(RFToRelay)
