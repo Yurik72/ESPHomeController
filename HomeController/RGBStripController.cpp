@@ -349,7 +349,7 @@ void WS2812Wrapper::print(String text) {
 	this->print_at(0, text);
 };
 void WS2812Wrapper::print_at(int16_t x, String text) {
-	//DBG_OUTPUT_PORT.println(String("Print_at:") + text);
+	
 	if (pMatrix) {
 		//DBG_OUTPUT_PORT.println(String("Print_at")+text);
 
@@ -400,6 +400,7 @@ RGBStripController::RGBStripController() {
 	this->matrixWidth = 0;
 	this->textmode = 0;
 	this->textfloatmode = 0;
+	this->text_timemode = 0;
 	this-> firemode = 0;
 	this -> snowmode = 0;
 	this->matrixType = NEO_MATRIX_TOP + NEO_MATRIX_LEFT +
@@ -543,6 +544,7 @@ void  RGBStripController::setup() {
 		pStripWrapper->setupmatrix(matrixWidth, numleds / matrixWidth, matrixType);
 		this->textmode = pStripWrapper->setCustomMode(FPSTR_PLATFORM("Show Text"), &RGBStripController::customemodetext);
 		this->textfloatmode = pStripWrapper->setCustomMode(FPSTR_PLATFORM("Show Float Text"), &RGBStripController::customemodefloattext);
+		this->text_timemode= pStripWrapper->setCustomMode(FPSTR_PLATFORM("Show Time"), &RGBStripController::customemodefloattext);
 		
 	}
 	this->firemode = pStripWrapper->setCustomMode(FPSTR_PLATFORM("Fire Fire"), &RGBStripController::customeeffect);
@@ -561,6 +563,25 @@ void  RGBStripController::setup() {
 	RGBStrip::setup();
 	//String modes = this->string_modes();
 }
+uint RGBStripController::get_custom_mode(rgb_custom_modes mode) {
+	switch (mode) {
+		case mode_text:
+			return this->textmode;
+			break;
+		case mode_floattext:
+			return this->textfloatmode;
+			break;
+		case mode_timetext:
+			return this->text_timemode;
+			break;
+		default:
+			return 0;
+	}
+}
+bool RGBStripController::is_display_mode() {
+	uint currentmode = this->get_state().wxmode;
+	return (currentmode == this->textmode || currentmode == this->textfloatmode || currentmode == this->text_timemode);
+}
 void RGBStripController::runcore() {
 
 	pStripWrapper->service();
@@ -574,6 +595,9 @@ void RGBStripController::run() {
 	bool isSet = true;
 	if (this->isEnableSmooth && pSmooth->isActive())
 		return;   ///ignore 
+	if (commands.GetSize() == 0 && this->get_state().wxmode == text_timemode) {
+		this->AddCommand(this->get_state(), SetTimeMode, srcSelf);
+	}
 	while (commands.Dequeue(&cmd)) {
 		//DBG_OUTPUT_PORT.println("RGBStripController::process command");
 		//DBG_OUTPUT_PORT.println(cmd.mode);
@@ -630,6 +654,13 @@ void RGBStripController::run() {
 		case SetMatrixColorMode:
 			newState.cmode = cmd.state.cmode;
 			break;
+		case SetTimeMode:
+
+			strncpy(newState.text, getFormattedTime_HH_MM(this->get_current_time()).c_str(), RGB_TEXTLEN);
+			newState.cmode = cmd.state.cmode;
+			newState.wxmode = text_timemode;
+			break;
+
 		default:
 			isSet = false;
 			break;
@@ -714,7 +745,7 @@ void RGBStripController::set_state(RGBState state) {
 	
 	if (state.isOn) {
 		if (oldState.wxmode != state.wxmode) {
-			//DBG_OUTPUT_PORT.println("oldState.wxmode != state.wxmod");
+		
 			if (oldState.wxmode == this->cyclemode) {
 #ifdef RGBSTRIP_DEBUG
 				DBG_OUTPUT_PORT.println("cycler stop");
@@ -791,7 +822,7 @@ void RGBStripController::set_state(RGBState state) {
 			if (state.wxmode == textfloatmode) {
 				pStripWrapper->printfloat(state.text);
 			}
-			else if (state.wxmode == textmode) {
+			else if (state.wxmode == textmode || state.wxmode== text_timemode) {
 				pStripWrapper->print(state.text);
 			}
 		}
@@ -804,6 +835,7 @@ void RGBStripController::set_state(RGBState state) {
 		DBG_OUTPUT_PORT.println("fire mode off");
 
 		if (pEffect) {
+			pEffect->stop();
 			delete pEffect;
 			pEffect = NULL;
 		}
@@ -1153,8 +1185,8 @@ RGBStripFloatText::RGBStripFloatText(StripWrapper* pStrip, String text, uint8_t 
 	minorcycleIndex = 0;
 	charwidth = 6;
 	textlen = text.length();
-	cyclecount = textlen *charwidth;
-	DBG_OUTPUT_PORT.println(String("RGBStripFloatText")+txt);
+	cyclecount = textlen *charwidth+/*space*/1* charwidth;
+ 	//DBG_OUTPUT_PORT.println(String("RGBStripFloatText")+txt);
 }
 
 void RGBStripFloatText::start() {
@@ -1191,11 +1223,12 @@ void RGBStripFloatText::oncallback() {
 			//DBG_OUTPUT_PORT.println(String("from:") + String(from) + String(" to:") + String(to));
 			//DBG_OUTPUT_PORT.println(txt_toprint.substring(from, to));
 			txt_toprint = txt_toprint.substring(from, to) + txtspace + txt_toprint;
+			//DBG_OUTPUT_PORT.println("Mode char_offset");
 		}
 		else {
 			posx += char_offset * charwidth;
 		}
-		//DBG_OUTPUT_PORT.println(String(posx)+String(":")+String(txt_toprint));
+		//DBG_OUTPUT_PORT.println(String(posx)+String(":")+String(txt_toprint)+String("---")+String(cycleIndex)+String("-")+String(cyclecount));
 		//DBG_OUTPUT_PORT.println(txt_toprint.substring(0, char_onscreen));
 		//DBG_OUTPUT_PORT.println(String("minor:") + String(minorcycleIndex) +String("posx:") + String(posx) + String(" charofset:") + String(char_offset) + String(" charonscreen:") + String(char_onscreen));
 		//DBG_OUTPUT_PORT.println(String("delay:") + String(delay_interval));
@@ -1213,7 +1246,7 @@ void RGBStripFloatText::oncallback() {
 	minorcycleIndex++;
 	if (minorcycleIndex >= charwidth)
 		minorcycleIndex = 0;
-	if (cycleIndex >= cyclecount) {
+	if (cycleIndex >=cyclecount) {
 		cycleIndex = 0;
 		minorcycleIndex = 0;
 	}

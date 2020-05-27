@@ -392,8 +392,9 @@ void BME280Controller::setup_hap_service(){
 #ifdef  BMECONTROLLER_DEBUG
 			DBG_OUTPUT_PORT.println("BME280Controller adding as new accessory");
 #endif
-			hap_add_temp_hum_as_accessory(this->accessory_type,this->get_name(),&this->hapservice_temp,&this->hapservice_hum);
-
+			//hap_add_temp_hum_as_accessory(this->accessory_type,this->get_name(),&this->hapservice_temp,&this->hapservice_hum);
+			this->hapservice_temp = hap_add_temp_as_accessory(this->accessory_type, this->get_name());
+			this->hapservice_hum = hap_add_hum_as_accessory(this->accessory_type, this->get_name());
 		}
 	else{
 		String tempName = this->get_name();
@@ -408,7 +409,8 @@ void BME280Controller::setup_hap_service(){
 	if(this->hapservice_hum)
 		this->hap_hum=homekit_service_characteristic_by_type(this->hapservice_hum, HOMEKIT_CHARACTERISTIC_CURRENT_RELATIVE_HUMIDITY);
 
-
+	DBG_OUTPUT_PORT.println(String("hap_temp")+String(int(hap_temp)));
+	DBG_OUTPUT_PORT.println(String("hap_hum") + String(int(hap_hum)));
 
 
 }
@@ -423,7 +425,7 @@ void BME280Controller::notify_hap(){
 	if(this->ishap && this->hapservice_hum && this->hap_hum && this->isinit){
 		BMEState newState=this->get_state();
 		if(this->hap_hum->value.float_value!=newState.hum){
-			this->hap_hum->value.float_value=newState.hum;
+			this->hap_hum->value.float_value = (float)newState.hum;
 				  homekit_characteristic_notify(this->hap_hum,this->hap_hum->value);
 		}
 	}

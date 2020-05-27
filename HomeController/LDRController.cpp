@@ -9,7 +9,7 @@
 REGISTER_CONTROLLER_FACTORY(LDRController)
 
 const size_t bufferSize = JSON_OBJECT_SIZE(20);
-
+const char* MQ135 = "MQ135";
 
 #define BUF_SIZE_LDR  JSON_OBJECT_SIZE(20)
 LDRController::LDRController() {
@@ -19,6 +19,7 @@ LDRController::LDRController() {
 	this->pin = 0;
 	this->cvalmin = 0.0;
 	this->cvalmax = MAX_LDRVAL;
+	
 #ifdef	ENABLE_NATIVE_HAP
 	this->ishap = true;
 	this->hapservice = NULL;
@@ -35,8 +36,9 @@ String  LDRController::serializestate() {
 	JsonObject root = jsonBuffer.to<JsonObject>();
 	root[FPSTR(szisOnText)] = this->get_state().isOn;
 	root["ldrValue"] = this->get_state().ldrValue;
-
-	if (cvalmin != cvalmax) {
+	DBG_OUTPUT_PORT.println("factor"+String(factor));
+	DBG_OUTPUT_PORT.println("cvalue" + String(this->get_state().cvalue));
+	if (cvalmin != cvalmax || isDioxide()) {
 		//float cval = map_i_f(this->get_state().ldrValue, 0, MAX_LDRVAL, cvalmin, cvalmax);
 		root["cValue"] = this->get_state().cvalue;
 		if (cfmt.length()) {
@@ -79,6 +81,8 @@ void LDRController::loadconfig(JsonObject& json) {
 	cvalmin= json["cvalmin"].as<float>();
 	cvalmax = json["cvalmax"].as<float>();
 	cfmt = json["cfmt"].as<String>();
+	loadif(factor, json, "factor");
+
 #ifdef	ENABLE_NATIVE_HAP
 	loadif(hapservice_type, json, "haptype");
 #endif
@@ -95,6 +99,7 @@ void LDRController::getdefaultconfig(JsonObject& json) {
 	json["cvalmin"]= cvalmin;
 	json["cvalmax"]= cvalmax;
 	json["cfmt"] = cfmt;
+
 #ifdef	ENABLE_NATIVE_HAP
 	json["haptype"] = hapservice_type;
 #endif
@@ -137,14 +142,20 @@ uint16_t LDRController::meassure() {
 	return accres / meassure_num;
 }
 void LDRController::set_state(LDRState state) {
-	if (cvalmin != cvalmax)
+
+	if (isDioxide()) {
+		state.cvalue = calc_PPM(state.ldrValue);
+	}
+	else if (cvalmin != cvalmax)
 		state.cvalue = map_i_f(state.ldrValue, 0, MAX_LDRVAL, cvalmin, cvalmax);
 	else
 		state.cvalue = state.ldrValue;
 	LDR::set_state(state);
 	
 }
-
+bool LDRController::isDioxide() {
+	return hapservice_type == MQ135;
+}
 bool LDRController::onpublishmqtt(String& endkey, String& payload) {
 	endkey = szStatusText;
 	payload = String(this->get_state().ldrValue);
@@ -181,6 +192,16 @@ void LDRController::setup_hap_service() {
 		this->hapservice = hap_add_battery_service(this->get_name(), LDRController::hap_callback, this);
 		this->hap_level = homekit_service_characteristic_by_type(this->hapservice, HOMEKIT_CHARACTERISTIC_BATTERY_LEVEL);
 	}
+	if (this->hapservice_type == MQ135) {
+		if (this->accessory_type > 1) {
+			this->hapservice = hap_add_air_quality_service_as_accessory(this->accessory_type, this->get_name());
+			
+		}
+		else {
+			this->hapservice = hap_add_air_quality_service( this->get_name());
+		}
+		this->hap_level = homekit_service_characteristic_by_type(this->hapservice, HOMEKIT_CHARACTERISTIC_CARBON_DIOXIDE_LEVEL);
+	}
 	
 }
 void LDRController::notify_hap() {
@@ -209,10 +230,21 @@ void LDRController::notify_hap() {
 
 			}
 		}
+		if (this->isDioxide() && this->hap_level) {
+			
+			HAP_NOTIFY_CHANGES(float, hap_level, lstate.cvalue, 0.0)
+ 
+			homekit_characteristic_t* hc_quality = homekit_service_characteristic_by_type(this->hapservice, HOMEKIT_CHARACTERISTIC_AIR_QUALITY);
+			if (hc_quality) {
+				uint8_t quality = air_quality_level(lstate.cvalue, (uint8_t)(*hc_quality->min_value), (uint8_t)(*hc_quality->max_value));
+				HAP_NOTIFY_CHANGES(int, hc_quality, quality, 0)
+			}
+
+		}
 	}
 }
 void LDRController::hap_callback(homekit_characteristic_t *ch, homekit_value_t value, void *context) {
-	DBG_OUTPUT_PORT.println("RGBStripController::hap_callback");
+	
 
 	if (!context) {
 		return;
@@ -234,3 +266,31 @@ void LDRController::hap_callback(homekit_characteristic_t *ch, homekit_value_t v
 
 }
 #endif
+
+//air quality
+float LDRController::getRoInCleanAir() {
+	return exp((log(PPM_CO2_IN_CLEAR_AIR) * PAR_1) + PAR_2);
+}
+
+float LDRController::readScaled(float val, float a, float b) {
+	float ratio = val / factor;
+	return exp((log(ratio) - b) / a);
+}
+
+float LDRController::calculateResistance(int sensorADC) {
+	float sensorVoltage = sensorADC * (OPERATING_VOLTAGE / ADC_VALUE_MAX);
+	float sensorResistance = (OPERATING_VOLTAGE - sensorVoltage) / sensorVoltage * RLOAD;
+	return sensorResistance;
+}
+
+float LDRController::calc_PPM(int val) {
+	float res = calculateResistance(val);//((4095./(float)val) * 5. - 1.)*RLOAD;
+	return readScaled(res, PAR_1, PAR_2);
+}
+uint8_t LDRController::air_quality_level(float ppm,uint8_t min, uint8_t max) {
+	if (ppm < RANGE_EXCELLENT_LEVEL)
+		return min+1;
+	if (ppm > RANGE_POOR_LEVEL)
+		return max;
+	return ((int)ppm) / ((RANGE_POOR_LEVEL - RANGE_EXCELLENT_LEVEL) / (float)(max - min));
+}

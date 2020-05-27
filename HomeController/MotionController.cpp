@@ -82,7 +82,7 @@ void MotionController::run() {
 			newcmd.state.tmTrigger = millis();
 			newcmd.state.isTriggered = motion;// analogRead(pin);
 			this->AddCommand(newcmd.state, newcmd.mode, srcSelf);
-			DBG_OUTPUT_PORT.println(String("MotionController detected ")+ String((motion?"ON":"OFF")));
+			//DBG_OUTPUT_PORT.println(String("MotionController detected ")+ String((motion?"ON":"OFF")));
 		}
 	}
 	if (this->commands.GetSize()==0 && autoreset > 0 && nextreset < millis() && this->get_state().isOn  && this->get_state().isTriggered)
@@ -92,7 +92,7 @@ void MotionController::run() {
 		newcmd.mode = MotionSet;
 		newcmd.state.isTriggered = false;
 		this->AddCommand(newcmd.state, newcmd.mode, srcSelf);
-		DBG_OUTPUT_PORT.println("MotionController autoreset ");
+		//DBG_OUTPUT_PORT.println("MotionController autoreset ");
 	}
 	while (commands.Dequeue(&cmd)) {
 		MotionState newState = cmd.state;
@@ -162,7 +162,7 @@ void MotionController::setup_hap_service(){
 }
 void MotionController::notify_hap(){
 	if(this->ishap && this->hapservice){
-		DBG_OUTPUT_PORT.println("MotionController::notify_hap");
+	//	DBG_OUTPUT_PORT.println("MotionController::notify_hap");
 		homekit_characteristic_t * ch= homekit_service_characteristic_by_type(this->hapservice, HOMEKIT_CHARACTERISTIC_MOTION_DETECTED);
 		if(ch){
 
@@ -174,8 +174,7 @@ void MotionController::notify_hap(){
 	}
 }
 void MotionController::hap_callback(homekit_characteristic_t *ch, homekit_value_t value, void *context){
-	DBG_OUTPUT_PORT.println("RelayController::hap_callback");
-	DBG_OUTPUT_PORT.println(value.bool_value);
+
 	if(context){
 		MotionController* ctl= (MotionController*)context;
 		MotionState newState=ctl->get_state();

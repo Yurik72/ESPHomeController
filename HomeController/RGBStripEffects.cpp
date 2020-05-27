@@ -22,7 +22,8 @@ RGBStripEffect::RGBStripEffect(StripWrapper* p, uint8_t matrixwidth, uint16_t le
 	//DBG_OUTPUT_PORT.println(_matrixType);
 }
 RGBStripEffect::~RGBStripEffect() {
-	DBG_OUTPUT_PORT.println("RGBStripEffect deleted");
+	//DBG_OUTPUT_PORT.println("RGBStripEffect deleted");
+	this->stop();
 }
 void RGBStripEffect::drawPixelXY(int8_t x, int8_t y, CRGB color) {
 	if (x < 0 || x > mwidth - 1 || y < 0 || y > mheight - 1) return;
@@ -112,12 +113,12 @@ RGBStripFireEffect::RGBStripFireEffect(StripWrapper* p, uint8_t matrixwidth, uin
 	: RGBStripEffect(p, matrixwidth,len, interval) {
 	pline = new unsigned char[mwidth];
 	majorcycle = 0;
-	DBG_OUTPUT_PORT.println("RGBStripFireEffect started");
+	//DBG_OUTPUT_PORT.println("RGBStripFireEffect started");
 }
 RGBStripFireEffect::~RGBStripFireEffect() {
 
-	delete pline;
-	DBG_OUTPUT_PORT.println("RGBStripFireEffect deleted");
+	delete[] pline;
+	//DBG_OUTPUT_PORT.println("RGBStripFireEffect deleted");
 }
 void RGBStripFireEffect::runcycle() {
 

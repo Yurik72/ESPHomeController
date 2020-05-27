@@ -341,7 +341,13 @@ void CBaseController::oncallback() {
 		this->run();
 }
 #endif
-
+time_t CBaseController::get_current_time() {
+	TimeController*pt = Controllers::getInstance()->getTimeCtl();
+	if (!pt)
+		return millis();
+	//if(Controllers::getInstance()->getTimeCtl())
+	return pt->get_state().time_withoffs;
+}
 bool CBaseController::onpublishmqtt(String& endkey, String& payload) {
 	return false;
 }

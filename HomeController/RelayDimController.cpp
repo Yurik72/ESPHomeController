@@ -117,7 +117,7 @@ void RelayDimController::run() {
 		return;   ///ignore 
 	command cmd;
 	while (commands.Dequeue(&cmd)) {
-		//DBG_OUTPUT_PORT.print("Process Command ");
+		//DBG_OUTPUT_PORT.println("Process Command "+String(cmd.mode)+" on is"+String(cmd.state.isOn));
 		RelayDimState newState = cmd.state;
 		switch (cmd.mode) {
 		case DimSwitch:
@@ -127,6 +127,7 @@ void RelayDimController::run() {
 		case DimSet:
 		case DimRelayRestore:
 			newState.isOn = cmd.state.isOn;
+			//DBG_OUTPUT_PORT.println("RelayDimRestore/Set: "+ String(newState.isOn)+"br:"+String(newState.brightness) );
 			//DBG_OUTPUT_PORT.println("RelayDimRestore/Set");
 			break;
 		case DimSetBrigthness:
@@ -135,7 +136,7 @@ void RelayDimController::run() {
 		case DimRelayOn:
 			newState.isOn = true;
 			newState.brightness = cmd.state.brightness;
-			//DBG_OUTPUT_PORT.println("RelayDimOn");
+			//DBG_OUTPUT_PORT.println("RelayDimOn:"+String(newState.brightness));
 			break;
 		case DimSetLdrVal:
 			newState.ldrValue = cmd.state.ldrValue;
@@ -145,7 +146,10 @@ void RelayDimController::run() {
 			break;
 		case DimRelayOff:
 			newState.isOn = false;
+
+#ifdef RELAYDIM_DEBUG
 			DBG_OUTPUT_PORT.println("RelayDimOff");
+#endif
 		default:break;
 		}
 		this->set_state(newState);
@@ -204,17 +208,20 @@ void RelayDimController::set_state(RelayDimState state) {
 				else
 				 this->setBrightness(0);
 			}
+			oldState.brightness = 0; 
 		}
 		else {
 			this->setBrightness(0);
 		}
 	}
 	if (state.isOn) {
+
 		if (state.isLdr) {
 			if ((oldState.brightness != state.brightness || oldState.ldrValue != state.ldrValue) && !ignore_br)
 				this->setBrightness(getLDRBrightness(state.brightness, state.ldrValue));
 		}
 		else {
+			//DBG_OUTPUT_PORT.println("RelayDim set state: " + String(state.brightness) + "Old:" + String(oldState.brightness));
 			if (oldState.brightness != state.brightness && !ignore_br)
 				this->setBrightness(state.brightness);
 		}
@@ -273,8 +280,9 @@ void RelayDimController::onmqqtmessage(String topic, String payload) {
 #ifdef	ENABLE_NATIVE_HAP
 void RelayDimController::setup_hap_service(){
 
-
-	DBG_OUTPUT_PORT.println("RGBStripController::setup_hap_service()");
+#ifdef RELAYDIM_DEBUG
+	DBG_OUTPUT_PORT.println("RelayDimController::setup_hap_service()");
+#endif
 	if(!ishap)
 		return;
 
@@ -291,7 +299,9 @@ void RelayDimController::setup_hap_service(){
 }
 void RelayDimController::notify_hap(){
 	if(this->ishap && this->hapservice){
-		DBG_OUTPUT_PORT.println("RGBStripController::notify_hap");
+#ifdef RELAYDIM_DEBUG
+		DBG_OUTPUT_PORT.println("RelayDimController::notify_hap");
+#endif
 
 		RelayDimState newState=this->get_state();
 		if(this->hap_on->value.bool_value!=newState.isOn){
@@ -306,8 +316,9 @@ void RelayDimController::notify_hap(){
 	}
 }
 void RelayDimController::hap_callback(homekit_characteristic_t *ch, homekit_value_t value, void *context){
-	DBG_OUTPUT_PORT.println("RGBStripController::hap_callback");
-
+#ifdef RELAYDIM_DEBUG
+	DBG_OUTPUT_PORT.println("hap_callback::hap_callback");
+#endif
 	if(!context){
 		return;
 	};

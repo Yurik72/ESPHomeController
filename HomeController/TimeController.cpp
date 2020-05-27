@@ -91,6 +91,7 @@ void TimeController::loadconfig(JsonObject& json) {
 	
 	offsetwakeup = (sleepinterval / 1000 - 20) * 1000000;
 	offsetshortwakeup= (sleepinterval / 1000 - 3) * 1000000;
+	Controllers::getInstance()->setTimeCtl(this);
 	
 }
 void TimeController::getdefaultconfig(JsonObject& json) {
@@ -158,8 +159,8 @@ void TimeController::run() {
 #endif
 		newcmd.state.time_withoffs = newcmd.state.time;
 #ifdef ESP32
-		newcmd.state.time_withoffs-= gmtOffset_sec;
-		newcmd.state.time_withoffs += daylightOffset_sec;
+		newcmd.state.time_withoffs+= gmtOffset_sec;
+		newcmd.state.time_withoffs -= daylightOffset_sec;
 #endif
 		//this->commands.Add(newcmd);
 		newcmd.mode = SET;

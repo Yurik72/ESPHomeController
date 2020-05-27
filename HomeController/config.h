@@ -78,6 +78,7 @@
 //#define BUTTON_DEBUG
 //#define THINGSPEAK_DEBUG
 //#define WEATHER_DEBUG
+//#define ENCODER_DEBUG
 
 #define WEATHER_GXEPD2
 
@@ -100,6 +101,7 @@
 #define DISABLE_RGB
 #define DISABLE_RELAY
 #define DISABLE_RELAYDIM
+#define DISABLE_ENCODER
 #endif
 
 #ifdef RGB

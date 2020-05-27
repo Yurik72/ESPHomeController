@@ -186,6 +186,7 @@ enum CoreMode :uint{
 	Core   =1,
 	Both   =2
 };
+
 #if defined(ESP8266)
 class Ticker;
 #endif
@@ -221,7 +222,7 @@ public:
 	void report_monitor_on(uint channel);
 	void report_monitor_off(uint channel);
 	void report_monitor_shortblink(uint channel);
-
+	time_t get_current_time();
 #if !defined ASYNC_WEBSERVER
 #if defined(ESP8266)
 	virtual void setuphandlers(ESP8266WebServer& server);
@@ -255,6 +256,7 @@ public:
 	virtual bool loadstate()=0;
 	String get_filename_state();
 	virtual void set_power_on() {};
+	
 #ifdef	ENABLE_NATIVE_HAP
 	virtual void setup_hap_service(){};
 	virtual void notify_hap(){};

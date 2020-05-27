@@ -29,6 +29,7 @@ class RelayDimController;
 class BME280Controller;
 class WeatherDisplayController;
 class ButtonController;
+class EncoderController;
 class Trigger {
 public:
 	Trigger() {};
@@ -272,13 +273,14 @@ class BMEToRGBMatrix :public TriggerFromService< BME280Controller, RGBStripContr
 public:
 	enum DMODE : uint8_t {
 
-		temp = 1,
-		hum = 2,
-		pres = 3,
-		all = 4,
+		time=1,
+		temp = 2,
+		hum = 3,
+		pres = 4,
+		all = 5,
 		//all_color_random=5,
-		all_color_colorwheel = 5,
-		max = 6
+		all_color_colorwheel = 6,
+		max = 7
 	};
 	BMEToRGBMatrix();
 
@@ -290,6 +292,7 @@ protected:
 	String get_temp_text(double val);
 	String get_humidity_text(double val);
 	String get_pressure_text(double val);
+	bool forceswitch;
 };
 class BMEToThingSpeak :public TriggerFromService< BME280Controller, ThingSpeakController> {
 public:
@@ -404,6 +407,26 @@ private:
 	uint8_t current_mode_idx;
 	uint8_t idx = 0;
 };
+
+
+
+
+class EncoderToRelayDim :public TriggerFromService<EncoderController, RelayDimController> {
+public:
+
+	EncoderToRelayDim();
+
+	virtual void handleloopsvc(EncoderController* ps, RelayDimController* pd);
+	virtual void loadconfig(JsonObject& json);
+
+protected:
+private:
+	long last_delta_ms = 0;
+	long last_button_ms = 0;
+	uint8_t idx = 0;
+};
+
+
 //DEFINE_TRIGGER_FACTORY(TimeToRGBStripTrigger)
 
 DEFINE_TRIGGER_FACTORY(TimeToRGBStripTrigger)
@@ -424,6 +447,7 @@ DEFINE_TRIGGER_FACTORY(LDRToThingSpeak)
 DEFINE_TRIGGER_FACTORY(ButtonToRelay)
 DEFINE_TRIGGER_FACTORY(RFToMotion)
 DEFINE_TRIGGER_FACTORY(ButtonToRgbStripMode)
+DEFINE_TRIGGER_FACTORY(EncoderToRelayDim)
 //DEFINE_TRIGGER_FACTORY(LDRToRelay)
 //DEFINE_TRIGGER_FACTORY(LDRToRGBStrip)
 //DEFINE_TRIGGER_FACTORY(RFToRelay)

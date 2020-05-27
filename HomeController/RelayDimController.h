@@ -67,6 +67,7 @@ public:
 	virtual void set_state(RelayDimState state);
 	virtual bool onpublishmqtt(String& endkey, String& payload);
 	void setBrightness(uint8_t br);
+//	virtual bool ispersiststate() { return true; }
 	int getLDRBrightness(int brigtness, int ldrval);
 	virtual void onmqqtmessage(String topic, String payload);
 	virtual bool onpublishmqttex(String& endkey, String& payload, int topicnr);

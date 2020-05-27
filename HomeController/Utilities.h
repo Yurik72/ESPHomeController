@@ -34,6 +34,7 @@ void TraceColor(char* msg, uint32_t color);
 bool writeConfigFS(bool saveConfig);
 bool readConfigFS();
 String getFormattedTime(time_t tt);
+String  getFormattedTime_HH_MM(time_t tt);
 String getFormattedDateTime(time_t t);
 unsigned long GetHours(time_t tt);
 unsigned long GetMinutes(time_t tt);

@@ -221,7 +221,14 @@ enum RGBCMD :uint {
 	RgbSaveState = 4096,
 	SetText=8192,
 	SetFloatText =16384,
-	SetMatrixColorMode=32768
+	SetMatrixColorMode=32768,
+	SetTimeMode=65536
+};
+enum rgb_custom_modes {
+	mode_text = 1,
+	mode_floattext = 2,
+	mode_timetext = 3
+
 };
 class RGBStripController;
 typedef CManualStateController<RGBStripController, RGBState, RGBCMD> RGBStrip;
@@ -247,6 +254,8 @@ public:
 	static  uint16_t customemodetext() { return (uint16_t)1000; };
 	static  uint16_t customemodefloattext() { return (uint16_t)1000; };
 	static  uint16_t customeeffect() { return (uint16_t)1000; };
+	uint get_custom_mode(rgb_custom_modes mode);
+	bool is_display_mode();
 	
 #if !defined ASYNC_WEBSERVER
 #if defined(ESP8266)
@@ -291,6 +300,7 @@ private:
 	uint cyclemode;
 	uint textmode;
 	uint textfloatmode;
+	uint text_timemode;
 	uint firemode;
 	uint snowmode;
 	int rgb_startled;   /// indicates from which led rgb  sequence started instead grb

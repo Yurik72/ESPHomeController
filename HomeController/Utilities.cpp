@@ -174,6 +174,18 @@ String ICACHE_FLASH_ATTR getFormattedTime(time_t tt) {
 
 	return hoursStr + ":" + minuteStr + ":" + secondStr;
 }
+String ICACHE_FLASH_ATTR getFormattedTime_HH_MM(time_t tt) {
+
+	unsigned long hours = (tt % 86400L) / 3600;
+	String hoursStr = hours < 10 ? "0" + String(hours) : String(hours);
+
+	unsigned long minutes = (tt % 3600) / 60;
+	String minuteStr = minutes < 10 ? "0" + String(minutes) : String(minutes);
+
+
+
+	return hoursStr + ":" + minuteStr;
+}
 unsigned long GetHours(time_t tt) {
 	return (tt % 86400L) / 3600;
 }

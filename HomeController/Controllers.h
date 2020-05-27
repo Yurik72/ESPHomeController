@@ -26,7 +26,7 @@
 
 #define DELAY_MS_RECONNECT 300000 //5 min
 #include "BaseController.h"
-
+#include "TimeController.h"
 class Triggers;
 class CBaseController;
 #ifdef ENABLE_NATIVE_HAP
@@ -57,6 +57,8 @@ public:
 	void set_isneedreconnectwifi(bool val);
 	void set_monitor_state(uint channel, bool isOn, long mask = 0b10, uint masklen = 2, uint duration = 100);
 	virtual void raise_event(CBaseController* pSender,ControllerEvent evt, uint16_t evData);
+	void setTimeCtl(TimeController* p) { pTimeCtl = p; };
+	TimeController* getTimeCtl() { return  pTimeCtl; };
 #if !defined ASYNC_WEBSERVER
 #if defined(ESP8266)
 	void setuphandlers(ESP8266WebServer& server);
@@ -78,6 +80,7 @@ private:
 	bool isneedreconnectwifi = true;
 	CBaseController* pMonitor=NULL;
 	controllers_setup_phase setupphase;
+	TimeController* pTimeCtl;
 };
 void onstatechanged(CBaseController *);
 #ifdef ENABLE_HOMEBRIDGE

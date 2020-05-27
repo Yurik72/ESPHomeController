@@ -13,7 +13,7 @@
 #include "Utilities.h"
 #include "RelayController.h"
 #include "RFController.h"
-
+#include "EncoderController.h"
 #include "Controllers.h"
 
 
@@ -53,6 +53,10 @@ REGISTER_TRIGGER_FACTORY(TimeToRelayDimTrigger)
 
 #ifndef DISABLE_DALLAS
 REGISTER_TRIGGER_FACTORY(DallasToRGBStrip)
+#endif 
+
+#ifndef DISABLE_ENCODER
+REGISTER_TRIGGER_FACTORY(EncoderToRelayDim)
 #endif 
 void Triggers::setup() {
 	this->loadconfig();
@@ -816,12 +820,12 @@ String BMEToOled::format_doublestr(const char* fmt, double val) {
 }
 
 BMEToRGBMatrix::BMEToRGBMatrix() {
-
+	forceswitch = true;
 }
 void BMEToRGBMatrix::loadconfig(JsonObject& json) {
 	Trigger::loadconfig(json);
-	JsonArray arr = json["value"].as<JsonArray>();
-
+	//JsonArray arr = json["value"].as<JsonArray>();
+	loadif(forceswitch, json, "forceswitch");
 
 }
 String BMEToRGBMatrix::get_temp_text(double val) {
@@ -843,10 +847,19 @@ void BMEToRGBMatrix::handleloopsvc(BME280Controller* ps, RGBStripController* pd)
 	rgbState.cmode = current;
 	bool isSetColor=false;
 	String newtext;
+	if (!forceswitch) {
+		//DBG_OUTPUT_PORT.println(String("wxmode ") + String(rgbState.wxmode));
+		if (!pd->is_display_mode()) {
+			return;
+		}
+	}
 	//this->mode = all;
 	switch (this->mode)
 	{
-
+	case time:
+		cmd = SetTimeMode;
+		isSetColor = false;
+		break;
 	case temp:
 	
 		newtext = get_temp_text( l.temp);
@@ -885,9 +898,10 @@ void BMEToRGBMatrix::handleloopsvc(BME280Controller* ps, RGBStripController* pd)
 	memset(rgbState.text, 0, RGB_TEXTLEN);
 	strncpy(rgbState.text, newtext.c_str(), RGB_TEXTLEN);
 	pd->AddCommand(rgbState, cmd, srcTrigger);
+
 	this->mode = (DMODE)(this->mode + 1);
 	if (this->mode == max) {
-		this->mode = temp;
+		this->mode = time;
 	}
 }
 
@@ -1176,7 +1190,7 @@ void ButtonToRgbStripMode::handleloopsvc(ButtonController* ps, RGBStripControlle
 
 	long presstime = ps->get_btn_presstime(idx);
 	if (ps->get_buttonsstate()[idx] == ispressed && presstime != lasttriggered) {
-		//DBG_OUTPUT_PORT.println("ButtonToRgbStripMode processed");
+		DBG_OUTPUT_PORT.println("ButtonToRgbStripMode processed");
 		RGBState rgbState = pd->get_state();
 		RGBCMD cmd = SetMode;
 		rgbState.wxmode = modes[current_mode_idx];
@@ -1198,4 +1212,38 @@ void ButtonToRgbStripMode::handleloopsvc(ButtonController* ps, RGBStripControlle
 
 		lasttriggered = presstime;
 	}
+}
+
+
+EncoderToRelayDim::EncoderToRelayDim() {
+
+}
+void EncoderToRelayDim::loadconfig(JsonObject& json) {
+	Trigger::loadconfig(json);
+
+
+
+}
+void EncoderToRelayDim::handleloopsvc(EncoderController* ps, RelayDimController* pd) {
+	TriggerFromService< EncoderController, RelayDimController>::handleloopsvc(ps, pd);
+	EncoderState es = ps->get_state();
+
+	RelayDimState newState = pd->get_state();
+	RelayDimCMD cmd = DimSet;
+
+	//long presstime = ps->get_btn_presstime(idx);
+	if (this->last_delta_ms != es.delta_ms) {
+		cmd = DimSetBrigthness;
+		newState.brightness += es.rotateDelta;
+		newState.brightness = constrain(newState.brightness, DIM_MIN_VAL, DIM_MAX_VAL);
+		this->last_delta_ms = es.delta_ms;
+		pd->AddCommand(newState, cmd, srcTrigger);
+	}
+	if (es.isPressed && this->last_button_ms != es.button_ms ) {
+		cmd = DimSwitch;
+		this->last_button_ms = es.button_ms;
+		pd->AddCommand(newState, cmd, srcTrigger);
+	}
+
+
 }

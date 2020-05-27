@@ -153,6 +153,17 @@ class CSimpleArray
       }
       return data_storage[idx_cur];
     }
+	String toJsonArray(T min, T max) {
+		String res = "[";
+
+		for (int i = 0; i < elements; i++) {
+			res += String(constrain(data_storage[i], min, max));
+			if (i != (elements - 1))
+				res += ",";
+		}
+		res += "]";
+		return res;
+	}
   private:
     void Realloc(size_type newsize) {
       T* olddata = data_storage;

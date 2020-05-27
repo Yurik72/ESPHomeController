@@ -60,6 +60,7 @@ Controllers::Controllers():
 	lastWifiReconnectms = 0;
 	isConnectingMode = false;
 	setupphase = setup_phase_none;
+	pTimeCtl = NULL;
 	
 }
 CBaseController* Controllers::GetByName(const char* name) {
@@ -138,6 +139,7 @@ void Controllers::setup() {
 		ctl->setup_after_wifi();
 #ifdef	ENABLE_NATIVE_HAP
 		ctl->setup_hap_service();
+		ctl->notify_hap();
 #endif
 		//ctl->set_power_on();
 	}
