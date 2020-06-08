@@ -1,5 +1,4 @@
 [{"service":"TimeController","name":"Time","enabled":true,"interval":1000,"timeoffs":7200,"dayloffs":3600,"server":"pool.ntp.org"},
 {"enabled":true,"interval":1,"pin":23,"numleds":256,"service":"RGBStripController","name":"RGBStrip","issmooth":false,"manualtime":6000,"ismatrix":true,"matrixwidth":16,"matrixtype":8},
-{"enabled":true,"interval":1,"pin":"","service":"ButtonController","name":"Button","defstate":false,"pins":[16]},
-{"enabled":"true","interval":"10","pin":36,"service":"LDRController","name":"LDR"}
+{"enabled":true,"interval":1,"pin":"","service":"ButtonController","name":"Button","defstate":false,"pins":[16]}
 ]
