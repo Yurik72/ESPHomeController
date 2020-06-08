@@ -67,7 +67,9 @@ class CronEdit extends Component {
             this.months.push({ value: i, label: i });
         }
     }
-   importCronExpression(expression) {
+    importCronExpression(expression) {
+        if ((typeof expression) != "string")
+            return;
     if (!expression.match(/^((\*(\/[1-9][0-9]?)?|([0-9]{1,2}(-[0-9]{1,2})?)(,[0-9]{1,2}(-[0-9]{1,2})?)*)( |$)){6}$/))
         return;
     var parts = expression.split(" ");

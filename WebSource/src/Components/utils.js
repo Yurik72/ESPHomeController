@@ -1,6 +1,6 @@
 
 
-var HomeURL = 'http://192.168.88.17'
+var HomeURL = 'http://192.168.1.109'
 //var HomeURL = 'http://192.168.0.213'
 
 var i = 0;
