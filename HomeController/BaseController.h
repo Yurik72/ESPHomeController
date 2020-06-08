@@ -256,7 +256,8 @@ public:
 	virtual bool loadstate()=0;
 	String get_filename_state();
 	virtual void set_power_on() {};
-	
+	void set_isloaded(bool val);
+	bool get_isloaded();
 #ifdef	ENABLE_NATIVE_HAP
 	virtual void setup_hap_service(){};
 	virtual void notify_hap(){};
@@ -277,6 +278,7 @@ protected:
 	bool ishap=false;
 #ifdef	ENABLE_NATIVE_HAP
 	int accessory_type;
+	bool isLoaded;
 #endif
 #if defined(ESP8266)
 	Ticker* pTicker;

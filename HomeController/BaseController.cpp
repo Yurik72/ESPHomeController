@@ -173,10 +173,16 @@ CBaseController::CBaseController() {
 	this->accessory_type=1;
 #endif
 	this->ishap=false;
-	
+	this->isLoaded = false;
 #if defined(ESP8266)
 	this->pTicker = NULL;;
 #endif
+}
+void CBaseController::set_isloaded(bool val) {
+	this->isLoaded = val;
+}
+bool CBaseController::get_isloaded() {
+	return this->isLoaded;
 }
 void CBaseController::set_name(const char* name) {
 	strncpy(this->name, name, MAXLEN_NAME);

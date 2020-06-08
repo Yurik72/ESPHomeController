@@ -1216,13 +1216,13 @@ void ButtonToRgbStripMode::handleloopsvc(ButtonController* ps, RGBStripControlle
 
 
 EncoderToRelayDim::EncoderToRelayDim() {
-
+	factor = 1;
 }
 void EncoderToRelayDim::loadconfig(JsonObject& json) {
+
 	Trigger::loadconfig(json);
-
-
-
+	loadif(factor, json, "factor");
+	factor = constrain(factor, 1, 40);
 }
 void EncoderToRelayDim::handleloopsvc(EncoderController* ps, RelayDimController* pd) {
 	TriggerFromService< EncoderController, RelayDimController>::handleloopsvc(ps, pd);
@@ -1232,14 +1232,15 @@ void EncoderToRelayDim::handleloopsvc(EncoderController* ps, RelayDimController*
 	RelayDimCMD cmd = DimSet;
 
 	//long presstime = ps->get_btn_presstime(idx);
-	if (this->last_delta_ms != es.delta_ms) {
+	if (this->last_delta_ms < es.delta_ms) {
 		cmd = DimSetBrigthness;
-		newState.brightness += es.rotateDelta;
+		//DBG_OUTPUT_PORT.println("EncoderToRelayDim delta" + String(es.rotateDelta));
+		newState.brightness += es.rotateDelta*factor;
 		newState.brightness = constrain(newState.brightness, DIM_MIN_VAL, DIM_MAX_VAL);
 		this->last_delta_ms = es.delta_ms;
 		pd->AddCommand(newState, cmd, srcTrigger);
 	}
-	if (es.isPressed && this->last_button_ms != es.button_ms ) {
+	if (es.isPressed && this->last_button_ms < es.button_ms ) {
 		cmd = DimSwitch;
 		this->last_button_ms = es.button_ms;
 		pd->AddCommand(newState, cmd, srcTrigger);

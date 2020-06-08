@@ -424,6 +424,7 @@ private:
 	long last_delta_ms = 0;
 	long last_button_ms = 0;
 	uint8_t idx = 0;
+	uint8_t factor;
 };
 
 

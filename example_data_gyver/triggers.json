@@ -1,0 +1,1 @@
+[{"type":"TimeToRGBStrip","source":"Time","destination":"RGBStrip","value":[{"isOn":false,"isLdr":false,"time":2300,"bg":1,"color":3432432,"fadetm":1000,"wxmode":-1}]},{"type":"ButtonToRgbStripMode","source":"Button","destination":"RGBStrip","modes":[0,56,58],"idx":0}]

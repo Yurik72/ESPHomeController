@@ -22,6 +22,7 @@ RelayDimController::RelayDimController() {
 	this->isinvert = false;
 	this->pin = 0;
 	this->pSmooth = new CSmoothVal();
+	this->poweronbr = 0;
 #ifdef ESP32
 	//.this->channel= get_next_available_channel ();
 	this->channel=get_next_espchannel();
@@ -77,6 +78,7 @@ void RelayDimController::loadconfig(JsonObject& json) {
 	pin = json[FPSTR(szPinText)];
 	isinvert = json["isinvert"];
 	isEnableSmooth= json["issmooth"];
+	loadif(poweronbr, json, "poweronbr");
 }
 void RelayDimController::getdefaultconfig(JsonObject& json) {
 	json[FPSTR(szPinText)] = pin;
@@ -111,13 +113,26 @@ void  RelayDimController::setup() {
 //	}
 #endif
 }
+void RelayDimController::set_power_on() {
+	RelayDim::set_power_on();
+	if (this->poweronbr) {
+		DBG_OUTPUT_PORT.println("RelayDimController::set_power_on");
+		RelayDimState newState = this->get_state();
+		RelayDimCMD cmd = DimSet;
+		newState.isOn = true;
+		newState.brightness = this->poweronbr;
+		this->AddCommand(newState, cmd, srcSelf);
+		this->run();
+	}
+	
 
+}
 void RelayDimController::run() {
 	if (this->isEnableSmooth && pSmooth->isActive())
 		return;   ///ignore 
 	command cmd;
 	while (commands.Dequeue(&cmd)) {
-		//DBG_OUTPUT_PORT.println("Process Command "+String(cmd.mode)+" on is"+String(cmd.state.isOn));
+		//DBG_OUTPUT_PORT.println("Process Command "+String(cmd.mode)+" on is"+String(cmd.state.isOn)+ " br is" + String(cmd.state.brightness));
 		RelayDimState newState = cmd.state;
 		switch (cmd.mode) {
 		case DimSwitch:
@@ -127,6 +142,7 @@ void RelayDimController::run() {
 		case DimSet:
 		case DimRelayRestore:
 			newState.isOn = cmd.state.isOn;
+			newState.brightness = cmd.state.brightness;
 			//DBG_OUTPUT_PORT.println("RelayDimRestore/Set: "+ String(newState.isOn)+"br:"+String(newState.brightness) );
 			//DBG_OUTPUT_PORT.println("RelayDimRestore/Set");
 			break;
@@ -156,11 +172,7 @@ void RelayDimController::run() {
 	}
 	RelayDim::run();
 }
-void RelayDimController::set_power_on() {
-	RelayDim::set_power_on();
-	this->run();
 
-}
 void RelayDimController::setBrightness(uint8_t br) {
 	
 #ifdef ESP8266
@@ -308,8 +320,8 @@ void RelayDimController::notify_hap(){
 			this->hap_on->value.bool_value=newState.isOn;
 		  homekit_characteristic_notify(this->hap_on,this->hap_on->value);
 		}
-		if(this->hap_br->value.int_value !=newState.ldrValue){
-			this->hap_br->value.int_value=newState.ldrValue;
+		if(this->hap_br->value.int_value !=newState.get_br_100()){
+			this->hap_br->value.int_value= newState.get_br_100();
 		  homekit_characteristic_notify(this->hap_br,this->hap_br->value);
 		}
 
@@ -319,21 +331,25 @@ void RelayDimController::hap_callback(homekit_characteristic_t *ch, homekit_valu
 #ifdef RELAYDIM_DEBUG
 	DBG_OUTPUT_PORT.println("hap_callback::hap_callback");
 #endif
-	if(!context){
+	DBG_OUTPUT_PORT.println("hap_callback::hap_callback");
+	if(!context ){
 		return;
 	};
 
 	    RelayDimController* ctl= (RelayDimController*)context;
+		if (!ctl->get_isloaded()) {
+			return;
+		}
 	    RelayDimState newState=ctl->get_state();
 	    RelayDimCMD cmd = DimRelayOn;
 		bool isSet=false;
 		if(ch==ctl->hap_on && ch->value.bool_value!=newState.isOn){
 			newState.isOn=ch->value.bool_value;
-			cmd =newState.isOn?DimRelayOn:DimRelayOn;
+			cmd =newState.isOn?DimRelayOn:DimRelayOff;
 			isSet=true;
 		}
-		if(ch==ctl->hap_br && ch->value.int_value!=newState.brightness){
-			newState.brightness=ch->value.int_value;
+		if(ch==ctl->hap_br && ch->value.int_value!= newState.get_br_100()){
+			newState.set_br_100(ch->value.int_value);
 			cmd=DimSetBrigthness;
 			isSet=true;
 		}

@@ -27,7 +27,7 @@ EncoderController::EncoderController() {
 	this->encoderSteps = 2;
 	this->_minEncoderValue = -1 << 15;
 	this->_maxEncoderValue = (int)((1 << 15)-1);
-
+	this->btnHandlerEncoderpos = 0;
 }
 EncoderController::~EncoderController() {
 
@@ -109,12 +109,14 @@ void EncoderController::run() {
 
 	if (this->commands.GetSize() == 0) {
 		int16_t delta = encoderChanged();
+		EncoderState es = this->get_state();
 		if (delta != 0) {
 				command newcmd;
 
 				newcmd.mode = EncoderSetDelta;
 				newcmd.state.rotateDelta = delta;// analogRead(pin);
 				newcmd.state.delta_ms = millis();
+				newcmd.state.button_ms = es.button_ms;
 		#ifdef  ENCODER_DEBUG
 				DBG_OUTPUT_PORT.println("Encoder set delta:"+String(delta));
 		#endif 
@@ -153,7 +155,17 @@ void EncoderController::runcore() {
 	Encoder::runcore();
 }
 void EncoderController::handleButtonState() {
-	this->btnhistory = (this->btnhistory << 1) | !(digitalRead(pin));
+
+	int res = digitalRead(pin);
+//	delay(50);
+//	DBG_OUTPUT_PORT.println("digitalRead " + String(res) + String(digitalRead(pinA)) + String(digitalRead(pinB)));
+//	if (!res) { //button pressed
+//		if (pinA && pinB && !digitalRead(pinA) && !digitalRead(pinB))  //we are between encoder
+//			return;
+//	}
+	//DBG_OUTPUT_PORT.println("digitalRead " + String(res)+String(digitalRead(pinA))+String(digitalRead(pinB)));
+	
+	this->btnhistory = (this->btnhistory << 1) | !(res);
 	uint16_t adjusted = this->btnhistory & ENCODER_BUTTON_ADJUST_MASK;
 	command newcmd;
 	newcmd.state = this->get_state();
@@ -165,12 +177,24 @@ void EncoderController::handleButtonState() {
 		this->AddCommand(newcmd.state, newcmd.mode, srcSelf);
 	}
 	else if (adjusted == ENCODER_BUTTON_PRESSED_MASK && !newcmd.state.isPressed) {
+	//	DBG_OUTPUT_PORT.println("Encoder add command pressed"  + String(res) +":"+String(this->lastReadEncoder0Pos));
 		newcmd.mode = EncoderSetBtn;
 		newcmd.state.button_ms = millis();
 		newcmd.state.isDown = false;
 		newcmd.state.isPressed = true;
-		this->AddCommand(newcmd.state, newcmd.mode, srcSelf);
+		//newcmd.state.lastBtnEncoderPos = this->lastReadEncoder0Pos;
+//		if (abs(this->btnHandlerEncoderpos - this->lastReadEncoder0Pos) < 2) {
+//			DBG_OUTPUT_PORT.println("Proceed");
+			this->AddCommand(newcmd.state, newcmd.mode, srcSelf);
+//		}
+//		else {
+//			DBG_OUTPUT_PORT.println("Ignored");
+//			this->btnhistory = 0;
+//		}
+		this->btnHandlerEncoderpos = this->lastReadEncoder0Pos;
+		
 	}
+
 }
 void EncoderController::set_state(EncoderState state) {
 	EncoderState oldState = this->get_state();

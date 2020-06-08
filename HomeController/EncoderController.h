@@ -16,6 +16,7 @@ struct EncoderState
 	bool isLongPressed = false;
 	bool isVeryLongPressed = false;
 	int rotateDelta = 0;
+	
 	unsigned long delta_ms = 0;
 	unsigned long button_ms = 0;
 };
@@ -56,6 +57,7 @@ protected:
 	bool isinvert;
 	bool isEnabled;
 	uint16_t btnhistory;
+	int btnHandlerEncoderpos;
 
 private:
 	void handleButtonState();

@@ -71,6 +71,7 @@ public:
 	int getLDRBrightness(int brigtness, int ldrval);
 	virtual void onmqqtmessage(String topic, String payload);
 	virtual bool onpublishmqttex(String& endkey, String& payload, int topicnr);
+
 #ifdef	ENABLE_NATIVE_HAP
 	virtual void setup_hap_service();
 	static void hap_callback(homekit_characteristic_t *ch, homekit_value_t value, void *context);
@@ -81,6 +82,7 @@ public:
 protected:
 	uint pin;
 	bool isinvert;
+	uint8_t poweronbr;
 #ifdef	ENABLE_NATIVE_HAP
 	homekit_service_t* hapservice;
 	homekit_characteristic_t * hap_on;

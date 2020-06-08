@@ -80,7 +80,7 @@
 //#define WEATHER_DEBUG
 //#define ENCODER_DEBUG
 
-#define WEATHER_GXEPD2
+//#define WEATHER_GXEPD2
 
 #if defined(ESP8266) && defined(WEATHER_GXEPD2)
 #undef WEATHER_GXEPD2
@@ -89,8 +89,8 @@
 //DISABLE /ENABLE services Section
 // Importnat due to iram limitation on ESp8266 (virtual function  table)
 //#define RF_SNIFFER
-//#define RGB
-#define RF_RELAY
+#define RGB
+//#define RF_RELAY
 
 #ifdef ESP8266
 #define DISABLE_OLED

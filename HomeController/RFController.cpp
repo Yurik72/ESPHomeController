@@ -262,6 +262,8 @@ void RFController::rfsend(RFState sendstate) {
 #ifdef	RFCONTROLLER_DEBUG
 	DBG_OUTPUT_PORT.println("rfsend");
 #endif
+	if (!this->pinsend)
+		return;
 	this->pSwitch->disableReceive();
 	RFState tosend = sendstate;
 	if (tosend.rfprotocol == 0)

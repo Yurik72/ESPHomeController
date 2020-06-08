@@ -141,6 +141,7 @@ void Controllers::setup() {
 		ctl->setup_hap_service();
 		ctl->notify_hap();
 #endif
+		ctl->set_isloaded(true);
 		//ctl->set_power_on();
 	}
 	
