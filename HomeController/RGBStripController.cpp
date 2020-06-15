@@ -314,10 +314,16 @@ void WS2812Wrapper::setSpeed(uint16_t speed) {
 	pstrip->setSpeed(speed);
 }
 void WS2812Wrapper::setPixelColor(uint16_t pix, uint32_t color) {
+	if (temperature != 0 || correction != 0)
 	pstrip->setPixelColor(pix, this->applyAdjustment(this->getBrightness(), color));
+	else
+		pstrip->setPixelColor(pix, color);
 }
 uint32_t WS2812Wrapper::getPixelColor(uint16_t pix) {
-	return this->reverseAdjustment(this->getBrightness(),  pstrip->getPixelColor(pix));
+	if (temperature != 0 || correction != 0)
+	return this->reverseAdjustment(this->getBrightness(), pstrip->getPixelColor(pix));
+	else
+		return pstrip->getPixelColor(pix);
 }
 void WS2812Wrapper::service() {
 	pstrip->service();

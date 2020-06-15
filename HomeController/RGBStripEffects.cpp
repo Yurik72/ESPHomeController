@@ -7,7 +7,7 @@
 
 RGBStripEffect::RGBStripEffect(StripWrapper* p, uint8_t matrixwidth, uint16_t len, double interval) {
 	
-	delay_interval = interval;
+	delay_interval =  interval;
 	mlen = len;
 	mwidth = matrixwidth;
 	if (mwidth == 0)
@@ -18,8 +18,8 @@ RGBStripEffect::RGBStripEffect(StripWrapper* p, uint8_t matrixwidth, uint16_t le
 	pStrip = p;
 	rgb_start_led = p->get_rgb_startled();
 	_matrixType = p->get_matrixtype();
-	//DBG_OUTPUT_PORT.println("RGBStripEffect");
-	//DBG_OUTPUT_PORT.println(_matrixType);
+	DBG_OUTPUT_PORT.println("RGBStripEffect");
+	DBG_OUTPUT_PORT.println(_matrixType);
 }
 RGBStripEffect::~RGBStripEffect() {
 	//DBG_OUTPUT_PORT.println("RGBStripEffect deleted");
@@ -32,7 +32,8 @@ void RGBStripEffect::drawPixelXY(int8_t x, int8_t y, CRGB color) {
 		//if ((thisPixel + i) >= rgb_start_led)
 		//if (rgb_start_led<0 || (thisPixel + i) <= (uint32_t)rgb_start_led)
 		//	color = GRB_TO_RGB(color);
-		
+		//delay(100);
+		//DBG_OUTPUT_PORT.println("drawPixel -" + String(thisPixel) +":"+String(x)+":"+String(y)+":"+String(color));
 		pStrip->setPixelColor(thisPixel + i, color);
 	}
 }
@@ -44,6 +45,7 @@ void RGBStripEffect::drawPixel(uint32_t pix, CRGB color) {
 	//if (rgb_start_led<0  ||  pix <= (uint32_t)rgb_start_led)
 	//	color = GRB_TO_RGB(color);
 	pStrip->setPixelColor(pix, color);
+	
 }
 // функция получения цвета пикселя по его номеру
 uint32_t RGBStripEffect::getPixColor(int thisSegm) {
@@ -53,6 +55,7 @@ uint32_t RGBStripEffect::getPixColor(int thisSegm) {
 //	if (thisPixel >= rgb_start_led)
 	//if (rgb_start_led<0  ||  thisPixel <= (uint32_t)rgb_start_led)
 	//	color = GRB_TO_RGB(color);
+	
 	return color;// (((uint32_t)leds[thisPixel].r << 16) | ((long)leds[thisPixel].g << 8) | (long)leds[thisPixel].b);
 }
 
@@ -102,7 +105,11 @@ void RGBStripEffect::oncallback() {
 }
 
 void RGBStripEffect::reset() {
-
+	for (uint8_t y = mheight - 1; y > 0; y--) {
+		for (uint8_t x = 0; x < mwidth; x++) {
+			drawPixelXY(x, y, 0);
+		}
+	}
 }
 
 void RGBStripEffect::callback(RGBStripEffect* self) {
@@ -170,11 +177,11 @@ void RGBStripFireEffect::drawFrame(int pcnt) {
 						+ pcnt * matrixValue[y - 1][newX]) / 100.0)
 					- pgm_read_byte(&(valueMask[y][newX]));
 				
-				CRGB color = /*CHSV*//*HSVColor*/HSVColor_f_int_int(
+				CRGB color = /*CHSV*//*HSVColor*/HSVColor_f_int_int255(
 					//modes[1].scale * 2.5 + pgm_read_byte(&(hueMask[y][newX])), // H
 					pgm_read_byte(&(hueMask[y][newX]))*1.0, // yk hue
 					255, // S
-					(uint8_t)max(0, nextv) // V
+					(uint8_t)max(0, nextv)// V
 				);
 
 				//leds[getPixelNumber(x, y)] = color;
@@ -184,6 +191,7 @@ void RGBStripFireEffect::drawFrame(int pcnt) {
 			else if (y == 8 && SPARKLES) {
 				if (random(0, 20) == 0 && getPixColorXY(x, y - 1) != 0) drawPixelXY(x, y, getPixColorXY(x, y - 1));
 				else drawPixelXY(x, y, 0);
+				//drawPixelXY(x, y, 0);
 			}
 			else if (SPARKLES) {
 
