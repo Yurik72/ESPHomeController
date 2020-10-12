@@ -284,7 +284,7 @@ void onWifiConnect(const WiFiEventStationModeConnected& event) {
 }
 #else
 void onWifiConnect() {
-	DBG_OUTPUT_PORT.println("WiFi On Connect.");
+	//DBG_OUTPUT_PORT.println("WiFi On Connect.");
 	//setup_after_wifi();
 }
 

@@ -151,7 +151,7 @@ void Controllers::setup() {
 	if (ishapused) {
 		DBG_OUTPUT_PORT.println("starting hap_init_homekit_server ");
 		hap_init_homekit_server();
-		delay(500);// give one sec to home kit
+		delay(100);// give short time to home kit
 	}
 #endif
 	
