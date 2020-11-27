@@ -14,7 +14,7 @@ const size_t bufferSize = JSON_OBJECT_SIZE(20);
 RelayController::RelayController() {
 	this->isinvert = false;
 	this->pin = 0;
-
+	this->ispower_on = true;
 #ifdef	ENABLE_NATIVE_HAP
 	this->ishap=true;
 	this->hapservice=NULL;
@@ -54,6 +54,8 @@ void RelayController::loadconfig(JsonObject& json) {
 	Relay::loadconfig(json);
 	pin= json[FPSTR(szPinText)];
 	isinvert= json["isinvert"];
+	loadif(ispower_on, json, "poweron");
+	
 }
 void RelayController::getdefaultconfig(JsonObject& json) {
 	json[FPSTR(szPinText)]= pin;
@@ -68,32 +70,35 @@ void  RelayController::setup() {
 	digitalWrite(pin, this->isinvert?HIGH:LOW);
 }
 void RelayController::set_power_on() {
-	Relay::set_power_on();
-	this->run();
+	if (ispower_on)
+	{
+		Relay::set_power_on();
+		this->run();
+	}
 
 }
 void RelayController::run() {
 	command cmd;
 	while (commands.Dequeue(&cmd)) {
-		DBG_OUTPUT_PORT.print("Process Command ");
+		//DBG_OUTPUT_PORT.print("Process Command ");
 		RelayState newState = cmd.state;
 		switch (cmd.mode) {
 			case Switch:
 				newState.isOn = !newState.isOn;
-				DBG_OUTPUT_PORT.println("Switch");
+				//DBG_OUTPUT_PORT.println("Switch");
 				break;
 			case Set:
 			case RelayRestore:
 				newState.isOn = cmd.state.isOn;
-				DBG_OUTPUT_PORT.println("RelayRestore/Set");
+				//DBG_OUTPUT_PORT.println("RelayRestore/Set");
 				break;
 			case RelayOn:
 				newState.isOn = true;
-				DBG_OUTPUT_PORT.println("RelayOn");
+				//DBG_OUTPUT_PORT.println("RelayOn");
 				break;
 			case RelayOff:
 				newState.isOn = false;
-				DBG_OUTPUT_PORT.println("RelayOff");
+				//DBG_OUTPUT_PORT.println("RelayOff");
 			default:break;
 	   }
 		this->set_state(newState);
@@ -102,13 +107,13 @@ void RelayController::run() {
 }
 void RelayController::set_state(RelayState state) {
 
-	DBG_OUTPUT_PORT.print("RelayController state:");
-	DBG_OUTPUT_PORT.println(state.isOn?"ON":"OFF");
+	//DBG_OUTPUT_PORT.print("RelayController state:");
+	//DBG_OUTPUT_PORT.println(state.isOn?"ON":"OFF");
 	Relay::set_state(state);
 
 	digitalWrite(pin, (state.isOn ^ this->isinvert)?HIGH:LOW);
 	if (this->repch >=0) {
-		DBG_OUTPUT_PORT.println("Report to channel");
+		//DBG_OUTPUT_PORT.println("Report to channel");
 		if (state.isOn )
 			this->report_monitor_on(this->repch);
 		else
@@ -157,7 +162,7 @@ void RelayController::setup_hap_service(){
 }
 void RelayController::notify_hap(){
 	if(this->ishap && this->hapservice){
-		DBG_OUTPUT_PORT.println("RelayController::notify_hap");
+		//DBG_OUTPUT_PORT.println("RelayController::notify_hap");
 		homekit_characteristic_t * ch= homekit_service_characteristic_by_type(this->hapservice, HOMEKIT_CHARACTERISTIC_ON);
 		if(ch){
 
@@ -169,8 +174,8 @@ void RelayController::notify_hap(){
 	}
 }
 void RelayController::hap_callback(homekit_characteristic_t *ch, homekit_value_t value, void *context){
-	DBG_OUTPUT_PORT.println("RelayController::hap_callback");
-	DBG_OUTPUT_PORT.println(value.bool_value);
+	//DBG_OUTPUT_PORT.println("RelayController::hap_callback");
+	//DBG_OUTPUT_PORT.println(value.bool_value);
 	if(context){
 		RelayController* ctl= (RelayController*)context;
 		RelayState newState=ctl->get_state();

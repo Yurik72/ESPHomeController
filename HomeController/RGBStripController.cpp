@@ -694,7 +694,7 @@ void RGBStripController::set_state(RGBState state) {
 			//DBG_OUTPUT_PORT.println(state.brightness);
 			if (!pStripWrapper->isRunning()) pStripWrapper->start();
 			if (this->isEnableSmooth && !pSmooth->isActive()) {
-				DBG_OUTPUT_PORT.println("CMD On Smooth");
+			//	DBG_OUTPUT_PORT.println("CMD On Smooth");
 				pSmooth->stop();
 				
 				int brval = state.brightness;
@@ -717,7 +717,7 @@ void RGBStripController::set_state(RGBState state) {
 			
 		}
 		else {
-			DBG_OUTPUT_PORT.println("Switching OFF");
+			//DBG_OUTPUT_PORT.println("Switching OFF");
 			if (this->isEnableSmooth && !pSmooth->isActive()) {
 				pSmooth->stop();
 				uint32_t duration = 1000;
@@ -725,8 +725,8 @@ void RGBStripController::set_state(RGBState state) {
 					duration = state.fadetm * 1000;
 				}
 				uint32_t count = duration / 50;
-				DBG_OUTPUT_PORT.println(duration);
-				DBG_OUTPUT_PORT.println(count);
+				//DBG_OUTPUT_PORT.println(duration);
+				//DBG_OUTPUT_PORT.println(count);
 				pSmooth->start(oldState.brightness,0,
 					[self](int val) {
 						self->pStripWrapper->setBrightness(val);
@@ -1089,8 +1089,8 @@ void RGBStripController::hap_callback(homekit_characteristic_t *ch, homekit_valu
 			newState.color = HSVColor(ctl->mqtt_hue, ctl->mqtt_saturation/100.0, newState.brightness / 255.0);
 			cmd=SetColor;
 			//isSet=true;
-			DBG_OUTPUT_PORT.println("HUE");
-			DBG_OUTPUT_PORT.println(ch->value.float_value);
+			//DBG_OUTPUT_PORT.println("HUE");
+			//DBG_OUTPUT_PORT.println(ch->value.float_value);
 		}
 		if(ch==ctl->hap_saturation && ch->value.float_value!=ctl->mqtt_saturation){
 			ctl->mqtt_saturation=ch->value.float_value;
@@ -1098,8 +1098,8 @@ void RGBStripController::hap_callback(homekit_characteristic_t *ch, homekit_valu
 			cmd=SetColor;
 			newState.isHsv = true;
 			isSet=true;
-			DBG_OUTPUT_PORT.println("Saturation");
-			DBG_OUTPUT_PORT.println(ch->value.float_value);
+			//DBG_OUTPUT_PORT.println("Saturation");
+			//DBG_OUTPUT_PORT.println(ch->value.float_value);
 		}
 	//	newState.isOn=value.bool_value;
 		if(isSet)

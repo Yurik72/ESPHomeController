@@ -26,6 +26,7 @@
 #endif
 #if defined(ESP8266)
 #include <ESP8266mDNS.h>
+#include "coredecls.h"
 #else
 #include <ESPmDNS.h>
 //#include <ESPAsyncDNSServer.h>
@@ -202,6 +203,9 @@ WebServer server(80);
  }
  void setup()
  {
+#ifdef ESP8266 
+	 disable_extra4k_at_link_time();
+#endif 
 	 DBG_OUTPUT_PORT.begin(115200); //setup serial ports
 
 

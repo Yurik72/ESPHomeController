@@ -360,7 +360,8 @@ void Controllers::setuphandlers(AsyncWebServer& server) {
 		String cname;
 		if(request->args()>0)
 			cname = request->arg((size_t)0);
-		DBG_OUTPUT_PORT.println(cname);
+		//DBG_OUTPUT_PORT.println(cname);
+		
 		if (cname.length() == 0) {
 			request->send(500, "text/plain", "BAD ARGS");
 			return;
@@ -432,7 +433,8 @@ void Controllers::setuphandlers(AsyncWebServer& server) {
 			ctl->bodyindex += len;
 			if (ctl->bodyindex >= total) { //all collected
 				String body = (char*)bodydata;
-				DBG_OUTPUT_PORT.println(body);
+				//DBG_OUTPUT_PORT.println(body);
+				DBG_OUTPUT_PORT.println("Free Heap: " + String(ESP.getFreeHeap()));
 				if (body.length() > 0) {
 					ctl->deserializestate(body);
 				}
@@ -485,9 +487,14 @@ CBaseController* Controllers::CreateByName(const char* name) { //to be rewrite b
 	*/
 };
 void Controllers::handleloops() {
-	
+#if defined(ESP8266)
+	bLoopSwitch = !bLoopSwitch;
+#endif	
 #if defined(ENABLE_NATIVE_HAP) && defined(ESP8266)
-	hap_homekit_loop();
+	if (bLoopSwitch) {
+		hap_homekit_loop();
+		return;
+	}
 #endif
 	for (int i = 0; i < this->GetSize(); i++) {
 		CBaseController*ctl = this->GetAt(i);
@@ -527,7 +534,7 @@ void Controllers::checkandreconnectWifi() {
 			this->isWifiConnected = false;
 			if ((this->lastWifiReconnectms + DELAY_MS_RECONNECT) < millis()) {
 				this->lastWifiReconnectms = millis();
-				//DBG_OUTPUT_PORT.println("Controllers detect lost wifi");
+				DBG_OUTPUT_PORT.println("Controllers detect lost wifi");
 				WiFi.reconnect();
 				unsigned long delaytime = millis() + 2000;
 				isConnectingMode = true;

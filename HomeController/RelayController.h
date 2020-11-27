@@ -48,6 +48,7 @@ public:
 protected:
 	uint pin;
 	bool isinvert;
+	bool ispower_on;
 #ifdef	ENABLE_NATIVE_HAP
 	homekit_service_t* hapservice;
 #endif

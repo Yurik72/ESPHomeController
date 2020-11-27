@@ -6,7 +6,7 @@
 #ifdef ESP32
 Logger ESPLogger(Serial,3000);
 #else
-Logger ESPLogger(Serial,800);
+Logger ESPLogger(Serial,0);
 #endif
 #else
 Logger EspLogger;
@@ -40,12 +40,13 @@ void Logger::setup() {
 }
 size_t Logger::write(uint8_t ch) {
 	
-	size_t len=this->slog.length();
-	if (len >= this->logsize) {  //  cleanup 
-		 this->slog.remove(0, this->logsize / 2);
+	if (this->logsize > 0) {
+		size_t len = this->slog.length();
+		if (len >= this->logsize) {  //  cleanup 
+			this->slog.remove(0, this->logsize / 2);
+		}
+		this->slog += (char)ch;
 	}
-	this->slog+= (char)ch;
-
 	if (pextradupl)
 		pextradupl->write(ch);
 	if (pSerial)

@@ -81,6 +81,9 @@ private:
 	CBaseController* pMonitor=NULL;
 	controllers_setup_phase setupphase;
 	TimeController* pTimeCtl;
+#if defined(ESP8266)
+	bool bLoopSwitch=false;
+#endif
 };
 void onstatechanged(CBaseController *);
 #ifdef ENABLE_HOMEBRIDGE
