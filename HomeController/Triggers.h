@@ -10,6 +10,7 @@
 #include "RelayDimController.h"
 #include "DallasController.h"
 #include "BME280Controller.h"
+#include "BME680Controller.h"
 #include "OledController.h"
 #include "ThingSpeakClient.h"
 #include "CWeatherDisplay.h"
@@ -27,6 +28,7 @@ class RelayController;
 class RFController;
 class RelayDimController;
 class BME280Controller;
+class BME680Controller;
 class WeatherDisplayController;
 class ButtonController;
 class EncoderController;
@@ -306,6 +308,18 @@ protected:
 private:
 	uint8_t t_ch, h_ch, p_ch;
 };
+class BME680ToThingSpeak :public TriggerFromService< BME680Controller, ThingSpeakController> {
+public:
+
+	BME680ToThingSpeak();
+
+	virtual void handleloopsvc(BME680Controller* ps, ThingSpeakController* pd);
+	virtual void loadconfig(JsonObject& json);
+
+protected:
+private:
+	uint8_t t_ch, h_ch, p_ch,g_ch;
+};
 class BMEToWeatherDisplay :public TriggerFromService< BME280Controller, WeatherDisplayController> {
 public:
 	enum DMODE : uint8_t {
@@ -323,7 +337,24 @@ protected:
 private:
 	uint8_t t_ch, h_ch, p_ch;
 };
+class BME680ToWeatherDisplay :public TriggerFromService< BME680Controller, WeatherDisplayController> {
+public:
+	enum DMODE680 : uint8_t {
 
+		temp = 1,
+		hum = 2,
+		pres = 3,
+		gas =4
+	};
+	BME680ToWeatherDisplay();
+
+	virtual void handleloopsvc(BME680Controller* ps, WeatherDisplayController* pd);
+	virtual void loadconfig(JsonObject& json);
+
+protected:
+private:
+	uint8_t t_ch, h_ch, p_ch,g_ch;
+};
 class TimeToWeatherDisplay :public TriggerFromService< TimeController, WeatherDisplayController> {
 public:
 
@@ -440,7 +471,9 @@ DEFINE_TRIGGER_FACTORY(DallasToRGBStrip)
 DEFINE_TRIGGER_FACTORY(BMEToOled)
 DEFINE_TRIGGER_FACTORY(BMEToRGBMatrix)
 DEFINE_TRIGGER_FACTORY(BMEToThingSpeak)
+DEFINE_TRIGGER_FACTORY(BME680ToThingSpeak)
 DEFINE_TRIGGER_FACTORY(BMEToWeatherDisplay)
+DEFINE_TRIGGER_FACTORY(BME680ToWeatherDisplay)
 DEFINE_TRIGGER_FACTORY(TimeToWeatherDisplay)
 DEFINE_TRIGGER_FACTORY(WeatherForecastToWeatherDisplay)
 DEFINE_TRIGGER_FACTORY(ButtonToWeatherDisplay)

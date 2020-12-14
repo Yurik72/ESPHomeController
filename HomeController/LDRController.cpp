@@ -166,17 +166,15 @@ bool LDRController::onpublishmqtt(String& endkey, String& payload) {
 void LDRController::setup_hap_service() {
 	
 
-	//DBG_OUTPUT_PORT.println("LDRController::setup_hap_service()");
+	
 	if (!ishap) {
 		
-		//DBG_OUTPUT_PORT.println("LDRController::NO Hap support");
+
 		return;
 	}
-	//DBG_OUTPUT_PORT.println(this->hapservice_type);
-//	DBG_OUTPUT_PORT.println("LDRController ishap");
-	//DBG_OUTPUT_PORT.println(hapservice_type);
+
 	if (this->hapservice_type == "light") {
-		//DBG_OUTPUT_PORT.println("LDRController  light");
+	
 		if (this->accessory_type > 1) {
 			DBG_OUTPUT_PORT.println("LDRController  accessory_type > 1");
 			this->hapservice = hap_add_light_service_as_accessory(this->accessory_type, this->get_name(), LDRController::hap_callback, this);
@@ -206,13 +204,14 @@ void LDRController::setup_hap_service() {
 }
 void LDRController::notify_hap() {
 	if (this->ishap && this->hapservice) {
-		//DBG_OUTPUT_PORT.println("LDRController::notify_hap");
+	
 		LDRState lstate = this->get_state();
 		if (this->hapservice_type == "light" && this->hap_level) {
-			if (this->hap_level->value.float_value != lstate.cvalue) {
-				this->hap_level->value.float_value = lstate.cvalue;
-				homekit_characteristic_notify(this->hap_level, this->hap_level->value);
-			}
+			HAP_NOTIFY_CHANGES_WITHCONSTRAIN(float, hap_level, lstate.cvalue, 2.0);
+			//if (this->hap_level->value.float_value != lstate.cvalue) {
+			//	this->hap_level->value.float_value = lstate.cvalue;
+			//	homekit_characteristic_notify(this->hap_level, this->hap_level->value);
+			//}
 		}
 		if (this->hapservice_type == "bat" && this->hap_level) {
 			float chargepercent = 100.0*((cvalmax + cvalmin) / 2.0) / lstate.cvalue;

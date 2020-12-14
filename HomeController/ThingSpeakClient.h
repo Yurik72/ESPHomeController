@@ -14,6 +14,7 @@ struct ThingSpeakState
 	}
 	bool isOn;
 	double data[MAX_CHANNELS] ;
+	long last_measure_ms = 0;
 
 };
 enum ThingSpeakCMD {

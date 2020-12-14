@@ -307,7 +307,10 @@ void WS2812Wrapper::setColor(uint32_t color) {
 void WS2812Wrapper::setColor(uint8_t r, uint8_t g, uint8_t b) {
 	//TraceColor("set color before", RGBCOLOR(r, g, b));
 	pstrip->setColor(this->applyAdjustment(this->getBrightness(), RGBCOLOR(r,g,b)));
-	//TraceColor("set color after", this->applyAdjustment(this->getBrightness(), RGBCOLOR(r, g, b)));
+#ifdef RGBSTRIP_DEBUG
+	TraceColor(" WS2812Wrapper::setColor", this->applyAdjustment(this->getBrightness(), RGBCOLOR(r, g, b)));
+#endif
+	
 }
 
 void WS2812Wrapper::setSpeed(uint16_t speed) {
@@ -1033,7 +1036,15 @@ void RGBStripController::setup_hap_service(){
  //homekit_service_t* x= HOMEKIT_SERVICE(LIGHTBULB, .primary = true);
 	//homekit_characteristic_t * ch= NEW_HOMEKIT_CHARACTERISTIC(NAME, "x");
 
-	this->hapservice=hap_add_rgbstrip_service(this->get_name(),RGBStripController::hap_callback,this);
+	//this->hapservice=hap_add_rgbstrip_service(this->get_name(),RGBStripController::hap_callback,this);
+
+	if (this->accessory_type > 1) {
+		this->hapservice = hap_add_rgbstrip_service_as_accessory(this->accessory_type, this->get_name(), RGBStripController::hap_callback, this);
+	}
+	else
+	{
+		this->hapservice = hap_add_rgbstrip_service(this->get_name(), RGBStripController::hap_callback, this);
+	}
 	this->hap_on=homekit_service_characteristic_by_type(this->hapservice, HOMEKIT_CHARACTERISTIC_ON);;
 	this->hap_br=homekit_service_characteristic_by_type(this->hapservice, HOMEKIT_CHARACTERISTIC_BRIGHTNESS);;
 	this->hap_hue=homekit_service_characteristic_by_type(this->hapservice, HOMEKIT_CHARACTERISTIC_HUE);;

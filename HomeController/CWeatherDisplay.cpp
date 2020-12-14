@@ -707,14 +707,29 @@ if(disptype==ST7735){
 		pDisplay->println(format_doublestr("Press %.f",wdata.pressure));
 	 }else{
 	   pDisplay->setTextSize(2);
-		 pDisplay->setCursor(180, main_offset_y_wetaher);
-		pDisplay->setTextColor(COLOR_LIGHTBLUE);
-		pDisplay->print(format_doublestr("Hum %.f %%",wdata.humidity));
+	   if (wdata.gas > 0) {
+		   pDisplay->setCursor(180, main_offset_y_wetaher);
+		   pDisplay->setTextColor(COLOR_LIGHTBLUE);
+		   pDisplay->print(format_doublestr("%.f %%", wdata.humidity));
+		   pDisplay->setCursor(240, main_offset_y_wetaher);
+		   pDisplay->setTextColor(ST7735_CYAN);
+		   pDisplay->println(format_doublestr("%.f ", wdata.pressure));
+		   pDisplay->setCursor(200, main_offset_y_wetaher + 30);
+		   int level = CalculateIAQLevel(wdata.gas);
+		   pDisplay->setTextColor(ColorForAirQuality(level));
+		   pDisplay->setTextSize(3);
+		   pDisplay->println(String((int)wdata.gas));
+	   }
+	   else {
+		   pDisplay->setCursor(180, main_offset_y_wetaher);
+		   pDisplay->setTextColor(COLOR_LIGHTBLUE);
+		   pDisplay->print(format_doublestr("Hum %.f %%", wdata.humidity));
 
-   
-		pDisplay->setCursor(180, main_offset_y_wetaher+30);
-		pDisplay->setTextColor(ST7735_RED);
-		pDisplay->println(format_doublestr("P %.f hPa",wdata.pressure));
+
+		   pDisplay->setCursor(180, main_offset_y_wetaher + 30);
+		   pDisplay->setTextColor(ST7735_RED);
+		   pDisplay->println(format_doublestr("P %.f hPa", wdata.pressure));
+	   }
 	 }
   
 }
@@ -751,6 +766,25 @@ void WeatherDisplayController::draw_forecast(){
       draw_forecast(i,getforecastdata()[i]);
   }
   this->flushDisplay();
+}
+int WeatherDisplayController::ColorForAirQuality(int level) {
+	switch (level) {
+	case 0:
+		return ST7735_GREEN;
+	case 1:
+		return ST7735_GREEN;
+	case 2:
+		return ST7735_YELLOW;
+	case 3:
+		return ST7735_MAGENTA;
+	case 4:
+		return ST7735_CYAN;
+	case 5:
+		return ST7735_RED;
+
+	default:
+		return 0xFFFF;
+	}
 }
 void WeatherDisplayController::clear_forecast(){
    pDisplay->fillRect(0, y_offs_forecast, pDisplay->width(), pDisplay->height()-y_offs_forecast, bk_color); 

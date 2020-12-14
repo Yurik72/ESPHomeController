@@ -278,7 +278,7 @@ public:
 #ifdef	ENABLE_NATIVE_HAP
 	virtual void setup_hap_service(){};
 	virtual void notify_hap(){};
-
+	virtual void setup_after_hap() {};
 #endif
 #if defined(ESP8266)
 	static void callback(CBaseController* self);

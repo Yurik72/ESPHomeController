@@ -26,10 +26,12 @@ REGISTER_TRIGGER_FACTORY(LDRToRelay)
 REGISTER_TRIGGER_FACTORY(BMEToOled)
 REGISTER_TRIGGER_FACTORY(BMEToRGBMatrix)
 REGISTER_TRIGGER_FACTORY(BMEToThingSpeak)
+REGISTER_TRIGGER_FACTORY(BME680ToThingSpeak)
 REGISTER_TRIGGER_FACTORY(LDRToThingSpeak)
 
 #ifndef DISABLE_WEATHERDISPLAY
 REGISTER_TRIGGER_FACTORY(BMEToWeatherDisplay)
+REGISTER_TRIGGER_FACTORY(BME680ToWeatherDisplay)
 REGISTER_TRIGGER_FACTORY(TimeToWeatherDisplay)
 REGISTER_TRIGGER_FACTORY(WeatherForecastToWeatherDisplay)
 REGISTER_TRIGGER_FACTORY(ButtonToWeatherDisplay)
@@ -928,15 +930,54 @@ void BMEToThingSpeak::loadconfig(JsonObject& json) {
 }
 void BMEToThingSpeak::handleloopsvc(BME280Controller* ps, ThingSpeakController* pd) {
 	TriggerFromService< BME280Controller, ThingSpeakController>::handleloopsvc(ps, pd);
-	
+
 	BMEState l = ps->get_state();
 	ThingSpeakCMD cmd = TsSend;
-	ThingSpeakState newstate=pd->get_last_commandstate();
-	if (t_ch>0) 	newstate.data[t_ch-1] = l.temp;
-	if (h_ch>0)  newstate.data[h_ch-1] = l.hum;
-	if (p_ch>0)  newstate.data[p_ch-1] = l.pres;
+	ThingSpeakState newstate = pd->get_last_commandstate();
+	if (t_ch > 0) 	newstate.data[t_ch - 1] = l.temp;
+	if (h_ch > 0)  newstate.data[h_ch - 1] = l.hum;
+	if (p_ch > 0)  newstate.data[p_ch - 1] = l.pres;
+	
 
 	pd->AddCommand(newstate, cmd, srcTrigger);
+}
+BME680ToThingSpeak::BME680ToThingSpeak() {
+	t_ch = 0;
+	h_ch = 0;
+	p_ch = 0;
+	g_ch = 0;
+}
+void BME680ToThingSpeak::loadconfig(JsonObject& json) {
+	Trigger::loadconfig(json);
+
+	//t_ch = json["t_ch"].as<uint8_t>();
+	//h_ch = json["h_ch"].as<uint8_t>();
+	//p_ch = json["p_ch"].as<uint8_t>();
+	loadif(t_ch, json, "t_ch");
+	loadif(h_ch, json, "h_ch");
+	loadif(p_ch, json, "p_ch");
+	loadif(g_ch, json, "g_ch");
+	//DBG_OUTPUT_PORT.println(String("BMEToThingSpeak t_ch:") + String(t_ch) + String(" h_ch:") + String(h_ch) + String(" p_ch:") + String(p_ch));
+	t_ch = constrain(t_ch, 0, MAX_CHANNELS);
+	h_ch = constrain(h_ch, 0, MAX_CHANNELS);
+	p_ch = constrain(p_ch, 0, MAX_CHANNELS);
+	g_ch = constrain(g_ch, 0, MAX_CHANNELS);
+	//DBG_OUTPUT_PORT.println(String("BMEToThingSpeak t_ch:") + String(t_ch)+String(" h_ch:")+ String(h_ch)+String(" p_ch:")+String(p_ch));
+}
+void BME680ToThingSpeak::handleloopsvc(BME680Controller* ps, ThingSpeakController* pd) {
+	TriggerFromService< BME680Controller, ThingSpeakController>::handleloopsvc(ps, pd);
+	
+	BME680State l = ps->get_state();
+	ThingSpeakCMD cmd = TsSend;
+	ThingSpeakState newstate=pd->get_last_commandstate();
+	if (newstate.last_measure_ms < l.last_measure_ms) {
+		if (t_ch > 0) 	newstate.data[t_ch - 1] = l.temp;
+		if (h_ch > 0)  newstate.data[h_ch - 1] = l.hum;
+		if (p_ch > 0)  newstate.data[p_ch - 1] = l.pres;
+		if (g_ch > 0)  newstate.data[g_ch - 1] = l.gas;
+		newstate.last_measure_ms = l.last_measure_ms;
+		pd->AddCommand(newstate, cmd, srcTrigger);
+	}
 }
 
 //weatherDisplay
@@ -961,7 +1002,27 @@ void BMEToWeatherDisplay::handleloopsvc(BME280Controller* ps, WeatherDisplayCont
 
 	pd->AddCommand(newstate, cmd, srcTrigger);
 }
+BME680ToWeatherDisplay::BME680ToWeatherDisplay() {
 
+}
+void BME680ToWeatherDisplay::loadconfig(JsonObject& json) {
+	Trigger::loadconfig(json);
+
+
+
+}
+void BME680ToWeatherDisplay::handleloopsvc(BME680Controller* ps, WeatherDisplayController* pd) {
+	TriggerFromService< BME680Controller, WeatherDisplayController>::handleloopsvc(ps, pd);
+	BME680State l = ps->get_state();
+	WeatherDisplayCMD cmd = WDSetCurrentData;
+	WeatherDisplayState newstate;
+	newstate.data.temp = l.temp;
+	newstate.data.pressure = l.pres;
+	newstate.data.humidity = l.hum;
+	newstate.data.gas = l.gas;
+
+	pd->AddCommand(newstate, cmd, srcTrigger);
+}
 TimeToWeatherDisplay::TimeToWeatherDisplay() {
 
 }

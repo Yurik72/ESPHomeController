@@ -461,6 +461,19 @@ JsonObject getRootObject(DynamicJsonDocument buf) {
 
 	return buf.as<JsonObject>();
 }
+int CalculateIAQLevel(int iaqscore) {
+	//String IAQ_text = "air quality is ";
+	//score = (100 - score) * 5;
+	int res;
+	if (iaqscore >= 301)  res = 5;//               IAQ_text += "Hazardous";
+	else if (iaqscore >= 201 && iaqscore <= 300)res = 4;// IAQ_text += "Very Unhealthy";
+	else if (iaqscore >= 176 && iaqscore <= 200) res = 3;//IAQ_text += "Unhealthy";
+	else if (iaqscore >= 151 && iaqscore <= 175)res = 2;// IAQ_text += "Unhealthy for Sensitive Groups";
+	else if (iaqscore >= 51 && iaqscore <= 150) res = 1;//IAQ_text += "Moderate";
+	else if (iaqscore >= 00 && iaqscore <= 50) res = 0;// IAQ_text += "Good";
+	//Serial.print("IAQ Score = " + String(score) + ", ");
+	return res;
+}
 #ifdef ESP32
 bool get_json_bool(JsonObject obj, const char* name) {
 	bool b=obj[name];

@@ -205,6 +205,14 @@ void RGB3ChController::setColor(uint8_t r, uint8_t g, uint8_t b) {
 		ledcWrite(bchannel, DIMCALC_VAL(CALC_COLOR(b, state.get_br_100()), false));
 #endif
 	}
+	/*
+	DBG_OUTPUT_PORT.print("RED::");
+	DBG_OUTPUT_PORT.println(CALC_COLOR(r, state.get_br_100()));
+	DBG_OUTPUT_PORT.print("GREEN::");
+	DBG_OUTPUT_PORT.println(CALC_COLOR(g, state.get_br_100()));
+	DBG_OUTPUT_PORT.print("BLUE::");
+	DBG_OUTPUT_PORT.println(CALC_COLOR(b, state.get_br_100()));
+	*/
 }
 void RGB3ChController::setBrightness(uint8_t br) {
 	RGB3ChState state = this->get_state();
@@ -274,8 +282,8 @@ void RGB3ChController::set_state(RGB3ChState state) {
 				int brval = state.brightness;
 				pSmooth->start(0, brval,
 					[self](int val) {
-						//self->pStripWrapper->setBrightness(val);
-						//self->pStripWrapper->trigger();
+						self->setBrightness(val);
+						
 					},   //self->setbrightness(val, srcSmooth);},
 					[self, state]() {self->AddCommand(state, SetRGB, srcSmooth);});
 				ignore_br = true;
@@ -301,7 +309,7 @@ void RGB3ChController::set_state(RGB3ChState state) {
 				//DBG_OUTPUT_PORT.println(count);
 				pSmooth->start(oldState.brightness,0,
 					[self](int val) {
-						//self->pStripWrapper->setBrightness(val);
+						self->setBrightness(val);
 						//self->pStripWrapper->trigger();
 					},//self->setbrightness(val, srcSmooth);},
 					[self, state]() {
@@ -333,6 +341,9 @@ void RGB3ChController::set_state(RGB3ChState state) {
 
 			this->mqtt_saturation = saturation*100.0/255.0;
 
+		}
+		if (oldState.brightness != state.brightness && !ignore_br) {
+			this->setBrightness(state.brightness);
 		}
 	}
 
@@ -461,11 +472,17 @@ void RGB3ChController::setup_hap_service(){
 	if(!ishap)
 		return;
 
-
+	if (this->accessory_type > 1) {
+		this->hapservice = hap_add_rgbstrip_service_as_accessory(this->accessory_type, this->get_name(), RGB3ChController::hap_callback, this);
+	}
+	else
+	{
+		this->hapservice = hap_add_rgbstrip_service(this->get_name(), RGB3ChController::hap_callback, this);
+	}
  //homekit_service_t* x= HOMEKIT_SERVICE(LIGHTBULB, .primary = true);
 	//homekit_characteristic_t * ch= NEW_HOMEKIT_CHARACTERISTIC(NAME, "x");
 
-	this->hapservice=hap_add_rgbstrip_service(this->get_name(), RGB3ChController::hap_callback,this);
+	//this->hapservice=hap_add_rgbstrip_service(this->get_name(), RGB3ChController::hap_callback,this);
 	this->hap_on=homekit_service_characteristic_by_type(this->hapservice, HOMEKIT_CHARACTERISTIC_ON);;
 	this->hap_br=homekit_service_characteristic_by_type(this->hapservice, HOMEKIT_CHARACTERISTIC_BRIGHTNESS);;
 	this->hap_hue=homekit_service_characteristic_by_type(this->hapservice, HOMEKIT_CHARACTERISTIC_HUE);;

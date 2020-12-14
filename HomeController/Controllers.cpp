@@ -123,6 +123,7 @@ void Controllers::setup() {
 	if (ishapused) {
 		init_hap_storage();
 		set_callback_storage_change(storage_changed);
+		//DBG_OUTPUT_PORT.println((long)get_callback_storage_change());
 		hap_setbase_accessorytype(accessory_type);
 		hap_initbase_accessory_service(HOSTNAME, "Yurik72", "0", "EspHapCtl", VERSION);
 	}
@@ -132,24 +133,31 @@ void Controllers::setup() {
 #endif
 	//this->loadconfig();
 	connectmqtt();
-	
+
 	for (int i = 0; i < this->GetSize(); i++) {
 		CBaseController* ctl = this->GetAt(i);
 		//ctl->setup();
 		ctl->setup_after_wifi();
 #ifdef	ENABLE_NATIVE_HAP
 		ctl->setup_hap_service();
+		//DBG_OUTPUT_PORT.println("setup done");
+		//DBG_OUTPUT_PORT.println((long)get_callback_storage_change());
 		ctl->notify_hap();
+		//DBG_OUTPUT_PORT.println("notify done");
+		//DBG_OUTPUT_PORT.println((long)get_callback_storage_change());
 #endif
 		ctl->set_isloaded(true);
 		//ctl->set_power_on();
 	}
 	
+
 	DBG_OUTPUT_PORT.println("Load services done ");
-	
+//	DBG_OUTPUT_PORT.println((long)get_callback_storage_change());
+
 #ifdef	ENABLE_NATIVE_HAP
 	if (ishapused) {
 		DBG_OUTPUT_PORT.println("starting hap_init_homekit_server ");
+		//set_callback_storage_change(storage_changed);
 		hap_init_homekit_server();
 		delay(100);// give short time to home kit
 	}
@@ -681,8 +689,13 @@ void init_hap_storage(){
 	String fname="/pair.dat";
 	File fsDAT=SPIFFS.open(fname, "r");
 	if(!fsDAT){
-		DBG_OUTPUT_PORT.println("Failed to read pair.dat");
-		return;
+		//DBG_OUTPUT_PORT.println("Failed to read pair.dat");
+		//SPIFFS.remove(fname);
+		//fsDAT = SPIFFS.open(fname, "w+");
+		if (!fsDAT) {
+			DBG_OUTPUT_PORT.println("Failed to create pair.dat");
+			return;
+		}
 	}
 	int size=hap_get_storage_size_ex();
 	char* buf=new char[size];
@@ -705,6 +718,7 @@ void storage_changed(char * szstorage,int size){
 	//memset(x,0xff,size);
 	//memset(x+5,0x00,5);
 	//DBG_OUTPUT_PORT.println(x);
+	//DBG_OUTPUT_PORT.println("storage_changed");
 	SPIFFS.remove(fname);
 	File fsDAT=SPIFFS.open(fname, "w+");
 	if(!fsDAT){

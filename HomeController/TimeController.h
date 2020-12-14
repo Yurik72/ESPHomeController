@@ -32,6 +32,10 @@ public :
 	void loadconfig(JsonObject& json);
 	virtual void run();
 	virtual void set_state(TimeState state);
+#ifdef	ENABLE_NATIVE_HAP
+
+	virtual void setup_after_hap() ;
+#endif
 #if defined(ESP8266)
 	NTPClient* ptimeClient;
 #endif

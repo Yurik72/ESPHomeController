@@ -74,6 +74,7 @@ struct WeatherData{
   double temp=0;
   double pressure=0;
   double humidity=0;
+  double gas = 0;
 
   
 };
@@ -183,6 +184,7 @@ void clearRect(DispRect_t* pRect);
 void diagnostic();
 void refreshTime();
 void setBrightness(uint8_t br);
+int ColorForAirQuality(int level);
 void flushDisplay(bool partial=true);
 String format_date(time_t time);
 Adafruit_ST7735* pDisplay7735;

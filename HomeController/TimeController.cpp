@@ -14,7 +14,11 @@
 #include "esp_bt_main.h"
 //#include "esp_bt.h"
 #endif
-
+#ifdef	ENABLE_NATIVE_HAP
+extern "C" {
+#include "homeintegration.h"
+}
+#endif
 //const char* ntpServer = "pool.ntp.org";
 //const long  gmtOffset_sec = 7200;
 //const int   daylightOffset_sec = -3600;
@@ -131,8 +135,17 @@ void TimeController::setup_after_wifi() {
 	configTime(gmtOffset_sec, daylightOffset_sec, ntpServer.c_str());
 #endif
 	this->nextsleep = millis() + 300000; //5 min to give a chanse to update//this->sleepinterval;
+
 	TimeCtl::setup_after_wifi();
 }
+#ifdef	ENABLE_NATIVE_HAP
+void TimeController::setup_after_hap() {
+	if (enablesleep) {
+		DBG_OUTPUT_PORT.println("We are in sleep and will save power");
+		set_wifi_save_power_middle();
+	}
+}
+#endif
 void TimeController::run() {
 	
 #if defined TIMECONTROLLER_FULL_DEBUG
@@ -159,8 +172,10 @@ void TimeController::run() {
 #endif
 		newcmd.state.time_withoffs = newcmd.state.time;
 #ifdef ESP32
-		newcmd.state.time_withoffs+= gmtOffset_sec;
-		newcmd.state.time_withoffs -= daylightOffset_sec;
+
+		//newcmd.state.time_withoffs+= gmtOffset_sec;
+		if(timeinfo.tm_isdst)
+			newcmd.state.time_withoffs += daylightOffset_sec;
 #endif
 		//this->commands.Add(newcmd);
 		newcmd.mode = SET;
@@ -169,6 +184,8 @@ void TimeController::run() {
 #if defined TIMECONTROLLER_FULL_DEBUG
 		DBG_OUTPUT_PORT.print("Time ctl run ");
 		DBG_OUTPUT_PORT.println(newcmd.state.time);
+		DBG_OUTPUT_PORT.print("offs flag:");
+		DBG_OUTPUT_PORT.print(timeinfo.tm_isdst);
 		DBG_OUTPUT_PORT.println(getFormattedTime(newcmd.state.time));
 #endif
 	}

@@ -57,10 +57,12 @@
 #define CUSTOM_WEBASYNCFILEHANDLER  //Use custom file handler to distinguish real file and gzip 
 #define CUSTOM_WEBASYNCFILEHANDLER_GZIP_FIRST
 
+#define USE_ADAFRUIT_680
 //#define OLED_DEBUG
 //#define BMETRIGGER_DEBUG
 //#define DALLASCONTROLLER_DEBUG
 //#define DALLSATRIGGER_DEBUG
+//#define BME680CONTROLLER_DEBUG
 //#define TRIGGER_DEBUG  //debug triggers output enable
 //#define TIMECONTROLLER_DEBUG  //debug timecontroller output enable
 

@@ -7,6 +7,10 @@
 */
 #define ESPHOMECONTROLLER
 
+#if !defined(ESP8266) && !defined(ESP32)
+#error    "NOT SUPPORTED PLATFROM"
+#endif
+
 #include <Arduino.h>
 #include "config.h"
 
@@ -29,6 +33,7 @@
 #include "coredecls.h"
 #else
 #include <ESPmDNS.h>
+#include "esp_wifi.h"
 //#include <ESPAsyncDNSServer.h>
 #endif
 

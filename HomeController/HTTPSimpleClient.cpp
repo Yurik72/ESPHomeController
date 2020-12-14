@@ -90,8 +90,9 @@ bool HTTPSimpleClient::begin(String url)
 	}
 	_uri = url;
 	_secure = _protocol == "https";
-
+#ifdef DEBUG_HTTPCLIENT
 	DBG_OUTPUT_PORT.println("http begin start connection "+String(_host));
+#endif
 	return connect();
 }
 
@@ -441,8 +442,9 @@ bool HTTPSimpleClient::connect(void)
 	// set Timeout for WiFiClient and for Stream::readBytesUntil() and Stream::readStringUntil()
 	_client->setTimeout((_tcpTimeout + 500) / 1000);
 
-
+#ifdef DEBUG_HTTPCLIENT
 	DBG_OUTPUT_PORT.println(F("http finish connection"));
+#endif
 	return connected();
 }
 

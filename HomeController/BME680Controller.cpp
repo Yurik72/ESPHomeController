@@ -4,8 +4,12 @@
 #include "BaseController.h"
 #include "BME680Controller.h"
 #include <Wire.h>
-
-#include "Zanshin_BME680.h" 
+#ifdef USE_ADAFRUIT_680
+#include <Adafruit_Sensor.h>
+#include "Adafruit_BME680.h"
+#else
+#include "Zanshin_BME680.h"
+#endif
 
 //REGISTER_CONTROLLER(BME280Controller)
 #ifndef ESP8266 
@@ -23,15 +27,20 @@ BME680Controller::BME680Controller() {
 	this->isinit = false;
 	this->temp_corr = 0.0;
 	this->hum_corr = 0.0;
+	this->gas_lower_limit = 10000;  // Bad air quality limit
+	this->gas_upper_limit = 300000; // Good air quality limit
 #ifdef	ENABLE_NATIVE_HAP
 	this->ishap=true;
 	this->hapservice_temp=NULL;
 	this->hapservice_hum=NULL;
 	this->hapservice_press=NULL;
+	this->hapservice_gas = NULL;
 
 	this->hap_temp=NULL;
 	this->hap_hum=NULL;
 	this->hap_press=NULL;
+	this->hap_gas = NULL;
+	this->hap_level = NULL;
 #endif
 }
 String  BME680Controller::serializestate() {
@@ -64,7 +73,7 @@ bool  BME680Controller::deserializestate(String jsonstate, CmdSource src) {
 	newState.temp = root[FPSTR(sztemp)];
 	newState.hum = root[FPSTR(szhum)];
 	newState.pres = root[FPSTR(szpres)];
-	this->AddCommand(newState, BMESet, src);
+	this->AddCommand(newState, BME680Set, src);
 	//this->set_state(newState);
 	return true;
 
@@ -74,6 +83,9 @@ void BME680Controller::loadconfig(JsonObject& json) {
 	uselegacy = json["uselegacy"];
 	loadif(temp_corr, json, "temp_corr");
 	loadif(hum_corr, json, "hum_corr");
+	loadif(gas_lower_limit, json, "gas_ll");
+	loadif(gas_upper_limit, json, "gas_ul");
+
 }
 void BME680Controller::getdefaultconfig(JsonObject& json) {
 	json[FPSTR(szi2caddr)]= i2caddr;
@@ -92,23 +104,47 @@ void  BME680Controller::setup() {
 	DBG_OUTPUT_PORT.println("BME680Controller setup");
 	if (this->uselegacy) {
 		DBG_OUTPUT_PORT.println("Init Adafruit_BME680");
+#ifdef USE_ADAFRUIT_680
+		this->pbme = new Adafruit_BME680();
+#else
 		this->pbme = new BME680_Class();
-		//this->pbme=new Adafruit_BME280 (BME_CS, BME_SDO_MOSI, BME_SDI_MISO, BME_SCK); // software SPI
-		if (!this->pbme->begin(I2C_STANDARD_MODE)) { // Start BME680 using I2C, use first device found
+#endif
+
+#ifdef USE_ADAFRUIT_680
+		this->pbme = new Adafruit_BME680();
+		if (!this->pbme->begin()) {
+			DBG_OUTPUT_PORT.println("-  Unable to find BME680. ");
+		}
+		else
+		{
+			this->isinit = true;
+			this->pbme->setTemperatureOversampling(BME680_OS_8X);
+			this->pbme->setHumidityOversampling(BME680_OS_2X);
+			this->pbme->setPressureOversampling(BME680_OS_4X);
+			this->pbme->setIIRFilterSize(BME680_FILTER_SIZE_3);
+			this->pbme->setGasHeater(320, 150); // 320°C for 150 ms
+		}
+#else
+		if (!this->pbme->begin(I2C_STANDARD_MODE, this->i2caddr)) { // Start BME680 using I2C, use first device found
 			DBG_OUTPUT_PORT.println("-  Unable to find BME680. ");
 			//delay(5000);
 		}  // of loop until device is located
 
 		else {
-			this->isinit = true; 
-				this->pbme->setOversampling(TemperatureSensor, Oversample16);  // Use enumerated type values
-				this->pbme->setOversampling(HumiditySensor, Oversample16);     // Use enumerated type values
-				this->pbme->setOversampling(PressureSensor, Oversample16);     // Use enumerated type values
-				//Serial.print(F("- Setting IIR filter to a value of 4 samples\n"));
-				this->pbme->setIIRFilter(IIR4);  // Use enumerated type values
-			//Serial.print(F("- Setting gas measurement to 320\xC2\xB0\x43 for 150ms\n"));  // "°C" symbols
+			this->isinit = true;
+			this->pbme->setOversampling(TemperatureSensor, Oversample16);  // Use enumerated type values
+			this->pbme->setOversampling(HumiditySensor, Oversample16);     // Use enumerated type values
+			this->pbme->setOversampling(PressureSensor, Oversample16);     // Use enumerated type values
+			//Serial.print(F("- Setting IIR filter to a value of 4 samples\n"));
+			this->pbme->setIIRFilter(IIR4);  // Use enumerated type values
+		//Serial.print(F("- Setting gas measurement to 320\xC2\xB0\x43 for 150ms\n"));  // "°C" symbols
 			this->pbme->setGas(320, 150);  // 320°c for 150 milliseconds
-		}
+#ifdef  BME680CONTROLLER_DEBUG
+			DBG_OUTPUT_PORT.println("BME680 successfully init");
+#endif
+	}
+#endif
+	
 	}
 	else {
 		//DBG_OUTPUT_PORT.println("Init Direct read");
@@ -131,11 +167,12 @@ void BME680Controller::write8(byte reg, byte value) {
 }
 void BME680Controller::run() {
 	if (this->commands.GetSize() == 0) {
+		//DBG_OUTPUT_PORT.print("BME680Controller->run");
 		command newcmd;
-		newcmd.mode = BMEMeasure;
+		newcmd.mode = BME680Measure;
 		this->meassure(newcmd.state);
-#ifdef  BMECONTROLLER_DEBUG
-		DBG_OUTPUT_PORT.print("BME280Controller->");
+#ifdef  BME680CONTROLLER_DEBUG
+		DBG_OUTPUT_PORT.print("BME680Controller->");
 		DBG_OUTPUT_PORT.print("Temperature in Celsius : ");
 		DBG_OUTPUT_PORT.print(newcmd.state.temp);
 		DBG_OUTPUT_PORT.print("Pressure : ");
@@ -143,6 +180,9 @@ void BME680Controller::run() {
 		DBG_OUTPUT_PORT.print("Relative Humidity : ");
 		DBG_OUTPUT_PORT.print(newcmd.state.hum);
 		DBG_OUTPUT_PORT.println(" RH");
+		DBG_OUTPUT_PORT.print("Air quality: ");
+		DBG_OUTPUT_PORT.print(newcmd.state.gas);
+		DBG_OUTPUT_PORT.println(" Iaq");
 #endif //  LDRCONTROLLER_DEBUG
 
 		//this->commands.Add(newcmd);
@@ -169,17 +209,50 @@ bool BME680Controller::onpublishmqtt(String& endkey, String& payload) {
 void BME680Controller::onmqqtmessage(String topic, String payload) {
 	
 }
-
+int num_reading = 3;
 void BME680Controller::meassure(BME680State& state) {
-	static int32_t  temp, humidity, pressure, gas;
-	if (this->uselegacy) {
-		if (this->pbme && this->isinit) {
-			this->pbme->getSensorData(temp, humidity, pressure, gas);
-			state.temp = constrain(temp / 100.0F,-30,100);
-			state.pres = constrain(pressure / 100.0F,0,200);
-			state.hum = constrain(humidity / 1000.0F, 0, 100);
-			state.gas = gas / 100.0F;
+	int32_t  temp, humidity, pressure, gas;
+	int32_t  r_temp, r_humidity, r_pressure, r_gas;
+	if (this->uselegacy && this->pbme!=NULL && this->isinit) {
+
+#ifdef USE_ADAFRUIT_680
+		if (state.last_measure_ms == 0 || (millis() - state.last_measure_ms) > (5 * interval)) {
+			this->PrepareCalibrate();
 		}
+		state.hum = pbme->readHumidity();
+		state.temp = pbme->readTemperature();
+		state.pres = pbme->readPressure() / 100.0F;
+		int humidity_score = GetHumidityScore(state.hum);
+		state.gas_resistance = ReadGasReference();
+		state.gas = getpsevdoIaqGasScore(state.gas_resistance);
+		state.last_measure_ms = millis();
+//		DBG_OUTPUT_PORT.println(state.gas_resistance);
+//		DBG_OUTPUT_PORT.println(state.gas);
+		
+#else
+		if (this->pbme && this->isinit) {
+			r_temp = 0; r_humidity = 0; r_pressure = 0; r_gas = 0;
+			for (int i = 0; i < num_reading; i++) {
+				this->pbme->getSensorData(temp, humidity, pressure, gas);
+				r_temp += temp;
+				r_humidity += humidity;
+				r_pressure += pressure;
+				r_gas += gas;
+				delay(5);
+			}
+			temp = r_temp / num_reading;
+			humidity = r_humidity / num_reading;
+			pressure= r_pressure / num_reading;
+			gas= r_gas / num_reading;
+			state.temp = constrain(temp / 100.0F,-30,100);
+			state.pres = constrain(pressure / 100.0F,0,2000);
+			state.hum = constrain(humidity / 1000.0F, 0, 100);
+			DBG_OUTPUT_PORT.print("raw gas:");
+		    DBG_OUTPUT_PORT.println(gas);
+			state.gas = getIaqGasScore( gas /1.0F);
+			
+		}
+#endif
 	}
 	else {
 		
@@ -187,6 +260,57 @@ void BME680Controller::meassure(BME680State& state) {
 	}
 	state.temp += temp_corr;
 	state.hum += hum_corr;
+}
+#ifdef USE_ADAFRUIT_680
+void BME680Controller::PrepareCalibrate() {
+	int readings = 30;
+	uint32_t gas_reference = 0.0;
+	for (int i = 0; i < readings; i++) {
+		pbme->readGas();
+		delay(50);
+	}
+}
+uint32_t BME680Controller::ReadGasReference() {
+	// Now run the sensor for a burn-in period, then use combination of relative humidity and gas resistance to estimate indoor air quality as a percentage.
+	//Serial.println("Getting a new gas reference value");
+	int readings = 4;
+	uint32_t gas_reference = 0.0;
+	for (int i = 0; i < readings; i++)
+		pbme->readGas();
+	for (int i = 0; i < readings; i++) { // read gas for 10 x 0.150mS = 1.5secs
+		gas_reference += pbme->readGas();
+	}
+	gas_reference = gas_reference / readings;
+	return gas_reference;
+	//Serial.println("Gas Reference = "+String(gas_reference,3));
+}
+int  BME680Controller::GetHumidityScore(float current_humidity) {  //Calculate humidity contribution to IAQ index
+	int humidity_score = 0;
+	if (current_humidity >= 38 && current_humidity <= 42) // Humidity +/-5% around optimum
+		humidity_score = 0.25 * 100;
+	else
+	{ // Humidity is sub-optimal
+		if (current_humidity < 38)
+			humidity_score = 0.25 / hum_reference * current_humidity * 100;
+		else
+		{
+			humidity_score = ((-0.25 / (100 - hum_reference) * current_humidity) + 0.416666) * 100;
+		}
+	}
+	return humidity_score;
+}
+#endif
+
+int BME680Controller::getpsevdoIaqGasScore(int  val) {
+	//Calculate gas contribution to IAQ index
+	const int maxiaq = 500;
+	if (val > gas_upper_limit)
+		return maxiaq;
+	if (val < gas_lower_limit)
+		return 0;
+	int gas_score = maxiaq -( (val - gas_lower_limit) * maxiaq )/ (gas_upper_limit - gas_lower_limit);
+
+	return gas_score;
 }
 
 void BME680Controller::directmeassure(BME680State& state) {
@@ -385,26 +509,41 @@ void BME680Controller::directmeassure(BME680State& state) {
 	
 
 }
-
-
-
+//#define PAR_1 -0.42
+//#define PAR_2 1.92
+float BME680Controller::calc_PPM(float val) {
+	
+	return readScaled(val, -0.42, 1.92);
+}
+float BME680Controller::readScaled(float val, float a, float b) {
+	float ratio = val / factor;
+	return exp((log(ratio) - b) / a);
+}
+uint8_t BME680Controller::air_quality_level(float ppm, uint8_t min, uint8_t max) {
+	if (ppm < QUALITY_EXCELLENT_LEVEL)
+		return min + 1;
+	if (ppm > QUALITY_POOR_LEVEL)
+		return max;
+	return ((int)ppm) / ((QUALITY_POOR_LEVEL - QUALITY_EXCELLENT_LEVEL) / (float)(max - min));
+}
 #ifdef	ENABLE_NATIVE_HAP
 
 void BME680Controller::setup_hap_service(){
-
+	DBG_OUTPUT_PORT.println("BME280Controller::setup_hap_service()");
 #ifdef  BMECONTROLLER_DEBUG
 	DBG_OUTPUT_PORT.println("BME280Controller::setup_hap_service()");
 #endif
-
+	
 	if(!ishap)
 		return;
 	if(this->accessory_type>1){
-#ifdef  BMECONTROLLER_DEBUG
+#ifdef  BME680CONTROLLER_DEBUG
 			DBG_OUTPUT_PORT.println("BME280Controller adding as new accessory");
 #endif
 			//hap_add_temp_hum_as_accessory(this->accessory_type,this->get_name(),&this->hapservice_temp,&this->hapservice_hum);
 			this->hapservice_temp = hap_add_temp_as_accessory(this->accessory_type, this->get_name());
 			this->hapservice_hum = hap_add_hum_as_accessory(this->accessory_type, this->get_name());
+			//this->hapservice_hum = hap_add_hum_as_accessory(this->accessory_type, this->get_name());
 		}
 	else{
 		String tempName = this->get_name();
@@ -418,9 +557,14 @@ void BME680Controller::setup_hap_service(){
 		this->hap_temp=homekit_service_characteristic_by_type(this->hapservice_temp, HOMEKIT_CHARACTERISTIC_CURRENT_TEMPERATURE);
 	if(this->hapservice_hum)
 		this->hap_hum=homekit_service_characteristic_by_type(this->hapservice_hum, HOMEKIT_CHARACTERISTIC_CURRENT_RELATIVE_HUMIDITY);
-
-	DBG_OUTPUT_PORT.println(String("hap_temp")+String(int(hap_temp)));
-	DBG_OUTPUT_PORT.println(String("hap_hum") + String(int(hap_hum)));
+	
+	this->hapservice_gas = hap_add_air_quality_service_as_accessory(10, this->get_name());
+	
+    this->hap_gas = homekit_service_characteristic_by_type(this->hapservice_gas, HOMEKIT_CHARACTERISTIC_CARBON_DIOXIDE_LEVEL);
+	
+	this->hap_level = homekit_service_characteristic_by_type(this->hapservice_gas, HOMEKIT_CHARACTERISTIC_AIR_QUALITY);
+//	DBG_OUTPUT_PORT.println(String("hap_temp")+String(int(hap_temp)));
+	//DBG_OUTPUT_PORT.println(String("hap_hum") + String(int(hap_hum)));
 
 
 }
@@ -437,6 +581,19 @@ void BME680Controller::notify_hap(){
 		if(this->hap_hum->value.float_value!=newState.hum){
 			this->hap_hum->value.float_value = (float)newState.hum;
 				  homekit_characteristic_notify(this->hap_hum,this->hap_hum->value);
+		}
+	}
+	
+	if (this->ishap && this->hapservice_gas && this->hap_gas && this->isinit) {
+		BME680State newState = this->get_state();
+		//to do  raw iaq to ppm
+		float ppm = newState.gas*5.0F;
+		HAP_NOTIFY_CHANGES(float, hap_gas, ppm, 0.0)
+		//DBG_OUTPUT_PORT.println("notify hap");
+		//DBG_OUTPUT_PORT.println(newState.gas);
+		if (hap_level) {
+			uint8_t quality = CalculateIAQLevel(newState.gas);
+		   HAP_NOTIFY_CHANGES(int, hap_level, quality, 0)
 		}
 	}
 
