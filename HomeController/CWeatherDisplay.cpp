@@ -174,7 +174,7 @@ void WeatherDisplayController::run() {
 				break;
 			case WDSetCurrentData:
 				newState.data = cmd.state.data;
-
+				
 				bweather = dispMode == MainWether;
 				bInfo=bAllClear= dispMode == Info;
 				
@@ -707,7 +707,7 @@ if(disptype==ST7735){
 		pDisplay->println(format_doublestr("Press %.f",wdata.pressure));
 	 }else{
 	   pDisplay->setTextSize(2);
-	   if (wdata.gas > 0) {
+	   if (wdata.gas_resistance > 0) {
 		   pDisplay->setCursor(180, main_offset_y_wetaher);
 		   pDisplay->setTextColor(COLOR_LIGHTBLUE);
 		   pDisplay->print(format_doublestr("%.f %%", wdata.humidity));

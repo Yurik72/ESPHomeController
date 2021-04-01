@@ -29,6 +29,8 @@ BME680Controller::BME680Controller() {
 	this->hum_corr = 0.0;
 	this->gas_lower_limit = 10000;  // Bad air quality limit
 	this->gas_upper_limit = 300000; // Good air quality limit
+	this->coreMode = Core;
+	this->core = 0;
 #ifdef	ENABLE_NATIVE_HAP
 	this->ishap=true;
 	this->hapservice_temp=NULL;
@@ -171,7 +173,10 @@ void BME680Controller::run() {
 		command newcmd;
 		newcmd.mode = BME680Measure;
 		this->meassure(newcmd.state);
+
 #ifdef  BME680CONTROLLER_DEBUG
+		//DBG_OUTPUT_PORT.println("Start delay test");
+		//delay(30000);
 		DBG_OUTPUT_PORT.print("BME680Controller->");
 		DBG_OUTPUT_PORT.print("Temperature in Celsius : ");
 		DBG_OUTPUT_PORT.print(newcmd.state.temp);
@@ -226,6 +231,12 @@ void BME680Controller::meassure(BME680State& state) {
 		state.gas_resistance = ReadGasReference();
 		state.gas = getpsevdoIaqGasScore(state.gas_resistance);
 		state.last_measure_ms = millis();
+#ifdef  BME680CONTROLLER_DEBUG
+		DBG_OUTPUT_PORT.print("gas_resistance");
+		DBG_OUTPUT_PORT.println(state.gas_resistance);
+		DBG_OUTPUT_PORT.print("gas");
+		DBG_OUTPUT_PORT.println(state.gas);
+#endif 
 //		DBG_OUTPUT_PORT.println(state.gas_resistance);
 //		DBG_OUTPUT_PORT.println(state.gas);
 		
@@ -305,9 +316,9 @@ int BME680Controller::getpsevdoIaqGasScore(int  val) {
 	//Calculate gas contribution to IAQ index
 	const int maxiaq = 500;
 	if (val > gas_upper_limit)
-		return maxiaq;
-	if (val < gas_lower_limit)
 		return 0;
+	if (val < gas_lower_limit)
+		return maxiaq;
 	int gas_score = maxiaq -( (val - gas_lower_limit) * maxiaq )/ (gas_upper_limit - gas_lower_limit);
 
 	return gas_score;

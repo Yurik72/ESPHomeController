@@ -6,11 +6,12 @@
 
 #define MAX_CHANNELS 8
 #define MAX_ATTEMPTS 2
+#define UNDEFINNED_DATA -1.0
 struct ThingSpeakState
 {
 	ThingSpeakState() {
 		for (int i = 0; i < MAX_CHANNELS; i++)
-			data[i] = 0.0;
+			data[i] = UNDEFINNED_DATA;
 	}
 	bool isOn;
 	double data[MAX_CHANNELS] ;
@@ -41,6 +42,7 @@ protected:
 private:
 	String apiKey;
 	bool chanelusage[MAX_CHANNELS];
+	long lastsend_ms;
 };
 DEFINE_CONTROLLER_FACTORY(ThingSpeakController)
 

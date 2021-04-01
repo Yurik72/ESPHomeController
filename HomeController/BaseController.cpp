@@ -376,8 +376,11 @@ void runcoreloop(void*param)
 
 		if (self != NULL ) // &&  self->shouldRun())
 			self->runcore();
-		if (self->get_coremode() == Core && self->shouldRun()) {
+		if (self != NULL && self->get_coremode() == Core && self->shouldRun()) {
 			self->run();
+			Controllers* pc = Controllers::getInstance();
+			pc->run_trigger_for(self);
+
 			//DBG_OUTPUT_PORT.println("CBaseController::run from core");
 		}
 	    // https://github.com/espressif/arduino-esp32/issues/595

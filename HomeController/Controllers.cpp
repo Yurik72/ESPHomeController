@@ -526,6 +526,16 @@ void Controllers::handleloops() {
 	}
 
 }
+void Controllers::run_trigger_for(CBaseController* ctl) {
+	for (int j = 0; j < this->triggers.GetSize(); j++) {
+		Trigger* tr = this->triggers.GetAt(j);
+
+		if (strcmp(ctl->get_name(), tr->get_src()) == 0) {
+
+			tr->handleloop(ctl, this);
+		}
+	}
+}
 void Controllers::set_monitor_state(uint channel, bool isOn, long mask, uint masklen, uint duration) {
 	
 	if (pMonitor) {

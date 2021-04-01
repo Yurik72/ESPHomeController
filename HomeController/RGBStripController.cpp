@@ -412,6 +412,7 @@ RGBStripController::RGBStripController() {
 	this->text_timemode = 0;
 	this-> firemode = 0;
 	this -> snowmode = 0;
+	this->maxbr = 255;
 	this->matrixType = NEO_MATRIX_TOP + NEO_MATRIX_LEFT +
 		NEO_MATRIX_COLUMNS + NEO_MATRIX_ZIGZAG;
 	//rgbModes = "";
@@ -516,6 +517,8 @@ void RGBStripController::loadconfig(JsonObject& json) {
 	loadif(malimit, json,"malimit");
 	loadif(temperature, json, "temperature");
 	loadif(correction, json, "correction");
+	loadif(maxbr, json, "maxbr");
+	
 	//DBG_OUTPUT_PORT.println("matrixType");
 	//DBG_OUTPUT_PORT.println(matrixType);
 }
@@ -849,7 +852,10 @@ void RGBStripController::set_state(RGBState state) {
 			pEffect = NULL;
 		}
 	}
-
+	if (state.wxmode == 0 && state.brightness > this->maxbr) {
+		state.brightness = this->maxbr;
+		pStripWrapper->setBrightness(state.brightness);
+	}
 	pStripWrapper->trigger();
 	//CController::set_state(state);
 	//CManualStateController<RGBStripController, RGBState, RGBCMD>::set_state(state);
@@ -936,26 +942,44 @@ String RGBStripController::string_modes(void) {
 	if (rgbModes.length() > 0)
 		return rgbModes;
 	//rgbModes = "";
-	const size_t bufferSize = JSON_ARRAY_SIZE(pStripWrapper->getModeCount() + 3) +JSON_OBJECT_SIZE(520)+262;
+	//DBG_OUTPUT_PORT.println("load modes 1");
+#ifdef ESP8266
+	const size_t bufferSize = 800;// JSON_ARRAY_SIZE(pStripWrapper->getModeCount() + 5) + JSON_OBJECT_SIZE(200) + 100;
+#else
+	const size_t bufferSize = JSON_ARRAY_SIZE(pStripWrapper->getModeCount() + 5) + JSON_OBJECT_SIZE(200) + 400;
+#endif
 	DynamicJsonDocument jsonBuffer(bufferSize);
+#ifdef ESP8266
+	
 	JsonArray json = jsonBuffer.to<JsonArray>();
+#else
+	JsonArray json = jsonBuffer.to<JsonArray>();
+#endif
 	//DBG_OUTPUT_PORT.println("string_modes");
 	//DBG_OUTPUT_PORT.println(bufferSize);
+#ifdef ESP8266
+	for (uint8_t i = 50; i < pStripWrapper->getModeCount(); i++) {
+#else
 	for (uint8_t i = 0; i < pStripWrapper->getModeCount(); i++) {
+#endif
 		const __FlashStringHelper* pmd= pStripWrapper->getModeName(i);
 		if (!pmd)
 			continue;
 		JsonObject object = json.createNestedObject();
 		
 		object["mode"] = i;
-		object[FPSTR(szname)] = pmd;// pStripWrapper->getModeName(i);
+#ifdef ESP8266
+		object[FPSTR(szname)] = String(i);
+#else
+		object[FPSTR(szname)] =  pmd;// pStripWrapper->getModeName(i);
+#endif
 	}
 	JsonObject cycleobj = json.createNestedObject();
 	cycleobj["mode"] = this->cyclemode;
-	cycleobj[FPSTR(szname)] = F("Cycle modes");
+	cycleobj[FPSTR(szname)] = FPSTR("Cycle modes");
 	//JsonObject object = json.createNestedObject();
 	
-	String json_str;
+	//String json_str;
 	//json_str.reserve(4096);
 	//DBG_OUTPUT_PORT.println("load modes 3");
 	serializeJson(json, rgbModes);

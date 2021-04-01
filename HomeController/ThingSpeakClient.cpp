@@ -15,11 +15,13 @@ const char* thingspeakserver = "api.thingspeak.com";
 
 const size_t bufferSize = JSON_OBJECT_SIZE(20);
 
+
 ThingSpeakController::ThingSpeakController() {
 
 	for (int i = 0; i < MAX_CHANNELS; i++) {
 		chanelusage[i] = false;
 	}
+	lastsend_ms = 0;
 }
 String  ThingSpeakController::serializestate() {
 
@@ -84,16 +86,24 @@ void  ThingSpeakController::setup() {
 void ThingSpeakController::run() {
 #ifdef THINGSPEAK_DEBUG
 	DBG_OUTPUT_PORT.println("ThingSpeakController::run");
+	
 #endif
 	if (this->commands.GetSize() == 0) {
 		command newcmd;
 		newcmd.mode = TsSend;
 		newcmd.state = this->get_state();
 		//this->real_send();
+		if (lastsend_ms < newcmd.state.last_measure_ms) {
+#ifdef THINGSPEAK_DEBUG
+			DBG_OUTPUT_PORT.println(lastsend_ms);
+			DBG_OUTPUT_PORT.println(newcmd.state.last_measure_ms);
+			DBG_OUTPUT_PORT.println(newcmd.state.data[0]);
 
-
-		//this->commands.Add(newcmd);
-		this->AddCommand(newcmd.state, newcmd.mode, srcSelf);
+#endif
+			lastsend_ms = newcmd.state.last_measure_ms;
+			//this->commands.Add(newcmd);
+			this->AddCommand(newcmd.state, newcmd.mode, srcSelf);
+		}
 	}
 	command cmd;
 
@@ -117,6 +127,7 @@ void ThingSpeakController::set_state(ThingSpeakState state) {
 	//	digitalWrite(pin, (state.isOn ^ this->isinvert) ? HIGH : LOW);
 
 }
+
 void ThingSpeakController::real_send_attempts() {
 	bool bsuccess = false;
 	for (int i = 0; i < MAX_ATTEMPTS; i++) {
@@ -151,7 +162,7 @@ bool ThingSpeakController::real_send() {
 #ifdef THINGSPEAK_DEBUG
 			DBG_OUTPUT_PORT.println(String("Key ") + String(i ));
 #endif
-			if (chanelusage[i]) {
+			if (chanelusage[i] && this->get_state().data[i]!= UNDEFINNED_DATA) {
 
 				postStr += "&field" + String(i + 1) + "=";
 				postStr += String(this->get_state().data[i]);
@@ -203,5 +214,7 @@ bool ThingSpeakController::real_send() {
 	}
 
 	client.stop();
+	
+		
 	return bres;
 }

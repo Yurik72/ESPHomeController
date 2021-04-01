@@ -46,6 +46,7 @@ void runcoreloop(void*param);
 #endif
 #define CONTROLLER_MAX_COMMANDS 99
 class CBaseController;
+
 enum ControllerEvent {
 	SleepStart = 0,
 	SleepUp = 1

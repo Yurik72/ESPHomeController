@@ -970,7 +970,17 @@ void BME680ToThingSpeak::handleloopsvc(BME680Controller* ps, ThingSpeakControlle
 	BME680State l = ps->get_state();
 	ThingSpeakCMD cmd = TsSend;
 	ThingSpeakState newstate=pd->get_last_commandstate();
+#ifdef THINGSPEAK_DEBUG
+	DBG_OUTPUT_PORT.println("BME680ToThingSpeak");
+
+#endif
 	if (newstate.last_measure_ms < l.last_measure_ms) {
+#ifdef THINGSPEAK_DEBUG
+		
+		DBG_OUTPUT_PORT.println(newstate.last_measure_ms);
+		DBG_OUTPUT_PORT.println(l.last_measure_ms);
+		DBG_OUTPUT_PORT.println(l.temp);
+#endif
 		if (t_ch > 0) 	newstate.data[t_ch - 1] = l.temp;
 		if (h_ch > 0)  newstate.data[h_ch - 1] = l.hum;
 		if (p_ch > 0)  newstate.data[p_ch - 1] = l.pres;
@@ -1014,13 +1024,16 @@ void BME680ToWeatherDisplay::loadconfig(JsonObject& json) {
 void BME680ToWeatherDisplay::handleloopsvc(BME680Controller* ps, WeatherDisplayController* pd) {
 	TriggerFromService< BME680Controller, WeatherDisplayController>::handleloopsvc(ps, pd);
 	BME680State l = ps->get_state();
+	//DBG_OUTPUT_PORT.println("Trigger start");
 	WeatherDisplayCMD cmd = WDSetCurrentData;
 	WeatherDisplayState newstate;
 	newstate.data.temp = l.temp;
 	newstate.data.pressure = l.pres;
 	newstate.data.humidity = l.hum;
-	newstate.data.gas = l.gas;
-
+	newstate.data.gas = l.gas; 
+	newstate.data.gas_resistance = l.gas_resistance;
+	
+	//DBG_OUTPUT_PORT.println("Trigger");
 	pd->AddCommand(newstate, cmd, srcTrigger);
 }
 TimeToWeatherDisplay::TimeToWeatherDisplay() {

@@ -183,7 +183,7 @@ void RGB3ChController::setColor(uint8_t r, uint8_t g, uint8_t b) {
 	RGB3ChState state = this->get_state();
 	if (rpin > 0) {
 #ifdef ESP8266
-		analogWrite(rpin, DIMCALC_VAL(br, isinvert));
+		analogWrite(rpin, DIMCALC_VAL(CALC_COLOR(r, state.get_br_100()), false));
 #endif
 #ifdef ESP32
 		ledcWrite(rchannel, DIMCALC_VAL(CALC_COLOR(r, state.get_br_100()), false));
@@ -191,7 +191,7 @@ void RGB3ChController::setColor(uint8_t r, uint8_t g, uint8_t b) {
 	}
 	if (gpin > 0) {
 #ifdef ESP8266
-		analogWrite(gpin, DIMCALC_VAL(br, isinvert));
+		analogWrite(gpin, DIMCALC_VAL(CALC_COLOR(r, state.get_br_100()), false));
 #endif
 #ifdef ESP32
 		ledcWrite(gchannel, DIMCALC_VAL(CALC_COLOR(g, state.get_br_100()), false));
@@ -199,7 +199,7 @@ void RGB3ChController::setColor(uint8_t r, uint8_t g, uint8_t b) {
 	}
 	if (bpin > 0) {
 #ifdef ESP8266
-		analogWrite(bpin, DIMCALC_VAL(br, isinvert));
+		analogWrite(bpin, DIMCALC_VAL(CALC_COLOR(r, state.get_br_100()), false));
 #endif
 #ifdef ESP32
 		ledcWrite(bchannel, DIMCALC_VAL(CALC_COLOR(b, state.get_br_100()), false));

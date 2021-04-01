@@ -59,6 +59,8 @@ public:
 	virtual void raise_event(CBaseController* pSender,ControllerEvent evt, uint16_t evData);
 	void setTimeCtl(TimeController* p) { pTimeCtl = p; };
 	TimeController* getTimeCtl() { return  pTimeCtl; };
+	void run_trigger_for(CBaseController* ctl);
+	
 #if !defined ASYNC_WEBSERVER
 #if defined(ESP8266)
 	void setuphandlers(ESP8266WebServer& server);

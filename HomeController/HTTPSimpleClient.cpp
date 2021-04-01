@@ -424,6 +424,10 @@ bool HTTPSimpleClient::connect(void)
 		((WiFiClientSecure*)_client)->setInsecure();
 
 #endif
+#ifdef ESP32
+		((WiFiClientSecure*)_client)->setInsecure();
+
+#endif
 	}
 	else {
 		_client = new WiFiClient();

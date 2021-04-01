@@ -74,7 +74,8 @@ struct WeatherData{
   double temp=0;
   double pressure=0;
   double humidity=0;
-  double gas = 0;
+  double gas = 0; 
+  uint32_t gas_resistance = 0;
 
   
 };

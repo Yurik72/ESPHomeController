@@ -70,8 +70,8 @@
 //#define LDRCONTROLLER_DEBUG  //debug ldrcontroller output enable
 //#define BMECONTROLLER_DEBUG    //debug bme280controller output enable
 //#define RF_TRIGGER_DEBUG         //debug rf trigger
-//#define RELAYDIM_DEBUG    //debug relay dim
-//#define SERVO_DEBUG    //debug relay dim
+#define RELAYDIM_DEBUG    //debug relay dim
+#define SERVO_DEBUG    //debug relay dim
 //#define MQTT_DEBUG
 //#define FACTORY_DEBUG
 //#define RFCONTROLLER_DEBUG

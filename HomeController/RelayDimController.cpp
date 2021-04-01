@@ -108,6 +108,7 @@ void  RelayDimController::setup() {
 	ledcAttachPin(pin, channel);
 	pinMode(pin, OUTPUT);
 	setBrightness(100);
+
 //	if (gpio_hold_en((gpio_num_t)pin) != ESP_OK) {
 //		DBG_OUTPUT_PORT.println("rtc_gpio_hold_en error");
 //	}
@@ -180,6 +181,10 @@ void RelayDimController::setBrightness(uint8_t br) {
 #endif
 #ifdef ESP32
 	ledcWrite(channel, DIMCALC_VAL(br, isinvert));
+#ifdef RELAYDIM_DEBUG
+	DBG_OUTPUT_PORT.println("RelayDim setBrightness");
+	DBG_OUTPUT_PORT.println(br);
+#endif
 #endif
 }
 int RelayDimController::getLDRBrightness(int brigtness, int ldrval) {

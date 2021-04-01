@@ -3,6 +3,11 @@
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include "BaseController.h"
+#include "BMEHistory.h"
+
+#define PERIOD_HISTORY_MS 36000
+#define MAX_HISTORY_RECORDS 20
+
 #ifdef	ENABLE_NATIVE_HAP
 extern "C"{
 #include "homeintegration.h"
@@ -16,6 +21,7 @@ struct BMEState
 	double temp=0.0;
 	double hum = 0.0;
 	double pres = 0.0;
+	long gtime = 0;
 };
 enum BMECMD {
 	BMEOn = 1,
@@ -25,6 +31,7 @@ enum BMECMD {
 	BMERestore = 2048
 };
 class BME280Controller;
+typedef CBMEHistory<BMEState> BME280History;
 typedef CController<BME280Controller, BMEState, BMECMD> BME;
 class BME280Controller : public BME
 {
@@ -52,6 +59,7 @@ protected:
 	void write8(byte reg, byte value);
 	uint8_t i2caddr;
 	bool uselegacy;
+	bool usehistory;
 	bool isinit;
 	double temp_corr;
 	double hum_corr;
@@ -66,6 +74,8 @@ protected:
 	homekit_service_t* hapservice_press;
 	homekit_characteristic_t * hap_press;
 #endif
+	BME280History* pHistory;
+
 };
 DEFINE_CONTROLLER_FACTORY(BME280Controller)
 

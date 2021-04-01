@@ -8,12 +8,18 @@
 #include <Adafruit_Sensor.h>
 #include <Adafruit_BME280.h>
 
+
 //REGISTER_CONTROLLER(BME280Controller)
 #ifndef ESP8266 
 REGISTER_CONTROLLER_FACTORY(BME280Controller)
 #endif
 
 //BME280ControllerFactory* ff = new BME280ControllerFactory();
+
+String GetStateStringForHistory(BMEState state) {
+
+	return "";
+}
 
 const size_t bufferSize = JSON_OBJECT_SIZE(20);
 
@@ -34,6 +40,8 @@ BME280Controller::BME280Controller() {
 	this->hap_hum=NULL;
 	this->hap_press=NULL;
 #endif
+	this->usehistory = false;
+	this->pHistory = NULL;
 }
 String  BME280Controller::serializestate() {
 
@@ -75,6 +83,8 @@ void BME280Controller::loadconfig(JsonObject& json) {
 	uselegacy = json["uselegacy"];
 	loadif(temp_corr, json, "temp_corr");
 	loadif(hum_corr, json, "hum_corr");
+	loadif(usehistory, json, "usehistory");
+	
 }
 void BME280Controller::getdefaultconfig(JsonObject& json) {
 	json[FPSTR(szi2caddr)]= i2caddr;
@@ -91,6 +101,11 @@ void BME280Controller::getdefaultconfig(JsonObject& json) {
 #define BME_CS 14
 void  BME280Controller::setup() {
 	DBG_OUTPUT_PORT.println("BME280Controller setup");
+	if (usehistory) {
+		pHistory = new BME280History();
+		pHistory->SetSize(MAX_HISTORY_RECORDS);
+		pHistory->SetGetStringFn(GetStateStringForHistory);
+	}
 	if (this->uselegacy) {
 		DBG_OUTPUT_PORT.println("Init Adafruit_BME280");
 		this->pbme = new Adafruit_BME280();

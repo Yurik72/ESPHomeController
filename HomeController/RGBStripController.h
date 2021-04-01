@@ -307,6 +307,7 @@ private:
 	bool ismatrix;
 	uint8_t matrixWidth;
 	uint8_t matrixType;
+	uint8_t maxbr;
 	RGBStripEffect* pEffect;
 	uint8_t malimit;
 

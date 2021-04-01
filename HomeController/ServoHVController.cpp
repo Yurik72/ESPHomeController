@@ -96,12 +96,14 @@ void ServoHVController::getdefaultconfig(JsonObject& json) {
 	Servo::getdefaultconfig(json);
 }
 void  ServoHVController::setup() {
+	
 	pinMode(pin, OUTPUT);
 	//digitalWrite(pin, LOW);
 	if (this->pinV > 0) {  //setup vertical
 		
 #ifdef ESP32
-		
+		//bug skip one channel
+		int dummy=get_next_espchannel();
 		//this->channelV = get_next_available_channel();
 		this->channelV = get_next_espchannel();
 		ledcSetup(this->channelV, SERVO_FREQ, SERVO_BITS); // channel , 50 Hz, 
@@ -109,7 +111,7 @@ void  ServoHVController::setup() {
 #endif
 		pinMode(this->pinV, OUTPUT);
 	}
-	if (this->pinH > 0) {  //setup horizontal
+	if (this->pinH > 0 ) {  //setup horizontal
 	
 #ifdef ESP32
 	
@@ -120,7 +122,7 @@ void  ServoHVController::setup() {
 		pinMode(this->pinH, OUTPUT);
 #endif
 #ifdef SERVO_DEBUG
-		DBG_OUTPUT_PORT.println(F("RelayDimController::setup()"));
+		DBG_OUTPUT_PORT.println(F("ServoHVController::setup()"));
 		DBG_OUTPUT_PORT.print(F("Channel H:"));
 		DBG_OUTPUT_PORT.println(this->channelH);
 		DBG_OUTPUT_PORT.print(F("Channel V:"));

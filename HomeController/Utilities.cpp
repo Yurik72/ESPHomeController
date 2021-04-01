@@ -115,8 +115,8 @@ bool ICACHE_FLASH_ATTR readConfigFS() {
 				}
 				else
 					DBG_OUTPUT_PORT.println("Invalid load host name");
-
-				isOffline = json["offline"];
+				//TO DO !!!
+				//isOffline = json["offline"];
 
 				loadif(accessory_type, json, "acctype");
 
